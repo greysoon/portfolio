@@ -202,3 +202,25 @@
 | `frontend-engineer` | Senior Frontend Engineer | Wave 2 | `SIGNED_OFF` | Implemented `ui-ux-designer` a11y/reduced-motion specs, `data-analytics` telemetry hooks (`initTelemetry`, `trackInteraction`), and `SEC-01` / `SEC-04` security hardening across `src/App.tsx`, `TypingHeader.tsx`, `LiveAgeBio.tsx`, `ContactSection.tsx`, and `PastelGlobe.tsx`; verified `npx tsc --noEmit` passes with 0 errors. |
 | `backend-devops` | Backend & DevOps Engineer | Wave 2 | `SIGNED_OFF` | Upgraded `vite.config.ts` with `SEC-03` HTTP security headers (`server.headers` & `preview.headers`) and `manualChunks` (`three`, `antd`, `vendor`); documented `SEC-03` edge headers & SPA routing in `.do/app.yaml`; verified `npm run build` passes with zero >500 kB chunk warnings. |
 | `qa-tester` | QA Automation & Browser Tester | Wave 3 | `SIGNED_OFF` | Created `tests/verify-site.mjs` and verified `npm run build` (`0` errors), `node tests/verify-site.mjs` (`13/13 PASS`), and `node tests/security/red-team-audit.mjs` (`4/4 PASS`); certified release in Section 6. |
+
+---
+
+## 9. Sprint 02 — `automate.greyson.nl` Launch (`security-qa` Certification)
+
+- **Sprint Status**: `COMPLETED & CERTIFIED`
+- **Mission**: Launch the bilingual (`NL` / `EN`) Friesland AI & workflow automation microsite (`https://automate.greyson.nl`) within the existing portfolio SPA (`greyson.nl`), routed via DigitalOcean App Platform (`ALIAS`), with strict input validation, zero-PII telemetry, and CSP compatibility.
+- **Sprint 02 Deliverables Audited**:
+  - **`src/config/automateConfig.ts` (`copywriter`)**: Exports `AutomateLocale` (`'nl' | 'en'`) and `automateConfig` (`as const`) covering `automate.greyson.nl`, `grey.beimers@gmail.com`, `Friesland, Nederland`, 7 Frisian cities, bilingual hero & honest MKB/SME narrative, 2 core pillars, 4 practical use cases, and contact form copy.
+  - **`src/styles/automate.css` (`ui-ux-designer`)**: Harmonized dark-mode design system with `.automate-scroll-root`, WCAG AAA contrast, `:focus-visible` focus rings, `@media (max-width: 720px)` mobile layout, and `@media (prefers-reduced-motion: reduce)` fallbacks.
+  - **`src/components/AutomatePage.tsx`, `src/App.tsx`, `src/components/ContactSection.tsx` (`frontend-engineer`)**: Bilingual `NL`/`EN` switcher, `automate.*` / `/automate` / `?site=automate` route detection & view switching (`history.pushState` / `popstate`), preserved `.skip-link`, `main#main[tabIndex=-1]`, and `initTelemetry()`, plus interactive inquiry form targeting `mailto:grey.beimers@gmail.com` with clipboard fallback and `ContactSection.tsx` cross-link.
+  - **`.do/app.yaml` & `public/sitemap.xml` (`backend-devops`)**: Committed Sprint 01 (`c6118a8`), added `domain: automate.greyson.nl` (`type: ALIAS`) in `.do/app.yaml`, and added `https://automate.greyson.nl/` (`weekly`, `0.9`) to `public/sitemap.xml`.
+- **Security Audit Findings (`security-qa`)**:
+  - **Safe Rendering**: Zero `dangerouslySetInnerHTML`, `eval`, `new Function`, or unsafe HTML injection in `src/config/automateConfig.ts`, `src/styles/automate.css`, `src/components/AutomatePage.tsx`, `src/App.tsx`, and `src/components/ContactSection.tsx`.
+  - **Mailto Encoding & Input Bounds**: `AutomatePage.tsx` uses `encodeURIComponent(subject)` and `encodeURIComponent(body)` for `mailto:grey.beimers@gmail.com`, strips ASCII control characters via `sanitizeField`, and enforces strict `maxLength` attributes (`name`: `100`, `company`: `120`, `contact`: `120`, `message`: `1500`).
+  - **Zero-PII Telemetry**: `trackInteraction` calls across `AutomatePage.tsx`, `App.tsx`, and `ContactSection.tsx` transmit only non-PII metadata (`lang`, `interest` option label, `target`, `channel`).
+  - **CSP Compatibility**: `index.html` enforces `form-action 'self' mailto:;` alongside `default-src 'self'`, compatible with the inquiry form and `mailto:` links.
+- **Automated Test & Build Certification**:
+  - `npm run build` (`tsc -b && vite build`): **`PASS`** (`0` TypeScript/Vite errors; `dist/index.html` `4.59 kB`, `dist/assets/index-*.css` `15.99 kB`, `dist/assets/index-*.js` `145.34 kB`, `dist/assets/antd-*.js` `427.46 kB`, `dist/assets/three-*.js` `471.35 kB`, zero `.map` sourcemaps).
+  - `node tests/verify-site.mjs`: **`16 / 16 checks PASS`** (extended with `AutomatePage.tsx`, `automateConfig.ts`, `automate.css`, `App.tsx`, `ContactSection.tsx`, `.do/app.yaml`, and `dist/sitemap.xml` assertions).
+  - `node tests/security/red-team-audit.mjs`: **`6 / 6 checks PASS`** (`SEC-01` through `SEC-06`).
+- **Release Certification**: **SPRINT 02 CERTIFIED FOR PRODUCTION RELEASE (`SIGNED_OFF` by `security-qa`)**

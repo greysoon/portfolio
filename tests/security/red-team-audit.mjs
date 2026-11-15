@@ -1,27 +1,38 @@
 /**
- * Greyson Web Studio — Security Audit Verification Suite (`red-team-hacker`)
- * Verifies remediation status of SEC-01 through SEC-04 across source and configuration files.
+ * Greyson Web Studio — Security Audit Verification Suite (`red-team-hacker` / `security-qa`)
+ * Verifies remediation status of SEC-01 through SEC-06 across source and configuration files.
  */
 import fs from 'node:fs';
 import path from 'node:path';
 
 const rootDir = process.cwd();
 
+function readIfExists(relativePath) {
+  const fullPath = path.join(rootDir, relativePath);
+  return fs.existsSync(fullPath) ? fs.readFileSync(fullPath, 'utf8') : '';
+}
+
 export function runSecurityAuditChecks() {
-  const indexHtml = fs.readFileSync(path.join(rootDir, 'index.html'), 'utf8');
-  const viteConfig = fs.readFileSync(path.join(rootDir, 'vite.config.ts'), 'utf8');
-  const typingHeader = fs.readFileSync(
-    path.join(rootDir, 'src/components/TypingHeader.tsx'),
-    'utf8'
+  const indexHtml = readIfExists('index.html');
+  const viteConfig = readIfExists('vite.config.ts');
+  const typingHeader = readIfExists('src/components/TypingHeader.tsx');
+  const contactSection = readIfExists('src/components/ContactSection.tsx');
+  const pastelGlobe = readIfExists('src/components/PastelGlobe.tsx');
+  const automateConfig = readIfExists('src/config/automateConfig.ts');
+  const automatePage = readIfExists('src/components/AutomatePage.tsx');
+  const appYaml = readIfExists('.do/app.yaml');
+
+  const submitTelemetryMatch = automatePage.match(
+    /trackInteraction\(\s*'automate_inquiry_submit'\s*,\s*\{([\s\S]*?)\}\s*\)/
   );
-  const contactSection = fs.readFileSync(
-    path.join(rootDir, 'src/components/ContactSection.tsx'),
-    'utf8'
-  );
-  const pastelGlobe = fs.readFileSync(
-    path.join(rootDir, 'src/components/PastelGlobe.tsx'),
-    'utf8'
-  );
+  const submitTelemetryPayload = submitTelemetryMatch ? submitTelemetryMatch[1] : '';
+  const hasZeroPiiSubmitTelemetry =
+    Boolean(submitTelemetryMatch) &&
+    !/\b(cleanName|cleanCompany|cleanContact|cleanMessage|name|company|contact|message|email|subject|body)\b/.test(
+      submitTelemetryPayload
+    );
+
+  const maxLengthCount = (automatePage.match(/maxLength=\{/g) || []).length;
 
   const results = [
     {
@@ -59,6 +70,29 @@ export function runSecurityAuditChecks() {
         pastelGlobe.includes('scene.traverse') &&
         pastelGlobe.includes('geometry.dispose()'),
     },
+    {
+      id: 'SEC-05',
+      title: 'AutomatePage.tsx safe rendering, encodeURIComponent mailto:, maxLength bounds & zero-PII telemetry',
+      remediated:
+        Boolean(automatePage) &&
+        !automatePage.includes('dangerouslySetInnerHTML') &&
+        !/\beval\s*\(/.test(automatePage) &&
+        !automatePage.includes('.innerHTML') &&
+        automatePage.includes('encodeURIComponent') &&
+        automatePage.includes('mailto:grey.beimers@gmail.com') &&
+        maxLengthCount >= 4 &&
+        hasZeroPiiSubmitTelemetry,
+    },
+    {
+      id: 'SEC-06',
+      title: 'CSP form-action mailto:, automateConfig.ts domain/contact integrity & .do/app.yaml domain routing',
+      remediated:
+        indexHtml.includes("form-action 'self' mailto:") &&
+        automateConfig.includes('automate.greyson.nl') &&
+        automateConfig.includes('grey.beimers@gmail.com') &&
+        automateConfig.includes('Friesland') &&
+        appYaml.includes('domain: automate.greyson.nl'),
+    },
   ];
 
   return results;
@@ -71,4 +105,6 @@ if (failed.length > 0) {
   console.error(`Security audit failed: ${failed.map((f) => f.id).join(', ')}`);
   process.exit(1);
 }
-console.log('All SEC-01 through SEC-04 security checks PASSED (4/4).');
+console.log(
+  `All ${results[0].id} through ${results[results.length - 1].id} security checks PASSED (${results.length}/${results.length}).`
+);

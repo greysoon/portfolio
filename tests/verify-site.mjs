@@ -192,9 +192,62 @@ check('Accessibility & Styling', 'src/index.css defines :focus-visible, .skip-li
 });
 
 // ---------------------------------------------------------------------------
-// 6. Red Team / Blue Team Security Suite Integration (`SEC-01` .. `SEC-04`)
+// 6. Automate Friesland Microsite (`automate.greyson.nl`)
 // ---------------------------------------------------------------------------
-check('Security Ledger', 'All Red Team / Blue Team security controls (SEC-01 through SEC-04) pass verification', () => {
+check('Automate Copy & Config', 'src/config/automateConfig.ts exists and defines automate.greyson.nl, grey.beimers@gmail.com, Friesland, and NL/EN copy', () => {
+  const automateConfigPath = path.join(rootDir, 'src/config/automateConfig.ts');
+  assert.ok(fs.existsSync(automateConfigPath), 'Missing src/config/automateConfig.ts');
+  const src = fs.readFileSync(automateConfigPath, 'utf8');
+  assert.ok(src.includes('automate.greyson.nl'), 'Missing automate.greyson.nl in automateConfig.ts');
+  assert.ok(src.includes('grey.beimers@gmail.com'), 'Missing grey.beimers@gmail.com in automateConfig.ts');
+  assert.ok(src.includes('Friesland'), 'Missing Friesland in automateConfig.ts');
+  assert.ok(src.includes("export type AutomateLocale = 'nl' | 'en'"), 'Missing AutomateLocale type export');
+});
+
+check('Automate Component', 'src/components/AutomatePage.tsx exists, uses encodeURIComponent, enforces maxLength, and links mailto:grey.beimers@gmail.com', () => {
+  const automatePagePath = path.join(rootDir, 'src/components/AutomatePage.tsx');
+  assert.ok(fs.existsSync(automatePagePath), 'Missing src/components/AutomatePage.tsx');
+  const src = fs.readFileSync(automatePagePath, 'utf8');
+  assert.ok(src.includes('encodeURIComponent'), 'Missing encodeURIComponent in AutomatePage.tsx');
+  assert.ok(src.includes('maxLength'), 'Missing maxLength bounds in AutomatePage.tsx');
+  assert.ok(src.includes('mailto:grey.beimers@gmail.com'), 'Missing mailto:grey.beimers@gmail.com in AutomatePage.tsx');
+  assert.ok(!src.includes('dangerouslySetInnerHTML'), 'Unsafe dangerouslySetInnerHTML found in AutomatePage.tsx');
+});
+
+check('Automate Styling & Routing', 'src/styles/automate.css, App.tsx routing, ContactSection.tsx link, .do/app.yaml domain & sitemap.xml are configured', () => {
+  const automateCssPath = path.join(rootDir, 'src/styles/automate.css');
+  assert.ok(fs.existsSync(automateCssPath), 'Missing src/styles/automate.css');
+  const automateCss = fs.readFileSync(automateCssPath, 'utf8');
+  assert.ok(automateCss.includes('.automate-scroll-root'), 'Missing .automate-scroll-root in automate.css');
+
+  assert.ok(appSrc.includes('AutomatePage'), 'src/App.tsx must import/render AutomatePage');
+  assert.ok(appSrc.includes("startsWith('automate.')"), 'src/App.tsx must detect automate.* hostname');
+
+  const contactSectionSrc = fs.readFileSync(
+    path.join(rootDir, 'src/components/ContactSection.tsx'),
+    'utf8'
+  );
+  assert.ok(
+    contactSectionSrc.includes('automate.greyson.nl'),
+    'src/components/ContactSection.tsx must link to automate.greyson.nl'
+  );
+
+  const appYamlPath = path.join(rootDir, '.do/app.yaml');
+  assert.ok(fs.existsSync(appYamlPath), 'Missing .do/app.yaml');
+  const appYaml = fs.readFileSync(appYamlPath, 'utf8');
+  assert.ok(appYaml.includes('domain: automate.greyson.nl'), 'Missing domain: automate.greyson.nl in .do/app.yaml');
+
+  const distSitemap = fs.readFileSync(path.join(distDir, 'sitemap.xml'), 'utf8');
+  assert.ok(
+    distSitemap.includes('https://automate.greyson.nl/'),
+    'dist/sitemap.xml must include https://automate.greyson.nl/'
+  );
+});
+
+// ---------------------------------------------------------------------------
+// 7. Red Team / Blue Team Security Suite Integration (`SEC-01` .. `SEC-06`)
+// ---------------------------------------------------------------------------
+check('Security Ledger', 'All Red Team / Blue Team security controls (SEC-01 through SEC-06) pass verification', () => {
   const secResults = runSecurityAuditChecks();
   for (const item of secResults) {
     assert.ok(item.remediated, `Security check ${item.id} failed: ${item.title}`);
