@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { automateConfig, AutomateLocale } from '../config/automateConfig';
 import { trackInteraction } from '../utils/telemetry';
 import { capturePostHogEvent } from '../utils/posthogClient';
+import { BrandLogo } from './BrandLogo';
 import {
   buildInquirySubjectAndBody,
   copyInquiryTextToClipboard,
@@ -186,13 +187,7 @@ export const AboutMePage: React.FC<AboutMePageProps> = ({
               className="automate-brand"
               onClick={(e) => handleInternalRoute(e, 'home', onOpenHome)}
             >
-              <span className="brace" aria-hidden="true">
-                {'{'}
-              </span>
-              <span>{t.nav.brand}</span>
-              <span className="brace" aria-hidden="true">
-                {'}'}
-              </span>
+              <BrandLogo label={t.nav.brand} />
             </a>
 
             <div className="automate-nav-actions">
@@ -606,7 +601,10 @@ export const AboutMePage: React.FC<AboutMePageProps> = ({
         </main>
 
         <footer className="automate-footer">
-          <span>{t.footer.note}</span>
+          <div className="automate-footer-brand">
+            <BrandLogo size="sm" label={t.nav.brand} />
+            <span>{t.footer.note}</span>
+          </div>
           <div className="automate-footer-links">
             <a
               href={homeHref}

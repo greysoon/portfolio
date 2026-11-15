@@ -16,6 +16,7 @@ import {
   verifyOwnerPassphrase,
   verifyPostHogPersonalKey,
 } from '../utils/posthogClient';
+import { BrandLogo } from './BrandLogo';
 import '../styles/automate.css';
 
 interface AnalyticsDashboardProps {
@@ -344,13 +345,7 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({
         <div className="dashboard-container">
           <nav className="automate-nav" aria-label="Dashboard navigation">
             <span className="automate-brand">
-              <span className="brace" aria-hidden="true">
-                {'{'}
-              </span>
-              <span>GREYSON ANALYTICS</span>
-              <span className="brace" aria-hidden="true">
-                {'}'}
-              </span>
+              <BrandLogo label="GREYSON ANALYTICS" />
             </span>
 
             <div className="automate-nav-links">
@@ -530,13 +525,7 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({
           <header className="dashboard-header">
             <div>
               <span className="automate-brand">
-                <span className="brace" aria-hidden="true">
-                  {'{'}
-                </span>
-                <span>GREYSON ANALYTICS</span>
-                <span className="brace" aria-hidden="true">
-                  {'}'}
-                </span>
+                <BrandLogo label="GREYSON ANALYTICS" />
               </span>
               <div
                 style={{

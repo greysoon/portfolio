@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { automateConfig, AutomateLocale } from '../config/automateConfig';
 import { trackInteraction } from '../utils/telemetry';
 import { capturePostHogEvent } from '../utils/posthogClient';
+import { BrandLogo } from './BrandLogo';
 import '../styles/automate.css';
 
 export interface InquiryFormPayload {
@@ -290,13 +291,7 @@ export const AutomatePage: React.FC<AutomatePageProps> = ({
         <header>
           <nav className="automate-nav" aria-label="Primary navigation">
             <a href="#overzicht" className="automate-brand">
-              <span className="brace" aria-hidden="true">
-                {'{'}
-              </span>
-              <span>{t.nav.brand}</span>
-              <span className="brace" aria-hidden="true">
-                {'}'}
-              </span>
+              <BrandLogo label={t.nav.brand} />
             </a>
 
             <div className="automate-nav-actions">
@@ -732,7 +727,10 @@ export const AutomatePage: React.FC<AutomatePageProps> = ({
         </main>
 
         <footer className="automate-footer">
-          <span>{t.footer.note}</span>
+          <div className="automate-footer-brand">
+            <BrandLogo size="sm" label={t.nav.brand} />
+            <span>{t.footer.note}</span>
+          </div>
           <div className="automate-footer-links">
             <a
               href={aboutHref}

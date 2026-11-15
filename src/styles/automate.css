@@ -72,7 +72,7 @@
 .automate-brand {
   display: inline-flex;
   align-items: center;
-  gap: 2px;
+  gap: 10px;
   margin: 0;
   color: var(--text-primary);
   font-size: clamp(1.05rem, 2.2vw, 1.35rem);
@@ -82,8 +82,56 @@
   white-space: nowrap;
 }
 
+.automate-brand-lockup {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.automate-logo-mark {
+  display: block;
+  flex-shrink: 0;
+  border-radius: 9px;
+  box-shadow: 0 3px 10px rgba(217, 79, 72, 0.14);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+a.automate-brand:hover .automate-logo-mark,
+.automate-footer-brand:hover .automate-logo-mark {
+  transform: translateY(-1px) scale(1.03);
+  box-shadow: 0 6px 16px rgba(217, 79, 72, 0.22);
+}
+
+.automate-brand-copy {
+  display: inline-flex;
+  flex-direction: column;
+  line-height: 1.15;
+}
+
+.automate-brand-text {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+}
+
+.automate-brand-sub {
+  color: var(--text-secondary);
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.automate-footer-brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
 .automate-nav .brace,
-.automate-brand .brace {
+.automate-brand .brace,
+.automate-brand-text .brace {
   color: var(--pastel-red);
 }
 
@@ -1280,6 +1328,7 @@
 
   .automate-back-link,
   .automate-nav-link,
+  .automate-logo-mark,
   .lang-btn,
   .automate-btn-primary,
   .automate-btn-secondary,
@@ -1294,6 +1343,8 @@
 
   .automate-btn-primary:hover,
   .automate-btn-secondary:hover,
+  a.automate-brand:hover .automate-logo-mark,
+  .automate-footer-brand:hover .automate-logo-mark,
   .automate-card:hover,
   .automate-step-card:hover,
   .dashboard-kpi-card:hover {

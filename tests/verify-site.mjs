@@ -362,6 +362,41 @@ check('Clear Sections & About Me Page', 'AutomatePage uses numbered sections wit
   }
 });
 
+check('Brand Logo System', 'public/logo.svg, public/favicon.svg, manifest.webmanifest, index.html & BrandLogo.tsx integrate the Greyson logo across views', () => {
+  for (const asset of ['logo.svg', 'favicon.svg']) {
+    const distAsset = path.join(distDir, asset);
+    assert.ok(fs.existsSync(distAsset), `Missing build output: dist/${asset}`);
+    assert.ok(fs.statSync(distAsset).size > 0, `Empty build output: dist/${asset}`);
+  }
+
+  const brandLogoPath = path.join(rootDir, 'src/components/BrandLogo.tsx');
+  assert.ok(fs.existsSync(brandLogoPath), 'Missing src/components/BrandLogo.tsx');
+  const brandLogoSrc = fs.readFileSync(brandLogoPath, 'utf8');
+  assert.ok(brandLogoSrc.includes('export const BrandLogo'), 'Missing BrandLogo export');
+  assert.ok(!brandLogoSrc.includes('dangerouslySetInnerHTML'), 'Unsafe dangerouslySetInnerHTML in BrandLogo.tsx');
+
+  for (const componentPath of [
+    'src/components/AutomatePage.tsx',
+    'src/components/AboutMePage.tsx',
+    'src/components/AnalyticsDashboard.tsx',
+  ]) {
+    const src = fs.readFileSync(path.join(rootDir, componentPath), 'utf8');
+    assert.ok(src.includes('BrandLogo'), `${componentPath} must render BrandLogo`);
+  }
+
+  assert.ok(indexHtml.includes('rel="apple-touch-icon" href="/logo.svg"'), 'index.html missing apple-touch-icon /logo.svg link');
+  const manifestJson = JSON.parse(fs.readFileSync(path.join(distDir, 'manifest.webmanifest'), 'utf8'));
+  assert.equal(manifestJson.background_color, '#F7F5F2', 'manifest.webmanifest must use #F7F5F2 background_color');
+  assert.equal(manifestJson.theme_color, '#D94F48', 'manifest.webmanifest must use #D94F48 theme_color');
+  assert.ok(
+    Array.isArray(manifestJson.icons) && manifestJson.icons.some((icon) => icon.src === '/logo.svg'),
+    'manifest.webmanifest icons must include /logo.svg'
+  );
+
+  const automateCss = fs.readFileSync(path.join(rootDir, 'src/styles/automate.css'), 'utf8');
+  assert.ok(automateCss.includes('.automate-logo-mark'), 'Missing .automate-logo-mark in src/styles/automate.css');
+});
+
 check('PostHog & Dashboard', 'posthogClient.ts, AnalyticsDashboard.tsx & automate.css provide SHA-256 auth, live PostHog client & dashboard UI', () => {
   const posthogPath = path.join(rootDir, 'src/utils/posthogClient.ts');
   const dashboardPath = path.join(rootDir, 'src/components/AnalyticsDashboard.tsx');

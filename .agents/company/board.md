@@ -262,6 +262,7 @@
   - **Deployment Domain Isolation**: Verified `.do/app.yaml` excludes `about.greyson.nl` / `cv.greyson.nl` and `.do/cv-about-app.yaml` exclusively claims `cv.greyson.nl` / `about.greyson.nl`.
 - **Automated Test & Build Certification**:
   - `npm run build` (`tsc -b && vite build`): **`PASS`** (`0` TypeScript/Vite errors; `1447` modules transformed; `dist/index.html` `4.64 kB`, `dist/assets/index-*.css` `26.40 kB`, `dist/assets/index-*.js` `212.59 kB`, `dist/assets/antd-*.js` `426.23 kB`, `dist/assets/three-*.js` `471.35 kB`).
-  - `node tests/verify-site.mjs`: **`20 / 20 checks PASS`** (including `Subdomain Routing & CV`, `Clear Sections & About Me Page`, `PostHog & Dashboard`, and `SEC-01`–`SEC-08`).
+  - `node tests/verify-site.mjs`: **`21 / 21 checks PASS`** (including `Subdomain Routing & CV`, `Clear Sections & About Me Page`, `Brand Logo System`, `PostHog & Dashboard`, and `SEC-01`–`SEC-08`).
   - `node tests/security/red-team-audit.mjs`: **`8 / 8 checks PASS`** (`SEC-01` through `SEC-08`).
+  - **Brand Logo System (`ui-ux-designer`, `frontend-engineer`, `marketing-seo`)**: Created scalable geometric `{G}` + AI node-spark logo assets (`public/logo.svg`, refreshed `public/favicon.svg`, `public/manifest.webmanifest` `#F7F5F2`/`#D94F48`, `index.html` `apple-touch-icon`), built reusable `src/components/BrandLogo.tsx` (unique gradient IDs via `useId()`), added `.automate-logo-mark` styling + reduced-motion support in `src/styles/automate.css`, and integrated `BrandLogo` across `AutomatePage.tsx`, `AboutMePage.tsx`, and `AnalyticsDashboard.tsx`.
 - **Release Certification**: **SPRINT 04 CERTIFIED FOR PRODUCTION RELEASE (`SIGNED_OFF` by `security-qa`)**

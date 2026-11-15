@@ -1,17 +1,23 @@
 {
-  "name": "Greyson Beimers — Software Engineer",
+  "name": "Greyson Automatisering — AI & Software Studio",
   "short_name": "Greyson",
-  "description": "Greyson Beimers is a software engineer based in Amsterdam, the Netherlands (52.37°N, 4.90°E), crafting modern web applications, interactive 3D experiences, and high-performance software.",
+  "description": "Praktische AI, workflow-automatisering en moderne webapps voor bedrijven in Friesland en daarbuiten.",
   "start_url": "/",
   "display": "standalone",
-  "background_color": "#121316",
-  "theme_color": "#121316",
+  "background_color": "#F7F5F2",
+  "theme_color": "#D94F48",
   "icons": [
     {
       "src": "/favicon.svg",
       "sizes": "any",
       "type": "image/svg+xml",
       "purpose": "any maskable"
+    },
+    {
+      "src": "/logo.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
     }
   ]
 }
