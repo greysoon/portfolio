@@ -1,6 +1,6 @@
 /**
  * Greyson Web Studio — Security Audit Verification Suite (`red-team-hacker` / `security-qa`)
- * Verifies remediation status of SEC-01 through SEC-07 across source and configuration files.
+ * Verifies remediation status of SEC-01 through SEC-08 across source and configuration files.
  */
 import fs from 'node:fs';
 import path from 'node:path';
@@ -27,18 +27,27 @@ export function runSecurityAuditChecks() {
   const appYaml = readIfExists('.do/app.yaml');
   const posthogClient = readIfExists('src/utils/posthogClient.ts');
   const analyticsDashboard = readIfExists('src/components/AnalyticsDashboard.tsx');
+  const aboutMePage = readIfExists('src/components/AboutMePage.tsx');
+  const cvAboutYaml = readIfExists('.do/cv-about-app.yaml');
 
-  const submitTelemetryMatch = automatePage.match(
-    /trackInteraction\(\s*'automate_inquiry_submit'\s*,\s*\{([\s\S]*?)\}\s*\)/
-  );
-  const submitTelemetryPayload = submitTelemetryMatch ? submitTelemetryMatch[1] : '';
-  const hasZeroPiiSubmitTelemetry =
-    Boolean(submitTelemetryMatch) &&
-    !/\b(cleanName|cleanCompany|cleanContact|cleanMessage|name|company|contact|message|email|subject|body)\b/.test(
-      submitTelemetryPayload
+  const checkZeroPiiSubmit = (src) => {
+    const match = src.match(
+      /trackInteraction\(\s*'automate_inquiry_submit'\s*,\s*\{([\s\S]*?)\}\s*\)/
     );
+    const payload = match ? match[1] : '';
+    return (
+      Boolean(match) &&
+      !/\b(cleanName|cleanCompany|cleanContact|cleanMessage|name|company|contact|message|email|subject|body)\b/.test(
+        payload
+      )
+    );
+  };
+
+  const hasZeroPiiSubmitTelemetry = checkZeroPiiSubmit(automatePage);
+  const aboutZeroPiiSubmitTelemetry = checkZeroPiiSubmit(aboutMePage);
 
   const maxLengthCount = (automatePage.match(/maxLength=\{/g) || []).length;
+  const aboutMaxLengthCount = (aboutMePage.match(/maxLength=\{/g) || []).length;
   const dashboardMaxLengthCount = (analyticsDashboard.match(/maxLength=\{/g) || []).length;
   const posthogClientCode = stripComments(posthogClient);
   const hasSha256Constant = /OWNER_PASSPHRASE_SHA256\s*=\s*'[a-f0-9]{64}'/.test(
@@ -122,6 +131,21 @@ export function runSecurityAuditChecks() {
         dashboardMaxLengthCount >= 7 &&
         indexHtml.includes('https://*.posthog.com') &&
         indexHtml.includes('https://*.i.posthog.com'),
+    },
+    {
+      id: 'SEC-08',
+      title: 'AboutMePage.tsx safe rendering, noopener LinkedIn, maxLength bounds, zero-PII telemetry & isolated CV/About DO app config',
+      remediated:
+        hasSafeSinks(aboutMePage) &&
+        aboutMePage.includes('encodeURIComponent') &&
+        aboutMePage.includes('mailto:grey.beimers@gmail.com') &&
+        aboutMePage.includes('rel="noopener noreferrer"') &&
+        aboutMaxLengthCount >= 4 &&
+        aboutZeroPiiSubmitTelemetry &&
+        !appYaml.includes('about.greyson.nl') &&
+        !appYaml.includes('cv.greyson.nl') &&
+        cvAboutYaml.includes('domain: cv.greyson.nl') &&
+        cvAboutYaml.includes('domain: about.greyson.nl'),
     },
   ];
 

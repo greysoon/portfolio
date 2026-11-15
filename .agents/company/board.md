@@ -246,3 +246,22 @@
   - `node tests/verify-site.mjs`: **`19 / 19 checks PASS`** (including `Light + Red Theme`, `Subdomain Routing & CV`, `PostHog & Dashboard`, and `SEC-01`–`SEC-07`).
   - `node tests/security/red-team-audit.mjs`: **`7 / 7 checks PASS`** (`SEC-01` through `SEC-07`).
 - **Release Certification**: **SPRINT 03 CERTIFIED FOR PRODUCTION RELEASE (`SIGNED_OFF` by `security-qa`)**
+
+---
+
+## 11. Sprint 04 — Clear Sections, Internal About Me Page & Dedicated Free CV/About App (`security-qa` Certification)
+
+- **Sprint Scope Delivered**:
+  - **`src/components/AboutMePage.tsx` & `src/config/automateConfig.ts` (`frontend-engineer`, `copywriter`)**: Internal `/over-mij` About Me page (`NL`/`EN` toggle, background, Friesland approach, LinkedIn link with `rel="noopener noreferrer"`, direct `mailto:grey.beimers@gmail.com`, and `#about-contact` inquiry form sharing `INQUIRY_MAX_LENGTHS` `100`/`120`/`120`/`1500` and `sanitizeInquiryField`); removed all links to `about.greyson.nl` and `cv.greyson.nl` from `automateConfig.ts`, `AutomatePage.tsx`, `AboutMePage.tsx`, and `AnalyticsDashboard.tsx`.
+  - **`src/components/AutomatePage.tsx` & `src/App.tsx` (`frontend-engineer`, `copywriter`)**: Numbered sections (`01` `#diensten`, `02` `#automate-usecases`, `03` `#werkwijze`, `04` `#over-mij`, `05` `#automate-contact`) with `.automate-steps-grid` and `.automate-about-teaser`; updated `resolveViewFromLocation()` and `navigateToView()` to serve `/over-mij` internally as `'about'` (`AboutMePage`) while preserving `'portfolio'` on `about.`/`cv.` hosts.
+  - **`src/styles/automate.css` (`ui-ux-designer`)**: Added `.automate-steps-grid`, `.automate-about-grid`, and `.automate-step-card` layout styles with responsive `@media (max-width: 720px)` and `@media (prefers-reduced-motion: reduce)` rules.
+  - **`.do/app.yaml`, `.do/cv-about-app.yaml`, `public/sitemap.xml` (`backend-devops`)**: Scoped `.do/app.yaml` (`greyson-nl-portfolio`, `ams`) strictly to `greyson.nl`, `www.greyson.nl`, `automation.greyson.nl`, and `automate.greyson.nl`; created dedicated free static app manifest `.do/cv-about-app.yaml` (`greyson-cv-about`, `ams`) serving `cv.greyson.nl` (`PRIMARY`) and `about.greyson.nl` (`ALIAS`); added `https://greyson.nl/over-mij` to `public/sitemap.xml`.
+- **Security Audit Findings (`security-qa` — `SEC-08` Closed)**:
+  - **Safe Rendering & External Link Hardening**: Zero `dangerouslySetInnerHTML`, `eval(`, or `.innerHTML` across `AboutMePage.tsx`, `AutomatePage.tsx`, `App.tsx`, and `AnalyticsDashboard.tsx`; external LinkedIn links enforce `rel="noopener noreferrer"`.
+  - **Bounded Inputs, `mailto:` Encoding & Zero-PII Telemetry**: `AboutMePage.tsx` enforces `maxLength` (`100`/`120`/`120`/`1500`) + `sanitizeInquiryField` on all 4 form inputs, encodes `mailto:grey.beimers@gmail.com` parameters via `encodeURIComponent`, and emits only `{ interest, lang }` in `automate_inquiry_submit` telemetry.
+  - **Deployment Domain Isolation**: Verified `.do/app.yaml` excludes `about.greyson.nl` / `cv.greyson.nl` and `.do/cv-about-app.yaml` exclusively claims `cv.greyson.nl` / `about.greyson.nl`.
+- **Automated Test & Build Certification**:
+  - `npm run build` (`tsc -b && vite build`): **`PASS`** (`0` TypeScript/Vite errors; `1447` modules transformed; `dist/index.html` `4.64 kB`, `dist/assets/index-*.css` `26.40 kB`, `dist/assets/index-*.js` `212.59 kB`, `dist/assets/antd-*.js` `426.23 kB`, `dist/assets/three-*.js` `471.35 kB`).
+  - `node tests/verify-site.mjs`: **`20 / 20 checks PASS`** (including `Subdomain Routing & CV`, `Clear Sections & About Me Page`, `PostHog & Dashboard`, and `SEC-01`–`SEC-08`).
+  - `node tests/security/red-team-audit.mjs`: **`8 / 8 checks PASS`** (`SEC-01` through `SEC-08`).
+- **Release Certification**: **SPRINT 04 CERTIFIED FOR PRODUCTION RELEASE (`SIGNED_OFF` by `security-qa`)**

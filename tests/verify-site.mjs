@@ -258,7 +258,7 @@ check('Light + Red Theme', 'index.css, siteConfig.ts, index.html, App.tsx & Past
   assert.ok(pastelGlobeSrc.includes('#EFECE6'), 'PastelGlobe.tsx ocean sphere must use warm light stone #EFECE6');
 });
 
-check('Subdomain Routing & CV', 'App.tsx routes greyson.nl/automation to automate, about/cv to portfolio+CV, /dashboard to AnalyticsDashboard & .do/app.yaml/sitemap include all domains', () => {
+check('Subdomain Routing & CV', 'App.tsx routes greyson.nl/automation to automate, /over-mij to AboutMePage, about/cv to portfolio+CV, /dashboard to AnalyticsDashboard & DO app manifests isolate domains', () => {
   assert.ok(appSrc.includes('resolveViewFromLocation'), 'Missing resolveViewFromLocation in App.tsx');
   assert.ok(appSrc.includes("host.startsWith('dashboard.')"), 'App.tsx must route dashboard.*');
   assert.ok(appSrc.includes("host.startsWith('about.')"), 'App.tsx must route about.*');
@@ -280,21 +280,85 @@ check('Subdomain Routing & CV', 'App.tsx routes greyson.nl/automation to automat
     'domain: www.greyson.nl',
     'domain: automation.greyson.nl',
     'domain: automate.greyson.nl',
-    'domain: about.greyson.nl',
-    'domain: cv.greyson.nl',
   ]) {
     assert.ok(appYaml.includes(domain), `Missing ${domain} in .do/app.yaml`);
+  }
+  assert.ok(
+    !appYaml.includes('about.greyson.nl') && !appYaml.includes('cv.greyson.nl'),
+    '.do/app.yaml must not claim about.greyson.nl or cv.greyson.nl (moved to .do/cv-about-app.yaml)'
+  );
+
+  const cvAboutYamlPath = path.join(rootDir, '.do/cv-about-app.yaml');
+  assert.ok(fs.existsSync(cvAboutYamlPath), 'Missing .do/cv-about-app.yaml');
+  const cvAboutYaml = fs.readFileSync(cvAboutYamlPath, 'utf8');
+  assert.ok(
+    cvAboutYaml.includes('name: greyson-cv-about'),
+    'Missing name: greyson-cv-about in .do/cv-about-app.yaml'
+  );
+  for (const domain of ['domain: cv.greyson.nl', 'domain: about.greyson.nl']) {
+    assert.ok(cvAboutYaml.includes(domain), `Missing ${domain} in .do/cv-about-app.yaml`);
   }
 
   const distSitemap = fs.readFileSync(path.join(distDir, 'sitemap.xml'), 'utf8');
   for (const url of [
     'https://greyson.nl/',
+    'https://greyson.nl/over-mij',
     'https://automation.greyson.nl/',
     'https://automate.greyson.nl/',
     'https://about.greyson.nl/',
     'https://cv.greyson.nl/',
   ]) {
     assert.ok(distSitemap.includes(url), `Missing ${url} in dist/sitemap.xml`);
+  }
+});
+
+// ---------------------------------------------------------------------------
+// 8. Sprint 04 — Clear Sections, Internal About Me Page & Free CV/About App Split
+// ---------------------------------------------------------------------------
+check('Clear Sections & About Me Page', 'AutomatePage uses numbered sections without external about/cv links; AboutMePage renders /over-mij cleanly', () => {
+  const automatePageSrc = fs.readFileSync(path.join(rootDir, 'src/components/AutomatePage.tsx'), 'utf8');
+  const aboutMePath = path.join(rootDir, 'src/components/AboutMePage.tsx');
+  const automateConfigSrc = fs.readFileSync(path.join(rootDir, 'src/config/automateConfig.ts'), 'utf8');
+  const dashboardSrc = fs.readFileSync(path.join(rootDir, 'src/components/AnalyticsDashboard.tsx'), 'utf8');
+  const automateCss = fs.readFileSync(path.join(rootDir, 'src/styles/automate.css'), 'utf8');
+
+  assert.ok(fs.existsSync(aboutMePath), 'Missing src/components/AboutMePage.tsx');
+  const aboutMeSrc = fs.readFileSync(aboutMePath, 'utf8');
+
+  for (const sectionId of [
+    'id="diensten"',
+    'id="automate-usecases"',
+    'id="werkwijze"',
+    'id="over-mij"',
+    'id="automate-contact"',
+  ]) {
+    assert.ok(automatePageSrc.includes(sectionId), `Missing ${sectionId} in AutomatePage.tsx`);
+  }
+
+  for (const [label, src] of [
+    ['AutomatePage.tsx', automatePageSrc],
+    ['AboutMePage.tsx', aboutMeSrc],
+    ['automateConfig.ts', automateConfigSrc],
+    ['AnalyticsDashboard.tsx', dashboardSrc],
+  ]) {
+    assert.ok(
+      !src.includes('about.greyson.nl') && !src.includes('cv.greyson.nl'),
+      `${label} must not link to about.greyson.nl or cv.greyson.nl`
+    );
+  }
+
+  assert.ok(automateConfigSrc.includes("aboutPath: '/over-mij'"), "automateConfig.ts must define aboutPath: '/over-mij'");
+  assert.ok(appSrc.includes('AboutMePage'), 'App.tsx must import/render AboutMePage');
+  assert.ok(appSrc.includes("'/over-mij'"), "App.tsx must route '/over-mij'");
+
+  assert.ok(aboutMeSrc.includes('id="about-contact"'), 'Missing id="about-contact" in AboutMePage.tsx');
+  assert.ok(aboutMeSrc.includes('mailto:grey.beimers@gmail.com'), 'Missing mailto:grey.beimers@gmail.com in AboutMePage.tsx');
+  assert.ok(aboutMeSrc.includes('rel="noopener noreferrer"'), 'Missing rel="noopener noreferrer" on external links in AboutMePage.tsx');
+  assert.ok(aboutMeSrc.includes('encodeURIComponent'), 'Missing encodeURIComponent in AboutMePage.tsx');
+  assert.ok(aboutMeSrc.includes('maxLength'), 'Missing maxLength bounds in AboutMePage.tsx');
+
+  for (const cls of ['.automate-steps-grid', '.automate-about-grid']) {
+    assert.ok(automateCss.includes(cls), `Missing CSS selector in src/styles/automate.css: ${cls}`);
   }
 });
 
@@ -331,9 +395,9 @@ check('PostHog & Dashboard', 'posthogClient.ts, AnalyticsDashboard.tsx & automat
 });
 
 // ---------------------------------------------------------------------------
-// 8. Red Team / Blue Team Security Suite Integration (`SEC-01` .. `SEC-07`)
+// 9. Red Team / Blue Team Security Suite Integration (`SEC-01` .. `SEC-08`)
 // ---------------------------------------------------------------------------
-check('Security Ledger', 'All Red Team / Blue Team security controls (SEC-01 through SEC-07) pass verification', () => {
+check('Security Ledger', 'All Red Team / Blue Team security controls (SEC-01 through SEC-08) pass verification', () => {
   const secResults = runSecurityAuditChecks();
   for (const item of secResults) {
     assert.ok(item.remediated, `Security check ${item.id} failed: ${item.title}`);

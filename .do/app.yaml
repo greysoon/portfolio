@@ -19,10 +19,6 @@ domains:
     type: ALIAS
   - domain: automate.greyson.nl
     type: ALIAS
-  - domain: about.greyson.nl
-    type: ALIAS
-  - domain: cv.greyson.nl
-    type: ALIAS
 static_sites:
   - name: web
     environment_slug: node-js

@@ -10,10 +10,10 @@ export const automateConfig = {
   ],
   siteUrl: 'https://automate.greyson.nl',
   portfolioUrl: 'https://greyson.nl',
-  aboutUrl: 'https://about.greyson.nl',
-  cvUrl: 'https://cv.greyson.nl',
+  aboutPath: '/over-mij',
   dashboardPath: '/dashboard',
   email: 'grey.beimers@gmail.com',
+  linkedinUrl: 'https://www.linkedin.com/in/greyson-beimers-68749b1a1/',
   region: 'Friesland, Nederland',
   cities: [
     'Leeuwarden',
@@ -28,11 +28,36 @@ export const automateConfig = {
     nl: {
       nav: {
         brand: 'GREYSON AUTOMATION',
-        backToPortfolio: 'Portfolio (greyson.nl)',
-        aboutLabel: 'Over mij (about.greyson.nl)',
-        cvLabel: 'CV (cv.greyson.nl)',
+        homeLabel: 'Home',
+        servicesLabel: 'Diensten',
+        useCasesLabel: 'Voorbeelden',
+        processLabel: 'Werkwijze',
+        aboutLabel: 'Over mij',
+        contactLabel: 'Contact',
         dashboardLabel: 'Dashboard',
         languageLabel: 'Taal kiezen',
+      },
+      sections: {
+        services: {
+          number: '01',
+          eyebrow: '01 • Diensten & Oplossingen',
+        },
+        useCases: {
+          number: '02',
+          eyebrow: '02 • Praktijkvoorbeelden',
+        },
+        process: {
+          number: '03',
+          eyebrow: '03 • Werkwijze & Het Eerlijke Verhaal',
+        },
+        about: {
+          number: '04',
+          eyebrow: '04 • Over mij',
+        },
+        contact: {
+          number: '05',
+          eyebrow: '05 • Contact',
+        },
       },
       hero: {
         badge: 'Friesland • AI & Procesautomatisering',
@@ -49,6 +74,8 @@ export const automateConfig = {
         'Jouw bedrijfsdata blijft van jou. We richten systemen zo in dat gevoelige klant- en financiële gegevens niet in publieke trainingsmodellen terechtkomen, koppelen netjes met de pakketten die je al gebruikt, en bouwen alleen iets dat zichzelf terugbetaalt in tijdwinst of nieuwe opdrachten.',
       ],
       pillarsTitle: 'Twee manieren waarop je er direct voordeel uit haalt',
+      pillarsSubtitle:
+        'Heldere focus op wat in het MKB direct tijd bespaart of nieuw werk oplevert.',
       pillars: [
         {
           id: 'workflow-automation',
@@ -116,9 +143,101 @@ export const automateConfig = {
             'Handig voor teams die elke week uren verliezen aan dubbel invoerwerk.',
         },
       ],
+      processTitle: 'Werkwijze in drie heldere stappen',
+      processSubtitle:
+        'Van een eerste bak koffie of belletje tot een werkende oplossing — overzichtelijk en zonder verrassingen achteraf.',
+      processSteps: [
+        {
+          number: '01',
+          tag: '01 • Vrijblijvend kennismaken',
+          title: 'Vrijblijvend kennismaken',
+          description:
+            'We kijken samen waar jij en je team nu uren verliezen aan handwerk, of wat voor website, portaal of web-app je graag wilt neerzetten.',
+        },
+        {
+          number: '02',
+          tag: '02 • Duidelijk & betaalbaar voorstel',
+          title: 'Duidelijk & betaalbaar voorstel',
+          description:
+            'Je krijgt vooraf een helder plan met vaste scope en een eerlijke prijs — zonder dikke adviesrapporten of verborgen bureaukosten.',
+        },
+        {
+          number: '03',
+          tag: '03 • Snel live & merkbaar resultaat',
+          title: 'Snel live & merkbaar resultaat',
+          description:
+            'Door moderne AI slim in te zetten bij het bouwen staat jouw automatisering of site vaak al binnen dagen of enkele weken live.',
+        },
+      ],
       regionTitle: 'Lokaal actief in heel Friesland',
       regionSubtitle:
         'Gewoon even kennismaken aan tafel in Friesland of direct via een korte videocall — net wat jou het beste uitkomt.',
+      aboutTeaser: {
+        title: 'Direct samenwerken met de bouwer — wel zo duidelijk',
+        summary:
+          'Geen tussenlagen, verkoopteam of doorverwijzingen: je werkt rechtstreeks met Greyson Beimers. Lees meer over mijn achtergrond, waarom moderne AI software betaalbaarder maakt en hoe je direct contact legt.',
+        ctaLabel: 'Lees meer over mij & contact',
+      },
+      aboutPage: {
+        badge: 'Over Greyson Beimers • Friesland & Nederland',
+        title: 'Nuchtere software & praktische AI — gebouwd in direct contact.',
+        subtitle:
+          'Ik help bedrijven in Friesland om repeterend werk te automatiseren en nieuwe websites of maatwerk-apps veel sneller en betaalbaarder te bouwen dan traditionele bureaus.',
+        introTitle: 'Wie ik ben en waarom ik dit doe',
+        introParagraphs: [
+          'Ik ben Greyson Beimers, software engineer. De afgelopen tijd is het bouwen van software door AI blijvend veranderd: maatwerk websites, klantportalen en slimme koppelingen waar je vroeger maanden op moest wachten tegen hoge bureautarieven, kunnen nu schoon en betrouwbaar in dagen of weken worden gebouwd.',
+          'Ondernemers in het Friese MKB horen ondertussen elke dag grote verhalen over AI, maar hebben geen tijd om uit te zoeken wat in de praktijk echt werkt. Daarom werk ik graag direct met lokale bedrijven: samen kijken waar uren weglekt of wat er beter kan, en het daarna nuchter opleveren.',
+          'Geen dikke rapporten of verplichte dure abonnementen. Alleen praktische techniek die je team direct tijd scheelt en waarbij jouw bedrijfsdata veilig in eigen beheer blijft.',
+        ],
+        highlightsTitle: 'Waarom ondernemers voor directe samenwerking kiezen',
+        highlights: [
+          {
+            id: 'direct-line',
+            tag: '01 • Eén aanspreekpunt',
+            title: 'Directe lijn met de bouwer',
+            description:
+              'Je schakelt rechtstreeks met de engineer die jouw automatisering of website bouwt. Korte lijntjes, snel duidelijkheid.',
+          },
+          {
+            id: 'faster-affordable',
+            tag: '02 • Eerlijk voordeel',
+            title: 'Sneller & betaalbaarder door moderne AI',
+            description:
+              'Door moderne AI slim te combineren met degelijk programmeerwerk dalen doorlooptijd en kosten drastisch vergeleken met klassieke bureaus.',
+          },
+          {
+            id: 'privacy-ownership',
+            tag: '03 • Veilig & van jou',
+            title: 'Privacy & volledig eigen beheer',
+            description:
+              'Geen klantgegevens in publieke trainingsmodellen en geen lock-in. Code, accounts en data blijven netjes van jouw bedrijf.',
+          },
+        ],
+        backgroundTitle: 'Profiel & achtergrond',
+        backgroundText:
+          'Full-stack software engineer met ervaring in TypeScript, React, Node.js, Python, interactieve 3D-webapplicaties (WebGL / Three.js) en praktische AI- en API-automatiseringen. Werkzaam voor bedrijven in heel Friesland (o.a. Leeuwarden, Sneek, Heerenveen en Drachten) en Amsterdam.',
+        skillsLabel: 'Techniek & specialismen',
+        skills: [
+          'TypeScript',
+          'React',
+          'Node.js',
+          'Python',
+          'AI & Automatisering',
+          'WebGL / Three.js',
+          'API-koppelingen',
+        ],
+        locationLabel: 'Werkgebied',
+        locationValue: 'Friesland & Amsterdam, Nederland',
+        emailLabel: 'E-mail',
+        linkedinLabel: 'LinkedIn',
+        backHomeLabel: 'Terug naar overzicht',
+        directContactTitle: 'Rechtstreeks contact opnemen',
+        directContactSubtitle:
+          'Liever even mailen of verbinden via LinkedIn? Stuur gerust een bericht.',
+        ctaTitle: 'Vrijblijvend even sparren of kennismaken?',
+        ctaSubtitle:
+          'Vul hieronder kort je vraag in of mail rechtstreeks naar grey.beimers@gmail.com. Je krijgt snel en eerlijk antwoord.',
+      },
       form: {
         title: 'Laten we vrijblijvend kijken wat bij jou tijd scheelt',
         subtitle:
@@ -152,17 +271,42 @@ export const automateConfig = {
       },
       footer: {
         note: 'Greyson Beimers — Praktische AI, automatisering & maatwerk software voor Friesland.',
-        portfolioLinkLabel: 'Bekijk software-portfolio op about.greyson.nl',
+        aboutLinkLabel: 'Over Greyson & contact',
       },
     },
     en: {
       nav: {
         brand: 'GREYSON AUTOMATION',
-        backToPortfolio: 'Portfolio (greyson.nl)',
-        aboutLabel: 'About (about.greyson.nl)',
-        cvLabel: 'CV (cv.greyson.nl)',
+        homeLabel: 'Home',
+        servicesLabel: 'Services',
+        useCasesLabel: 'Use Cases',
+        processLabel: 'How It Works',
+        aboutLabel: 'About Me',
+        contactLabel: 'Contact',
         dashboardLabel: 'Dashboard',
         languageLabel: 'Select language',
+      },
+      sections: {
+        services: {
+          number: '01',
+          eyebrow: '01 • Services & Solutions',
+        },
+        useCases: {
+          number: '02',
+          eyebrow: '02 • Practical Use Cases',
+        },
+        process: {
+          number: '03',
+          eyebrow: '03 • How It Works & Our Approach',
+        },
+        about: {
+          number: '04',
+          eyebrow: '04 • About Me',
+        },
+        contact: {
+          number: '05',
+          eyebrow: '05 • Contact',
+        },
       },
       hero: {
         badge: 'Friesland • AI & Workflow Automation',
@@ -179,6 +323,8 @@ export const automateConfig = {
         'Your business data stays yours. We keep sensitive customer and financial records out of public training models, connect cleanly to the tools your team already relies on, and only build what clearly pays for itself in saved hours or new customers.',
       ],
       pillarsTitle: 'Two direct ways this helps your business',
+      pillarsSubtitle:
+        'Focused on practical improvements that either free up weekly team hours or ship custom software faster.',
       pillars: [
         {
           id: 'workflow-automation',
@@ -246,9 +392,101 @@ export const automateConfig = {
             'Built for teams losing hours every week to manual re-typing across separate tools.',
         },
       ],
+      processTitle: 'How it works in three clear steps',
+      processSubtitle:
+        'From an informal coffee or quick call to a working solution — transparent scope and zero agency overhead.',
+      processSteps: [
+        {
+          number: '01',
+          tag: '01 • Free intro chat',
+          title: 'No-obligation intro chat',
+          description:
+            'Together we look at where your team loses hours to manual work today, or what website, portal, or custom web app you want to launch.',
+        },
+        {
+          number: '02',
+          tag: '02 • Clear & affordable proposal',
+          title: 'Clear & affordable proposal',
+          description:
+            'You get a plain-language plan with fixed scope and transparent pricing upfront — no bloated slide decks or surprise agency fees.',
+        },
+        {
+          number: '03',
+          tag: '03 • Fast launch & real results',
+          title: 'Fast launch & real results',
+          description:
+            'By pairing modern AI with solid software engineering, your automation or website goes live in days or weeks instead of months.',
+        },
+      ],
       regionTitle: 'Working locally across Friesland',
       regionSubtitle:
         'Happy to meet over coffee at your office in Friesland or start with a quick call — whatever works best for you.',
+      aboutTeaser: {
+        title: 'Collaborate directly with the engineer building your tools',
+        summary:
+          'No middlemen, sales funnels, or rotating account managers: you work directly with Greyson Beimers. Read about my background, why AI makes custom software far more affordable, and how to get in touch.',
+        ctaLabel: 'Read more about me & contact',
+      },
+      aboutPage: {
+        badge: 'About Greyson Beimers • Friesland & Netherlands',
+        title: 'Grounded software & practical AI — built in direct collaboration.',
+        subtitle:
+          'I help businesses in Friesland automate repetitive work and ship custom websites or web apps far faster and more affordably than traditional agencies.',
+        introTitle: 'Who I am and why I work this way',
+        introParagraphs: [
+          'I am Greyson Beimers, a software engineer. Modern AI has permanently changed how software is built: custom websites, client portals, and reliable integrations that used to take months and hefty agency budgets can now be engineered cleanly in days or weeks.',
+          'Meanwhile, most SME owners in Friesland mostly see loud AI headlines without time to sort out what actually works. That is why I partner directly with local companies: look honestly at where hours are wasted or what needs building, then deliver something reliable.',
+          'No bloated consultancy decks or forced retainers. Just practical engineering that saves your team time starting right away, while keeping your business data safely under your own control.',
+        ],
+        highlightsTitle: 'Why local owners work directly with me',
+        highlights: [
+          {
+            id: 'direct-line',
+            tag: '01 • Direct access',
+            title: 'Direct line to the engineer',
+            description:
+              'You talk straight to the engineer writing your automation or website. Short communication lines, fast decisions.',
+          },
+          {
+            id: 'faster-affordable',
+            tag: '02 • Real cost edge',
+            title: 'Faster & more affordable with modern AI',
+            description:
+              'Combining modern AI workflows with seasoned software engineering cuts delivery time and project cost drastically versus traditional agencies.',
+          },
+          {
+            id: 'privacy-ownership',
+            tag: '03 • Safe & yours',
+            title: 'Privacy & full ownership',
+            description:
+              'Your company records stay out of public training models, with zero lock-in. Code, integrations, and accounts stay yours.',
+          },
+        ],
+        backgroundTitle: 'Profile & background',
+        backgroundText:
+          'Full-stack software engineer focused on TypeScript, React, Node.js, Python, interactive 3D web applications (WebGL / Three.js), and dependable API & AI workflow automations. Working with companies across Friesland (Leeuwarden, Sneek, Heerenveen, Drachten) and Amsterdam.',
+        skillsLabel: 'Core stack & specialties',
+        skills: [
+          'TypeScript',
+          'React',
+          'Node.js',
+          'Python',
+          'AI & Automation',
+          'WebGL / Three.js',
+          'API Integrations',
+        ],
+        locationLabel: 'Location',
+        locationValue: 'Friesland & Amsterdam, Netherlands',
+        emailLabel: 'Email',
+        linkedinLabel: 'LinkedIn',
+        backHomeLabel: 'Back to overview',
+        directContactTitle: 'Reach out directly',
+        directContactSubtitle:
+          'Prefer to email directly or connect on LinkedIn? Both are always open.',
+        ctaTitle: 'Want to explore what is possible?',
+        ctaSubtitle:
+          'Fill in the short note below or email grey.beimers@gmail.com directly. You will get an honest reply within one business day.',
+      },
       form: {
         title: 'Let’s look at what saves your team time',
         subtitle:
@@ -282,7 +520,7 @@ export const automateConfig = {
       },
       footer: {
         note: 'Greyson Beimers — Practical AI, workflow automation & custom software for Friesland.',
-        portfolioLinkLabel: 'View engineering portfolio at about.greyson.nl',
+        aboutLinkLabel: 'About Greyson & contact',
       },
     },
   },

@@ -20,7 +20,7 @@ import '../styles/automate.css';
 
 interface AnalyticsDashboardProps {
   onNavigate?: (
-    view: 'automate' | 'portfolio' | 'dashboard',
+    view: 'automate' | 'about' | 'portfolio' | 'dashboard',
     portfolioMode?: 'about' | 'cv'
   ) => void;
 }
@@ -313,11 +313,9 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({
 
   const handleNavClick = (
     e: React.MouseEvent<HTMLAnchorElement>,
-    view: 'automate' | 'portfolio',
-    mode?: 'about' | 'cv'
+    view: 'automate' | 'about'
   ) => {
     if (
-      !isGreysonProd &&
       onNavigate &&
       !e.metaKey &&
       !e.ctrlKey &&
@@ -326,13 +324,12 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({
       e.button === 0
     ) {
       e.preventDefault();
-      onNavigate(view, mode);
+      onNavigate(view);
     }
   };
 
-  const mainSiteHref = isGreysonProd ? automateConfig.portfolioUrl : '?site=automate';
-  const aboutHref = isGreysonProd ? automateConfig.aboutUrl : '?site=about';
-  const cvHref = isGreysonProd ? automateConfig.cvUrl : '?site=cv';
+  const mainSiteHref = '/';
+  const aboutHref = isGreysonProd ? automateConfig.aboutPath : '?site=about';
 
   const activeSummary =
     liveAnalytics?.ok ? liveAnalytics.summary : localSnapshot.summary;
@@ -362,21 +359,14 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({
                 className="automate-back-link"
                 onClick={(e) => handleNavClick(e, 'automate')}
               >
-                &larr; greyson.nl
+                &larr; Home (greyson.nl)
               </a>
               <a
                 href={aboutHref}
                 className="automate-back-link"
-                onClick={(e) => handleNavClick(e, 'portfolio', 'about')}
+                onClick={(e) => handleNavClick(e, 'about')}
               >
-                about.greyson.nl
-              </a>
-              <a
-                href={cvHref}
-                className="automate-back-link"
-                onClick={(e) => handleNavClick(e, 'portfolio', 'cv')}
-              >
-                cv.greyson.nl
+                Over mij
               </a>
             </div>
           </nav>
@@ -580,21 +570,14 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({
                 className="automate-back-link"
                 onClick={(e) => handleNavClick(e, 'automate')}
               >
-                greyson.nl
+                &larr; Home (greyson.nl)
               </a>
               <a
                 href={aboutHref}
                 className="automate-back-link"
-                onClick={(e) => handleNavClick(e, 'portfolio', 'about')}
+                onClick={(e) => handleNavClick(e, 'about')}
               >
-                about.greyson.nl
-              </a>
-              <a
-                href={cvHref}
-                className="automate-back-link"
-                onClick={(e) => handleNavClick(e, 'portfolio', 'cv')}
-              >
-                cv.greyson.nl
+                Over mij
               </a>
               <button
                 type="button"

@@ -1,6 +1,7 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import { ConfigProvider, Layout, theme } from 'antd';
 import { siteConfig } from './config/siteConfig';
+import { AutomateLocale } from './config/automateConfig';
 import { initTelemetry, trackInteraction } from './utils/telemetry';
 import {
   capturePostHogEvent,
@@ -11,11 +12,12 @@ import { LiveAgeBio } from './components/LiveAgeBio';
 import { ContactSection } from './components/ContactSection';
 import { PastelGlobe } from './components/PastelGlobe';
 import { AutomatePage } from './components/AutomatePage';
+import { AboutMePage } from './components/AboutMePage';
 import { AnalyticsDashboard } from './components/AnalyticsDashboard';
 
 const { Content } = Layout;
 
-type ActiveView = 'automate' | 'portfolio' | 'dashboard';
+type ActiveView = 'automate' | 'about' | 'portfolio' | 'dashboard';
 type PortfolioMode = 'about' | 'cv';
 
 interface RouteResolution {
@@ -32,6 +34,7 @@ function resolveViewFromLocation(): RouteResolution {
   const path = window.location.pathname.toLowerCase();
   const params = new URLSearchParams(window.location.search);
   const site = params.get('site')?.toLowerCase();
+  const page = params.get('page')?.toLowerCase();
 
   if (
     host.startsWith('dashboard.') ||
@@ -41,17 +44,30 @@ function resolveViewFromLocation(): RouteResolution {
     return { view: 'dashboard', portfolioMode: 'about' };
   }
 
-  if (host.startsWith('cv.') || path.startsWith('/cv') || site === 'cv') {
-    return { view: 'portfolio', portfolioMode: 'cv' };
-  }
-
+  // Dedicated CV / Portfolio DigitalOcean app (cv.greyson.nl / about.greyson.nl / greyson-cv-about)
   if (
+    host.startsWith('cv.') ||
     host.startsWith('about.') ||
-    path.startsWith('/about') ||
-    site === 'about' ||
+    host.includes('cv-about') ||
+    host.includes('about-cv') ||
+    path.startsWith('/cv') ||
+    site === 'cv' ||
     site === 'portfolio'
   ) {
-    return { view: 'portfolio', portfolioMode: 'about' };
+    return {
+      view: 'portfolio',
+      portfolioMode: host.startsWith('about.') && site !== 'cv' ? 'about' : 'cv',
+    };
+  }
+
+  // Real About Me & Contact page inside the main site (greyson.nl / automation.greyson.nl)
+  if (
+    path.startsWith('/about') ||
+    path.startsWith('/over-mij') ||
+    site === 'about' ||
+    page === 'about'
+  ) {
+    return { view: 'about', portfolioMode: 'about' };
   }
 
   if (
@@ -71,6 +87,7 @@ export const App: React.FC = () => {
   const [route, setRoute] = useState<RouteResolution>(() =>
     resolveViewFromLocation()
   );
+  const [locale, setLocale] = useState<AutomateLocale>('nl');
   const [introComplete, setIntroComplete] = useState(false);
 
   useEffect(() => {
@@ -89,6 +106,11 @@ export const App: React.FC = () => {
   useEffect(() => {
     if (route.view === 'dashboard') {
       document.title = 'Analytics Dashboard — Greyson Automation';
+    } else if (route.view === 'about') {
+      document.title =
+        locale === 'nl'
+          ? 'Over Greyson Beimers — Praktische AI & Software'
+          : 'About Greyson Beimers — Practical AI & Software';
     } else if (route.view === 'portfolio') {
       document.title =
         route.portfolioMode === 'cv'
@@ -106,7 +128,7 @@ export const App: React.FC = () => {
       view: route.view,
       mode: route.view === 'portfolio' ? route.portfolioMode : route.view,
     });
-  }, [route.view, route.portfolioMode]);
+  }, [route.view, route.portfolioMode, locale]);
 
   const handleIntroComplete = useCallback(() => {
     setIntroComplete(true);
@@ -127,20 +149,35 @@ export const App: React.FC = () => {
         if (isGreysonDomain) {
           url.pathname = '/dashboard';
           url.searchParams.delete('site');
+          url.searchParams.delete('page');
         } else {
           url.searchParams.set('site', 'dashboard');
+          url.searchParams.delete('page');
+        }
+      } else if (nextView === 'about') {
+        if (isGreysonDomain) {
+          url.pathname = '/over-mij';
+          url.searchParams.delete('site');
+          url.searchParams.delete('page');
+        } else {
+          url.searchParams.set('site', 'about');
+          url.searchParams.delete('page');
         }
       } else if (nextView === 'portfolio') {
         if (isGreysonDomain) {
           url.pathname = portfolioMode === 'cv' ? '/cv' : '/about';
           url.searchParams.delete('site');
+          url.searchParams.delete('page');
         } else {
-          url.searchParams.set('site', portfolioMode === 'cv' ? 'cv' : 'about');
+          url.searchParams.set('site', portfolioMode === 'cv' ? 'cv' : 'portfolio');
+          url.searchParams.delete('page');
         }
       } else {
         url.searchParams.delete('site');
+        url.searchParams.delete('page');
         if (
           url.pathname.toLowerCase().startsWith('/about') ||
+          url.pathname.toLowerCase().startsWith('/over-mij') ||
           url.pathname.toLowerCase().startsWith('/cv') ||
           url.pathname.toLowerCase().startsWith('/dashboard') ||
           url.pathname.toLowerCase().startsWith('/automate')
@@ -179,6 +216,13 @@ export const App: React.FC = () => {
 
       {route.view === 'dashboard' ? (
         <AnalyticsDashboard onNavigate={navigateToView} />
+      ) : route.view === 'about' ? (
+        <AboutMePage
+          lang={locale}
+          onLocaleChange={setLocale}
+          onOpenHome={() => navigateToView('automate')}
+          onOpenDashboard={() => navigateToView('dashboard')}
+        />
       ) : route.view === 'portfolio' ? (
         <Layout className="portfolio-layout">
           <Content className="portfolio-content">
@@ -200,8 +244,9 @@ export const App: React.FC = () => {
         </Layout>
       ) : (
         <AutomatePage
-          onOpenAbout={() => navigateToView('portfolio', 'about')}
-          onOpenCv={() => navigateToView('portfolio', 'cv')}
+          lang={locale}
+          onLocaleChange={setLocale}
+          onOpenAbout={() => navigateToView('about')}
           onOpenDashboard={() => navigateToView('dashboard')}
         />
       )}

@@ -1,0 +1,26 @@
+# DigitalOcean App Platform — Dedicated Free Static Site Spec (cv.greyson.nl / about.greyson.nl)
+# Security Hardening (SEC-03):
+# - Production sourcemaps are disabled in vite.config.ts (build.sourcemap: false).
+# - Document-level Content-Security-Policy and Referrer-Policy meta tags are enforced in index.html (SEC-02).
+# - Edge / CDN & Vite preview HTTP response headers (SEC-03):
+#     X-Content-Type-Options: nosniff
+#     X-Frame-Options: DENY
+#     Referrer-Policy: strict-origin-when-cross-origin
+#     Permissions-Policy: camera=(), microphone=(), geolocation=()
+# - SPA Routing Note: index_document and error_document route all paths to the SPA entry.
+name: greyson-cv-about
+region: ams
+domains:
+  - domain: cv.greyson.nl
+    type: PRIMARY
+  - domain: about.greyson.nl
+    type: ALIAS
+static_sites:
+  - name: web
+    environment_slug: node-js
+    build_command: npm ci && npm run build
+    output_dir: dist
+    index_document: index.html
+    error_document: index.html
+    routes:
+      - path: /
