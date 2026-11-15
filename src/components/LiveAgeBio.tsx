@@ -16,6 +16,9 @@ export const LiveAgeBio: React.FC = () => {
 
   useEffect(() => {
     const interval = window.setInterval(() => {
+      if (typeof document !== 'undefined' && document.hidden) {
+        return;
+      }
       setAge(computeAgeString());
     }, 50);
     return () => window.clearInterval(interval);
@@ -24,7 +27,12 @@ export const LiveAgeBio: React.FC = () => {
   return (
     <div className="bio-section">
       <Title level={2} className="bio-line">
-        I&apos;m a <span className="age-ticker">{age}</span> year-old
+        I&apos;m a{' '}
+        <span className="sr-only">{Math.floor(Number(age))}</span>
+        <span className="age-ticker" aria-hidden="true" aria-live="off">
+          {age}
+        </span>{' '}
+        year-old
       </Title>
       <Title level={2} className="bio-line">
         <span className="role-accent">

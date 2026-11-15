@@ -1,0 +1,98 @@
+{
+  "companyName": "Greyson Web Studio",
+  "version": "1.0.0",
+  "updatedAt": "2026-11-08T22:21:50+01:00",
+  "activeSprint": "Sprint 01 — Inaugural Full-Company Audit & Polish (COMPLETED)",
+  "roles": {
+    "pm-director": {
+      "title": "Product Manager & Director",
+      "division": "product-design",
+      "conversationId": "b03008a3-2f70-43d5-bf41-f5c4104a7ce9",
+      "status": "completed",
+      "ownedPaths": [".agents/company/**", "docs/**"],
+      "forbiddenPaths": ["src/**", "index.html", "vite.config.ts", ".do/**"],
+      "peers": ["ui-ux-designer", "frontend-engineer", "backend-devops", "copywriter", "marketing-seo", "data-analytics", "qa-tester", "red-team-hacker", "blue-team-security"]
+    },
+    "ui-ux-designer": {
+      "title": "UI/UX & Accessibility Designer",
+      "division": "product-design",
+      "conversationId": "8c5d819d-320a-4179-82bb-e90c378970c4",
+      "status": "completed",
+      "ownedPaths": ["design/**", "src/index.css", ".agents/company/**"],
+      "forbiddenPaths": ["src/components/**", ".do/**", "vite.config.ts"],
+      "peers": ["pm-director", "frontend-engineer", "copywriter", "qa-tester"]
+    },
+    "frontend-engineer": {
+      "title": "Senior Frontend Engineer",
+      "division": "engineering",
+      "conversationId": "1efa3ae9-795c-4814-a121-37ffbd8e77ff",
+      "status": "completed",
+      "ownedPaths": ["src/components/**", "src/App.tsx", "src/main.tsx", "src/index.css", ".agents/company/**"],
+      "forbiddenPaths": [".do/**"],
+      "peers": ["ui-ux-designer", "copywriter", "marketing-seo", "data-analytics", "blue-team-security", "qa-tester"]
+    },
+    "backend-devops": {
+      "title": "Backend & DevOps Engineer",
+      "division": "engineering",
+      "conversationId": "2553ad6b-cff9-45ee-81a2-4c895c7b8ae7",
+      "status": "completed",
+      "ownedPaths": ["vite.config.ts", "package.json", "tsconfig.json", ".do/**", "scripts/**", ".agents/company/**"],
+      "forbiddenPaths": ["src/components/**"],
+      "peers": ["blue-team-security", "frontend-engineer", "data-analytics", "qa-tester"]
+    },
+    "copywriter": {
+      "title": "Lead Copywriter & Storyteller",
+      "division": "growth-content",
+      "conversationId": "10f051c1-7e5d-4fd2-ba5e-22f77017ec87",
+      "status": "completed",
+      "ownedPaths": ["src/config/siteConfig.ts", ".agents/company/**"],
+      "forbiddenPaths": ["src/components/**", "vite.config.ts"],
+      "peers": ["marketing-seo", "ui-ux-designer", "frontend-engineer"]
+    },
+    "marketing-seo": {
+      "title": "Marketing & Technical SEO Lead",
+      "division": "growth-content",
+      "conversationId": "4bb62504-4481-4923-993a-11e3ee0a39f1",
+      "status": "completed",
+      "ownedPaths": ["index.html", "public/**", ".agents/company/**"],
+      "forbiddenPaths": ["src/components/**"],
+      "peers": ["copywriter", "data-analytics", "frontend-engineer", "blue-team-security"]
+    },
+    "data-analytics": {
+      "title": "Data & Web Vitals Specialist",
+      "division": "growth-content",
+      "conversationId": "265aa213-8ad1-44d5-a2e2-c7f960657369",
+      "status": "completed",
+      "ownedPaths": ["src/utils/**", ".agents/company/**"],
+      "forbiddenPaths": ["src/components/**"],
+      "peers": ["marketing-seo", "backend-devops", "frontend-engineer", "blue-team-security"]
+    },
+    "qa-tester": {
+      "title": "QA Automation & Browser Tester",
+      "division": "security-qa",
+      "conversationId": "fea68f37-a98c-4a20-8729-91409e253617",
+      "status": "completed",
+      "ownedPaths": ["tests/**", ".agents/company/**"],
+      "forbiddenPaths": ["src/**", "index.html", "vite.config.ts", ".do/**"],
+      "peers": ["frontend-engineer", "ui-ux-designer", "blue-team-security", "pm-director"]
+    },
+    "red-team-hacker": {
+      "title": "Offensive Security (Red Team)",
+      "division": "security-qa",
+      "conversationId": "dc8a6d9d-9723-4037-bb93-8f7bf81a15fd",
+      "status": "completed",
+      "ownedPaths": [".agents/company/**", "tests/security/**"],
+      "forbiddenPaths": ["src/**", "index.html", "vite.config.ts", ".do/**"],
+      "peers": ["blue-team-security", "frontend-engineer", "backend-devops", "pm-director"]
+    },
+    "blue-team-security": {
+      "title": "Defensive Security Engineer (Blue Team)",
+      "division": "security-qa",
+      "conversationId": "33126ba7-1cde-4297-815b-16af7a49d9dc",
+      "status": "completed",
+      "ownedPaths": ["index.html", "vite.config.ts", ".do/app.yaml", "src/**", ".agents/company/**"],
+      "forbiddenPaths": [],
+      "peers": ["red-team-hacker", "backend-devops", "frontend-engineer", "qa-tester"]
+    }
+  }
+}

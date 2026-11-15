@@ -39,15 +39,29 @@ export const TypingHeader: React.FC<TypingHeaderProps> = ({ onComplete }) => {
     return seq;
   }, []);
 
-  const [stepIndex, setStepIndex] = useState(0);
-  const [dockedTop, setDockedTop] = useState(false);
+  const prefersReducedMotion =
+    typeof window !== 'undefined' &&
+    Boolean(window.matchMedia?.('(prefers-reduced-motion: reduce)').matches);
+
+  const [stepIndex, setStepIndex] = useState(() =>
+    prefersReducedMotion ? steps.length - 1 : 0
+  );
+  const [dockedTop, setDockedTop] = useState(() => prefersReducedMotion);
 
   useEffect(() => {
+    if (window.matchMedia?.('(prefers-reduced-motion: reduce)').matches) {
+      setStepIndex(steps.length - 1);
+      setDockedTop(true);
+      onComplete();
+      return;
+    }
+
     let denominator = 1;
     try {
-      if (window.localStorage.getItem('stepDenominator')) {
-        denominator = Number(window.localStorage.getItem('stepDenominator')) || 2;
-      }
+      const raw = window.localStorage.getItem('stepDenominator');
+      const parsed = raw !== null ? Number(raw) : NaN;
+      denominator =
+        Number.isFinite(parsed) && parsed >= 1 && parsed <= 10 ? parsed : 1;
     } catch {
       denominator = 1;
     }
@@ -80,10 +94,21 @@ export const TypingHeader: React.FC<TypingHeaderProps> = ({ onComplete }) => {
       className={`intro-header ${dockedTop ? 'top' : ''}`}
       aria-label={`{${siteConfig.headerText}}`}
     >
-      <span className="brace">{'{'}</span>
-      <span className="intro-text">{current.inner}</span>
-      {current.cursor && <span className="intro-cursor">{current.cursor}</span>}
-      <span className="brace">{'}'}</span>
+      <span className="sr-only">{siteConfig.headerText}</span>
+      <span className="brace" aria-hidden="true">
+        {'{'}
+      </span>
+      <span className="intro-text" aria-hidden="true">
+        {current.inner}
+      </span>
+      {current.cursor && (
+        <span className="intro-cursor" aria-hidden="true">
+          {current.cursor}
+        </span>
+      )}
+      <span className="brace" aria-hidden="true">
+        {'}'}
+      </span>
     </h1>
   );
 };

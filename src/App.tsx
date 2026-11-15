@@ -1,6 +1,7 @@
-import React, { useCallback, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { ConfigProvider, Layout, theme } from 'antd';
 import { siteConfig } from './config/siteConfig';
+import { initTelemetry, trackInteraction } from './utils/telemetry';
 import { TypingHeader } from './components/TypingHeader';
 import { LiveAgeBio } from './components/LiveAgeBio';
 import { ContactSection } from './components/ContactSection';
@@ -11,8 +12,13 @@ const { Content } = Layout;
 export const App: React.FC = () => {
   const [introComplete, setIntroComplete] = useState(false);
 
+  useEffect(() => {
+    initTelemetry();
+  }, []);
+
   const handleIntroComplete = useCallback(() => {
     setIntroComplete(true);
+    trackInteraction('intro_complete');
   }, []);
 
   return (
@@ -31,11 +37,15 @@ export const App: React.FC = () => {
       }}
     >
       <Layout className="portfolio-layout">
+        <a href="#main" className="skip-link">
+          Skip to main content
+        </a>
         <Content className="portfolio-content">
           <TypingHeader onComplete={handleIntroComplete} />
 
           <main
             id="main"
+            tabIndex={-1}
             className={`main-container ${introComplete ? 'visible' : ''}`}
           >
             <LiveAgeBio />

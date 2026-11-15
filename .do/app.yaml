@@ -1,3 +1,13 @@
+# DigitalOcean App Platform — Production Deployment Spec (greyson.nl)
+# Security Hardening (SEC-03):
+# - Production sourcemaps are disabled in vite.config.ts (build.sourcemap: false).
+# - Document-level Content-Security-Policy and Referrer-Policy meta tags are enforced in index.html (SEC-02).
+# - Edge / CDN & Vite preview HTTP response headers (SEC-03):
+#     X-Content-Type-Options: nosniff
+#     X-Frame-Options: DENY
+#     Referrer-Policy: strict-origin-when-cross-origin
+#     Permissions-Policy: camera=(), microphone=(), geolocation=()
+# - SPA Routing Note: index_document and error_document (or catchall_document: index.html) route all paths to the SPA entry.
 name: greyson-nl-portfolio
 region: ams
 domains:
@@ -12,5 +22,7 @@ static_sites:
     output_dir: dist
     index_document: index.html
     error_document: index.html
+    # catchall_document: index.html
     routes:
       - path: /
+

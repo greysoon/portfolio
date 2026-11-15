@@ -1,6 +1,7 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import * as THREE from 'three';
 import { siteConfig } from '../config/siteConfig';
+import { trackInteraction } from '../utils/telemetry';
 import {
   HOLLAND_BORDER,
   WORLD_COASTLINE_RINGS,
@@ -24,6 +25,29 @@ function latLonToVector3(lat: number, lon: number, radius: number): THREE.Vector
 
 export const PastelGlobe: React.FC<{ visible: boolean }> = ({ visible }) => {
   const containerRef = useRef<HTMLDivElement | null>(null);
+  const [webglFailed, setWebglFailed] = useState(false);
+  const keyOffsetRef = useRef({ x: 0, y: 0 });
+
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLDivElement>) => {
+    const step = 0.08;
+    if (e.key === 'ArrowLeft') {
+      e.preventDefault();
+      keyOffsetRef.current.y -= step;
+      trackInteraction('globe_drag', { source: 'keyboard', component: 'PastelGlobe' });
+    } else if (e.key === 'ArrowRight') {
+      e.preventDefault();
+      keyOffsetRef.current.y += step;
+      trackInteraction('globe_drag', { source: 'keyboard', component: 'PastelGlobe' });
+    } else if (e.key === 'ArrowUp') {
+      e.preventDefault();
+      keyOffsetRef.current.x = Math.max(-0.7, Math.min(0.7, keyOffsetRef.current.x - step));
+      trackInteraction('globe_drag', { source: 'keyboard', component: 'PastelGlobe' });
+    } else if (e.key === 'ArrowDown') {
+      e.preventDefault();
+      keyOffsetRef.current.x = Math.max(-0.7, Math.min(0.7, keyOffsetRef.current.x + step));
+      trackInteraction('globe_drag', { source: 'keyboard', component: 'PastelGlobe' });
+    }
+  };
 
   useEffect(() => {
     const container = containerRef.current;
@@ -38,13 +62,21 @@ export const PastelGlobe: React.FC<{ visible: boolean }> = ({ visible }) => {
     camera.position.set(0, 0.4, 9.2);
     camera.lookAt(0, 0, 0);
 
-    const renderer = new THREE.WebGLRenderer({
-      antialias: true,
-      alpha: true,
-      powerPreference: 'high-performance',
-    });
+    let renderer: THREE.WebGLRenderer;
+    try {
+      renderer = new THREE.WebGLRenderer({
+        antialias: true,
+        alpha: true,
+        powerPreference: 'high-performance',
+      });
+    } catch {
+      setWebglFailed(true);
+      return;
+    }
+
     renderer.setSize(width, height);
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    renderer.domElement.setAttribute('aria-hidden', 'true');
     container.innerHTML = '';
     container.appendChild(renderer.domElement);
 
@@ -264,6 +296,7 @@ export const PastelGlobe: React.FC<{ visible: boolean }> = ({ visible }) => {
       isDragging = true;
       prevX = e.clientX;
       prevY = e.clientY;
+      trackInteraction('globe_drag', { source: 'pointer', component: 'PastelGlobe' });
     };
 
     const onPointerMove = (e: PointerEvent) => {
@@ -287,10 +320,19 @@ export const PastelGlobe: React.FC<{ visible: boolean }> = ({ visible }) => {
 
     let frameId = 0;
     let clock = 0;
+    const prefersReducedMotion =
+      typeof window !== 'undefined' &&
+      Boolean(window.matchMedia?.('(prefers-reduced-motion: reduce)').matches);
 
     const animate = () => {
       frameId = window.requestAnimationFrame(animate);
-      clock += 0.025;
+      if (typeof document !== 'undefined' && document.hidden) {
+        return;
+      }
+
+      if (!prefersReducedMotion) {
+        clock += 0.025;
+      }
 
       if (!isDragging) {
         // Smoothly ease user drag back toward Europe/Holland and gently oscillate
@@ -298,16 +340,23 @@ export const PastelGlobe: React.FC<{ visible: boolean }> = ({ visible }) => {
         userOffsetX *= 0.985;
       }
 
-      const gentleSwayY = Math.sin(clock * 0.45) * 0.22;
-      const gentleSwayX = Math.cos(clock * 0.3) * 0.05;
+      const gentleSwayY = prefersReducedMotion ? 0 : Math.sin(clock * 0.45) * 0.22;
+      const gentleSwayX = prefersReducedMotion ? 0 : Math.cos(clock * 0.3) * 0.05;
 
-      globeGroup.rotation.y = baseRotY + gentleSwayY + userOffsetY;
-      globeGroup.rotation.x = baseRotX + gentleSwayX + userOffsetX;
+      globeGroup.rotation.y =
+        baseRotY + gentleSwayY + userOffsetY + keyOffsetRef.current.y;
+      globeGroup.rotation.x =
+        baseRotX + gentleSwayX + userOffsetX + keyOffsetRef.current.x;
 
       // Pulse animation on the Holland marker
-      const pulseScale = 1 + (Math.sin(clock * 1.4) * 0.5 + 0.5) * 2.1;
-      pulseMesh.scale.set(pulseScale, pulseScale, 1);
-      pulseMat.opacity = 0.9 * (1 - (pulseScale - 1) / 2.3);
+      if (prefersReducedMotion) {
+        pulseMesh.scale.set(1, 1, 1);
+        pulseMat.opacity = 0.9;
+      } else {
+        const pulseScale = 1 + (Math.sin(clock * 1.4) * 0.5 + 0.5) * 2.1;
+        pulseMesh.scale.set(pulseScale, pulseScale, 1);
+        pulseMat.opacity = 0.9 * (1 - (pulseScale - 1) / 2.3);
+      }
 
       renderer.render(scene, camera);
     };
@@ -331,6 +380,22 @@ export const PastelGlobe: React.FC<{ visible: boolean }> = ({ visible }) => {
       domEl.removeEventListener('pointerdown', onPointerDown);
       window.removeEventListener('pointermove', onPointerMove);
       window.removeEventListener('pointerup', onPointerUp);
+      scene.traverse((object) => {
+        if (
+          object instanceof THREE.Mesh ||
+          object instanceof THREE.Line ||
+          object instanceof THREE.Points
+        ) {
+          if (object.geometry) {
+            object.geometry.dispose();
+          }
+          if (Array.isArray(object.material)) {
+            object.material.forEach((mat) => mat.dispose());
+          } else if (object.material) {
+            object.material.dispose();
+          }
+        }
+      });
       renderer.dispose();
     };
   }, []);
@@ -338,9 +403,30 @@ export const PastelGlobe: React.FC<{ visible: boolean }> = ({ visible }) => {
   return (
     <div
       className={`globe-wrapper ${visible ? 'globe-visible' : ''}`}
-      aria-label="Interactive 3D world map centered on Holland"
+      role="region"
+      tabIndex={0}
+      aria-label="Interactive 3D world map centered on Amsterdam, Netherlands"
+      onKeyDown={handleKeyDown}
     >
-      <div ref={containerRef} className="globe-canvas-container" />
+      <span className="sr-only">
+        Interactive 3D globe highlighting {siteConfig.location.city},{' '}
+        {siteConfig.location.country} ({siteConfig.location.label}). Use arrow
+        keys or pointer drag to rotate.
+      </span>
+      {webglFailed ? (
+        <div className="globe-fallback">
+          <div className="globe-fallback-coords">{siteConfig.location.label}</div>
+          <div className="globe-fallback-label">
+            {siteConfig.location.city}, {siteConfig.location.country}
+          </div>
+        </div>
+      ) : (
+        <div
+          ref={containerRef}
+          className="globe-canvas-container"
+          aria-hidden="true"
+        />
+      )}
     </div>
   );
 };

@@ -1,6 +1,7 @@
 import React from 'react';
 import { Typography } from 'antd';
 import { siteConfig } from '../config/siteConfig';
+import { trackInteraction } from '../utils/telemetry';
 
 const { Title } = Typography;
 
@@ -14,6 +15,7 @@ export const ContactSection: React.FC = () => {
           target="_blank"
           rel="noopener noreferrer"
           className="pastel-link"
+          onClick={() => trackInteraction('contact_click', { channel: 'linkedin' })}
         >
           LinkedIn
           <span className="underline" />
@@ -23,7 +25,11 @@ export const ContactSection: React.FC = () => {
 
       <Title level={2} className="contact-line contact-inquiry">
         Business inquiry?{' '}
-        <a href={`mailto:${siteConfig.email}`} className="pastel-link">
+        <a
+          href={`mailto:${siteConfig.email}`}
+          className="pastel-link"
+          onClick={() => trackInteraction('contact_click', { channel: 'email' })}
+        >
           Email me!
           <span className="underline" />
         </a>
