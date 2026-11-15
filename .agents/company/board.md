@@ -266,3 +266,19 @@
   - `node tests/security/red-team-audit.mjs`: **`8 / 8 checks PASS`** (`SEC-01` through `SEC-08`).
   - **Brand Logo System (`ui-ux-designer`, `frontend-engineer`, `marketing-seo`)**: Created scalable geometric `{G}` + AI node-spark logo assets (`public/logo.svg`, refreshed `public/favicon.svg`, `public/manifest.webmanifest` `#F7F5F2`/`#D94F48`, `index.html` `apple-touch-icon`), built reusable `src/components/BrandLogo.tsx` (unique gradient IDs via `useId()`), added `.automate-logo-mark` styling + reduced-motion support in `src/styles/automate.css`, and integrated `BrandLogo` across `AutomatePage.tsx`, `AboutMePage.tsx`, and `AnalyticsDashboard.tsx`.
 - **Release Certification**: **SPRINT 04 CERTIFIED FOR PRODUCTION RELEASE (`SIGNED_OFF` by `security-qa`)**
+
+---
+
+### Sprint 05 — Full-Bleed Architectural Studio Redesign (Narrative Flow Over Bullet Lists)
+
+- **Design Direction & Typography (`ui-ux-designer`, `frontend-engineer`)**:
+  - Replaced the boxy single-container monospace layout and `01`/`02`/`03` summed bullet-card sections with full-bleed alternating architectural bands (`#F7F5F2` warm stone, `#FFFFFF` pure white, `#18191C` deep charcoal contrast band, and `#FDF7F6` warm tint teaser) anchored to a wide `min(1400px, 92vw)` content frame and a sticky blurred `<header className="automate-header">`.
+  - Added `Plus Jakarta Sans` in `index.html` and scoped `Inconsolata` strictly to `.portfolio-layout` (`cv.greyson.nl` / `about.greyson.nl`) in `src/index.css` plus intentional technical labels/metrics (`.automate-eyebrow`, `.automate-kicker`, `.automate-timeline-phase`, `.automate-flow-label`).
+- **Editorial Copy & Interactive Components (`copywriter`, `frontend-engineer`)**:
+  - Rewrote `src/config/automateConfig.ts` (`nl` + `en`) to use flowing narrative prose, a 3-scenario interactive hero showcase (`heroShowcase`: `intake`, `knowledge`, `portal`), open 2-column capability pillars with inline pipeline & speed-comparison visuals (`services`), horizontal situational-quote case rows (`useCases.items`), and a 3-phase collaboration timeline (`story.steps`).
+  - Rebuilt `src/components/AutomatePage.tsx` and `src/components/AboutMePage.tsx` with the unified full-bleed band system, zero `<ul>` bullet feature lists or `01`/`02`/`03` cards, while preserving all `id` anchors (`diensten`, `automate-usecases`, `werkwijze`, `over-mij`, `automate-contact`, `about-contact`), `BrandLogo`, `mailto:grey.beimers@gmail.com` links, LinkedIn `rel="noopener noreferrer"`, bounded `maxLength` inputs, `encodeURIComponent`, and zero-PII telemetry (`automate_scenario_select`, `automate_inquiry_submit`).
+  - Updated `src/styles/automate.css` with responsive `<= 960px` and `<= 720px` grid collapse and `prefers-reduced-motion` support while keeping `.cv-card*` and `.dashboard-*` styles intact.
+- **Verification**:
+  - `npm run build` (`tsc -b && vite build`): `PASS` (`0` errors, `1448` modules).
+  - `node tests/verify-site.mjs`: `21 / 21 checks PASS`.
+  - `node tests/security/red-team-audit.mjs`: `8 / 8 checks PASS` (`SEC-01`–`SEC-08`).

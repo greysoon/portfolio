@@ -12,6 +12,10 @@
 
 * {
   box-sizing: border-box;
+}
+
+.portfolio-layout,
+.portfolio-layout * {
   font-family: 'Inconsolata', monospace;
 }
 

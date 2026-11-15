@@ -137,19 +137,26 @@ export const AutomatePage: React.FC<AutomatePageProps> = ({
   const [internalLang, setInternalLang] = useState<AutomateLocale>('nl');
   const lang = controlledLang ?? internalLang;
 
+  const t = automateConfig.copy[lang];
+
+  const [selectedScenarioId, setSelectedScenarioId] = useState<string>(
+    t.heroShowcase.scenarios[0].id
+  );
   const [name, setName] = useState('');
   const [company, setCompany] = useState('');
   const [contact, setContact] = useState('');
   const [interestIndex, setInterestIndex] = useState(0);
   const [interest, setInterest] = useState<string>(
-    automateConfig.copy[lang].form.interestOptions[0]
+    t.form.interestOptions[0]
   );
   const [message, setMessage] = useState('');
   const [hasError, setHasError] = useState(false);
   const [submitted, setSubmitted] = useState<InquiryFormPayload | null>(null);
   const [copied, setCopied] = useState(false);
 
-  const t = automateConfig.copy[lang];
+  const activeScenario =
+    t.heroShowcase.scenarios.find((s) => s.id === selectedScenarioId) ??
+    t.heroShowcase.scenarios[0];
 
   const isGreysonProd =
     typeof window !== 'undefined' &&
@@ -207,6 +214,12 @@ export const AutomatePage: React.FC<AutomatePageProps> = ({
       e.preventDefault();
       callback();
     }
+  };
+
+  const handleScenarioSelect = (scenarioId: string) => {
+    setSelectedScenarioId(scenarioId);
+    trackInteraction('automate_scenario_select', { scenarioId, lang });
+    capturePostHogEvent('automate_scenario_select', { scenarioId, lang });
   };
 
   const handleInterestChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
@@ -287,8 +300,8 @@ export const AutomatePage: React.FC<AutomatePageProps> = ({
 
   return (
     <div className="automate-scroll-root">
-      <div className="automate-container">
-        <header>
+      <header className="automate-header">
+        <div className="automate-header-inner">
           <nav className="automate-nav" aria-label="Primary navigation">
             <a href="#overzicht" className="automate-brand">
               <BrandLogo label={t.nav.brand} />
@@ -333,415 +346,627 @@ export const AutomatePage: React.FC<AutomatePageProps> = ({
               >
                 <button
                   type="button"
-                  className={`lang-btn ${lang === 'nl' ? 'active' : ''}`}
-                  aria-pressed={lang === 'nl'}
+                  className={`automate-lang-btn ${lang === 'nl' ? 'is-active' : ''}`}
                   onClick={() => handleLocaleChange('nl')}
+                  aria-pressed={lang === 'nl'}
                 >
                   NL
                 </button>
                 <button
                   type="button"
-                  className={`lang-btn ${lang === 'en' ? 'active' : ''}`}
-                  aria-pressed={lang === 'en'}
+                  className={`automate-lang-btn ${lang === 'en' ? 'is-active' : ''}`}
                   onClick={() => handleLocaleChange('en')}
+                  aria-pressed={lang === 'en'}
                 >
                   EN
                 </button>
               </div>
-            </div>
-          </nav>
-        </header>
 
-        <main id="main" tabIndex={-1}>
-          {/* Hero */}
-          <section
-            id="overzicht"
-            className="automate-hero"
-            aria-labelledby="automate-hero-title"
-          >
-            <span className="automate-badge">{t.hero.badge}</span>
-            <h1 id="automate-hero-title" className="automate-title">
-              {t.hero.title}
-            </h1>
-            <p className="automate-subtitle">{t.hero.subtitle}</p>
-            <div className="automate-cta-row">
               <a
                 href="#automate-contact"
-                className="automate-btn-primary"
+                className="automate-btn automate-btn-primary automate-nav-cta"
                 onClick={() => {
                   trackInteraction('automate_cta_click', {
-                    target: 'contact',
+                    target: 'header_contact',
                     lang,
                   });
                   capturePostHogEvent('automate_cta_click', {
-                    target: 'contact',
+                    target: 'header_contact',
                     lang,
                   });
                 }}
               >
                 {t.hero.primaryCta}
               </a>
-              <a
-                href="#automate-usecases"
-                className="automate-btn-secondary"
-                onClick={() => {
-                  trackInteraction('automate_cta_click', {
-                    target: 'usecases',
-                    lang,
-                  });
-                  capturePostHogEvent('automate_cta_click', {
-                    target: 'usecases',
-                    lang,
-                  });
-                }}
+            </div>
+          </nav>
+        </div>
+      </header>
+
+      <main id="main-content">
+        {/* Band 1: Full-Bleed Warm Editorial Split Hero + Interactive Live Workflow Preview */}
+        <section id="overzicht" className="automate-band automate-band--hero">
+          <div className="automate-band-inner">
+            <div className="automate-hero-split">
+              <div className="automate-hero-copy">
+                <div className="automate-eyebrow">{t.hero.badge}</div>
+                <h1 className="automate-h1">{t.hero.title}</h1>
+                <p className="automate-subtitle">{t.hero.subtitle}</p>
+                <div className="automate-cta-row">
+                  <a
+                    href="#automate-contact"
+                    className="automate-btn automate-btn-primary"
+                    onClick={() => {
+                      trackInteraction('automate_cta_click', {
+                        target: 'hero_contact',
+                        lang,
+                      });
+                      capturePostHogEvent('automate_cta_click', {
+                        target: 'hero_contact',
+                        lang,
+                      });
+                    }}
+                  >
+                    {t.hero.primaryCta}
+                  </a>
+                  <a
+                    href="#diensten"
+                    className="automate-btn automate-btn-secondary"
+                    onClick={() => {
+                      trackInteraction('automate_cta_click', {
+                        target: 'hero_services',
+                        lang,
+                      });
+                      capturePostHogEvent('automate_cta_click', {
+                        target: 'hero_services',
+                        lang,
+                      });
+                    }}
+                  >
+                    {t.hero.secondaryCta}
+                  </a>
+                </div>
+              </div>
+
+              <aside
+                className="automate-hero-showcase"
+                aria-label={t.heroShowcase.kicker}
               >
-                {t.hero.secondaryCta}
-              </a>
-            </div>
-          </section>
-
-          <hr className="automate-section-divider" />
-
-          {/* 01 — Diensten & Oplossingen */}
-          <section
-            id="diensten"
-            className="automate-section"
-            aria-labelledby="automate-pillars-title"
-          >
-            <div className="automate-section-header">
-              <span className="automate-section-num">
-                {t.sections.services.number}
-              </span>
-              <h2 id="automate-pillars-title" className="automate-section-title">
-                {t.pillarsTitle}
-              </h2>
-            </div>
-            <p className="automate-section-lead">{t.pillarsSubtitle}</p>
-            <div className="automate-grid-2">
-              {t.pillars.map((pillar) => (
-                <article key={pillar.id} className="automate-card">
-                  <span className="automate-card-eyebrow">{pillar.tag}</span>
-                  <h3 className="automate-card-title">{pillar.title}</h3>
-                  <p className="automate-card-text">{pillar.summary}</p>
-                  <ul>
-                    {pillar.highlights.map((highlight, idx) => (
-                      <li key={idx}>{highlight}</li>
-                    ))}
-                  </ul>
-                </article>
-              ))}
-            </div>
-          </section>
-
-          <hr className="automate-section-divider" />
-
-          {/* 02 — Praktijkvoorbeelden */}
-          <section
-            id="automate-usecases"
-            className="automate-section"
-            aria-labelledby="automate-usecases-title"
-          >
-            <div className="automate-section-header">
-              <span className="automate-section-num">
-                {t.sections.useCases.number}
-              </span>
-              <h2 id="automate-usecases-title" className="automate-section-title">
-                {t.useCasesTitle}
-              </h2>
-            </div>
-            <p className="automate-section-lead">{t.useCasesSubtitle}</p>
-            <div className="automate-grid-usecases">
-              {t.useCases.map((useCase) => (
-                <article key={useCase.id} className="automate-card">
-                  <span className="automate-card-eyebrow">{useCase.category}</span>
-                  <h3 className="automate-card-title">{useCase.title}</h3>
-                  <p className="automate-card-text">{useCase.description}</p>
-                  <p className="automate-card-example">{useCase.example}</p>
-                </article>
-              ))}
-            </div>
-          </section>
-
-          <hr className="automate-section-divider" />
-
-          {/* 03 — Werkwijze & Het Eerlijke Verhaal */}
-          <section
-            id="werkwijze"
-            className="automate-section"
-            aria-labelledby="automate-process-title"
-          >
-            <div className="automate-section-header">
-              <span className="automate-section-num">
-                {t.sections.process.number}
-              </span>
-              <h2 id="automate-process-title" className="automate-section-title">
-                {t.processTitle}
-              </h2>
-            </div>
-            <p className="automate-section-lead">{t.processSubtitle}</p>
-
-            <div className="automate-steps-grid">
-              {t.processSteps.map((step) => (
-                <article key={step.number} className="automate-step-card">
-                  <span className="automate-step-number">{step.tag}</span>
-                  <h3>{step.title}</h3>
-                  <p>{step.description}</p>
-                </article>
-              ))}
-            </div>
-
-            <article
-              className="automate-story-card"
-              aria-labelledby="automate-story-title"
-            >
-              <h3 id="automate-story-title">{t.storyTitle}</h3>
-              {t.storyParagraphs.map((paragraph, index) => (
-                <p key={index}>{paragraph}</p>
-              ))}
-            </article>
-
-            <div style={{ marginTop: '28px' }}>
-              <h3 className="automate-section-title">{t.regionTitle}</h3>
-              <p className="automate-section-lead">{t.regionSubtitle}</p>
-              <ul className="automate-region-list" aria-label={automateConfig.region}>
-                <li className="automate-region-tag">{automateConfig.region}</li>
-                {automateConfig.cities.map((city) => (
-                  <li key={city} className="automate-region-tag">
-                    {city}
-                  </li>
-                ))}
-              </ul>
-            </div>
-          </section>
-
-          <hr className="automate-section-divider" />
-
-          {/* 04 — Over Greyson Teaser */}
-          <section
-            id="over-mij"
-            className="automate-section"
-            aria-labelledby="automate-about-teaser-title"
-          >
-            <div className="automate-section-header">
-              <span className="automate-section-num">
-                {t.sections.about.number}
-              </span>
-              <h2
-                id="automate-about-teaser-title"
-                className="automate-section-title"
-              >
-                {t.aboutTeaser.title}
-              </h2>
-            </div>
-            <div className="automate-about-teaser">
-              <p>{t.aboutTeaser.summary}</p>
-              <a
-                href={aboutHref}
-                className="automate-btn-secondary"
-                onClick={(e) => handleInternalRoute(e, 'about', onOpenAbout)}
-              >
-                <span>{t.aboutTeaser.ctaLabel}</span>
-                <span aria-hidden="true">&rarr;</span>
-              </a>
-            </div>
-          </section>
-
-          <hr className="automate-section-divider" />
-
-          {/* 05 — Contact */}
-          <section
-            id="automate-contact"
-            className="automate-section"
-            aria-labelledby="automate-contact-title"
-          >
-            <div className="automate-section-header">
-              <span className="automate-section-num">
-                {t.sections.contact.number}
-              </span>
-              <h2 id="automate-contact-title" className="automate-section-title">
-                {t.form.title}
-              </h2>
-            </div>
-
-            <div className="automate-form-card">
-              <p>{t.form.subtitle}</p>
-
-              <form className="automate-form" onSubmit={handleSubmit} noValidate>
-                <div className="automate-form-row">
-                  <div className="automate-field">
-                    <label htmlFor="automate-name">{t.form.nameLabel}</label>
-                    <input
-                      id="automate-name"
-                      name="name"
-                      type="text"
-                      className="automate-input"
-                      autoComplete="name"
-                      maxLength={INQUIRY_MAX_LENGTHS.name}
-                      aria-required="true"
-                      aria-invalid={hasError && !name.trim()}
-                      placeholder={t.form.namePlaceholder}
-                      value={name}
-                      onChange={(e) =>
-                        setName(
-                          sanitizeInquiryField(
-                            e.target.value,
-                            INQUIRY_MAX_LENGTHS.name
-                          )
-                        )
-                      }
-                    />
-                  </div>
-
-                  <div className="automate-field">
-                    <label htmlFor="automate-company">{t.form.companyLabel}</label>
-                    <input
-                      id="automate-company"
-                      name="company"
-                      type="text"
-                      className="automate-input"
-                      autoComplete="organization"
-                      maxLength={INQUIRY_MAX_LENGTHS.company}
-                      placeholder={t.form.companyPlaceholder}
-                      value={company}
-                      onChange={(e) =>
-                        setCompany(
-                          sanitizeInquiryField(
-                            e.target.value,
-                            INQUIRY_MAX_LENGTHS.company
-                          )
-                        )
-                      }
-                    />
-                  </div>
+                <div className="automate-showcase-head">
+                  <span className="automate-kicker">{t.heroShowcase.kicker}</span>
+                  <p className="automate-showcase-caption">
+                    {t.heroShowcase.caption}
+                  </p>
                 </div>
 
-                <div className="automate-form-row">
-                  <div className="automate-field">
-                    <label htmlFor="automate-contact-input">
-                      {t.form.contactLabel}
-                    </label>
-                    <input
-                      id="automate-contact-input"
-                      name="contact"
-                      type="text"
-                      className="automate-input"
-                      maxLength={INQUIRY_MAX_LENGTHS.contact}
-                      aria-required="true"
-                      aria-invalid={hasError && !contact.trim()}
-                      placeholder={t.form.contactPlaceholder}
-                      value={contact}
-                      onChange={(e) =>
-                        setContact(
-                          sanitizeInquiryField(
-                            e.target.value,
-                            INQUIRY_MAX_LENGTHS.contact
-                          )
-                        )
-                      }
-                    />
-                  </div>
-
-                  <div className="automate-field">
-                    <label htmlFor="automate-interest">{t.form.interestLabel}</label>
-                    <select
-                      id="automate-interest"
-                      name="interest"
-                      className="automate-select"
-                      value={interest}
-                      onChange={handleInterestChange}
-                    >
-                      {t.form.interestOptions.map((option) => (
-                        <option key={option} value={option}>
-                          {option}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-                </div>
-
-                <div className="automate-field">
-                  <label htmlFor="automate-message">{t.form.messageLabel}</label>
-                  <textarea
-                    id="automate-message"
-                    name="message"
-                    className="automate-textarea"
-                    maxLength={INQUIRY_MAX_LENGTHS.message}
-                    aria-required="true"
-                    aria-invalid={hasError && !message.trim()}
-                    placeholder={t.form.messagePlaceholder}
-                    value={message}
-                    onChange={(e) =>
-                      setMessage(
-                        sanitizeInquiryField(
-                          e.target.value,
-                          INQUIRY_MAX_LENGTHS.message,
-                          true
-                        )
-                      )
-                    }
-                  />
-                </div>
-
-                {hasError && (
-                  <div className="automate-form-error" role="alert">
-                    {t.form.validationError}
-                  </div>
-                )}
-
-                <div className="automate-form-actions">
-                  <button type="submit" className="automate-btn-primary">
-                    {t.form.submitButton}
-                  </button>
-                </div>
-              </form>
-
-              {submitted && (
                 <div
-                  className="automate-form-status"
-                  role="status"
-                  aria-live="polite"
+                  className="automate-showcase-tabs"
+                  role="tablist"
+                  aria-label={t.heroShowcase.kicker}
                 >
-                  <strong>{t.form.submittedTitle}</strong>
-                  <span>{t.form.submittedDescription}</span>
-                  <div className="automate-form-actions">
-                    <button
-                      type="button"
-                      className="automate-btn-secondary"
-                      onClick={handleCopyFallback}
-                    >
-                      {t.form.copyFallbackButton}
-                    </button>
-                  </div>
-                  {copied && <span>{t.form.copiedNotice}</span>}
+                  {t.heroShowcase.scenarios.map((scenario) => {
+                    const isActive = scenario.id === activeScenario.id;
+                    return (
+                      <button
+                        key={scenario.id}
+                        type="button"
+                        role="tab"
+                        id={`showcase-tab-${scenario.id}`}
+                        aria-selected={isActive}
+                        aria-controls="hero-showcase-panel"
+                        className={`automate-showcase-tab ${isActive ? 'is-active' : ''}`}
+                        onClick={() => handleScenarioSelect(scenario.id)}
+                      >
+                        {scenario.tab}
+                      </button>
+                    );
+                  })}
                 </div>
-              )}
 
-              <p className="automate-form-note">
-                {renderDirectEmailNote(t.form.directEmailNote, () => {
-                  trackInteraction('automate_direct_email_click', { lang });
-                  capturePostHogEvent('automate_direct_email_click', { lang });
-                })}
-              </p>
+                <div
+                  id="hero-showcase-panel"
+                  className="automate-showcase-panel"
+                  role="tabpanel"
+                  aria-labelledby={`showcase-tab-${activeScenario.id}`}
+                >
+                  <h2 className="automate-showcase-headline">
+                    {activeScenario.headline}
+                  </h2>
+
+                  <div className="automate-showcase-flow">
+                    <div className="automate-flow-node">
+                      <span className="automate-flow-label">
+                        {t.heroShowcase.inputLabel}
+                      </span>
+                      <p className="automate-flow-text">{activeScenario.input}</p>
+                    </div>
+
+                    <div className="automate-flow-node is-accent">
+                      <span className="automate-flow-label">
+                        {t.heroShowcase.engineLabel}
+                      </span>
+                      <p className="automate-flow-text">{activeScenario.engine}</p>
+                    </div>
+
+                    <div className="automate-flow-node">
+                      <span className="automate-flow-label">
+                        {t.heroShowcase.outputLabel}
+                      </span>
+                      <p className="automate-flow-text">{activeScenario.output}</p>
+                    </div>
+                  </div>
+
+                  <div className="automate-showcase-metric">
+                    <span className="automate-metric-label">
+                      {t.heroShowcase.metricLabel}
+                    </span>
+                    <span className="automate-metric-value">
+                      {activeScenario.metric}
+                    </span>
+                  </div>
+                </div>
+              </aside>
             </div>
-          </section>
-        </main>
+          </div>
+        </section>
 
-        <footer className="automate-footer">
+        {/* Band 2: Full-Bleed White Asymmetric Capabilities Band */}
+        <section id="diensten" className="automate-band automate-band--white">
+          <div className="automate-band-inner">
+            <div className="automate-band-header">
+              <span className="automate-eyebrow">{t.services.eyebrow}</span>
+              <h2 className="automate-h2">{t.services.title}</h2>
+              <p className="automate-lead">{t.services.intro}</p>
+            </div>
+
+            <div className="automate-services-split">
+              <article className="automate-service-pillar">
+                <span className="automate-kicker">
+                  {t.services.automationEyebrow}
+                </span>
+                <h3 className="automate-h3">{t.services.automationTitle}</h3>
+                <p className="automate-prose">{t.services.automationBody}</p>
+
+                <div
+                  className="automate-pipeline"
+                  aria-label={t.services.automationEyebrow}
+                >
+                  {t.services.automationPipeline.map((stage, idx) => (
+                    <div key={stage.stage} className="automate-pipeline-stage">
+                      <div className="automate-pipeline-marker" aria-hidden="true">
+                        <span className="automate-pipeline-dot" />
+                        {idx < t.services.automationPipeline.length - 1 && (
+                          <span className="automate-pipeline-connector" />
+                        )}
+                      </div>
+                      <div className="automate-pipeline-body">
+                        <span className="automate-pipeline-name">
+                          {stage.stage}
+                        </span>
+                        <span className="automate-pipeline-detail">
+                          {stage.detail}
+                        </span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </article>
+
+              <article className="automate-service-pillar">
+                <span className="automate-kicker">
+                  {t.services.softwareEyebrow}
+                </span>
+                <h3 className="automate-h3">{t.services.softwareTitle}</h3>
+                <p className="automate-prose">{t.services.softwareBody}</p>
+
+                <div
+                  className="automate-comparison"
+                  aria-label={t.services.softwareEyebrow}
+                >
+                  {t.services.softwareComparison.map((row) => (
+                    <div
+                      key={row.label}
+                      className={`automate-comparison-row ${
+                        row.tone === 'accent' ? 'is-accent' : 'is-muted'
+                      }`}
+                    >
+                      <div className="automate-comparison-meta">
+                        <span className="automate-comparison-label">
+                          {row.label}
+                        </span>
+                        <span className="automate-comparison-value">
+                          {row.value}
+                        </span>
+                      </div>
+                      <div className="automate-comparison-track" aria-hidden="true">
+                        <div className="automate-comparison-fill" />
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </article>
+            </div>
+          </div>
+        </section>
+
+        {/* Band 3: Horizontal Editorial Case Study Rows on Warm Stone */}
+        <section
+          id="automate-usecases"
+          className="automate-band automate-band--stone"
+        >
+          <div className="automate-band-inner">
+            <div className="automate-band-header">
+              <span className="automate-eyebrow">{t.useCases.eyebrow}</span>
+              <h2 className="automate-h2">{t.useCases.title}</h2>
+              <p className="automate-lead">{t.useCases.intro}</p>
+            </div>
+
+            <div className="automate-case-list">
+              {t.useCases.items.map((item) => (
+                <article key={item.id} className="automate-case-row">
+                  <div className="automate-case-quote-col">
+                    <span className="automate-case-tag">{item.tag}</span>
+                    <blockquote className="automate-case-quote">
+                      {item.situation}
+                    </blockquote>
+                  </div>
+                  <div className="automate-case-solution-col">
+                    <h3 className="automate-h3">{item.title}</h3>
+                    <p className="automate-prose">{item.narrative}</p>
+                  </div>
+                </article>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        {/* Band 4: Full-Bleed Dark Charcoal Editorial Story & Vertical Collaboration Timeline */}
+        <section id="werkwijze" className="automate-band automate-band--dark">
+          <div className="automate-band-inner">
+            <div className="automate-story-split">
+              <div className="automate-story-narrative">
+                <span className="automate-eyebrow automate-eyebrow--light">
+                  {t.story.eyebrow}
+                </span>
+                <h2 className="automate-h2 automate-h2--light">
+                  {t.story.title}
+                </h2>
+                <div className="automate-story-paragraphs">
+                  {t.story.paragraphs.map((paragraph, idx) => (
+                    <p key={idx} className="automate-prose automate-prose--light">
+                      {paragraph}
+                    </p>
+                  ))}
+                </div>
+                <p className="automate-story-region">{t.story.regionLine}</p>
+              </div>
+
+              <div className="automate-story-timeline-col">
+                <h3 className="automate-kicker automate-kicker--light">
+                  {t.story.processTitle}
+                </h3>
+                <ol className="automate-timeline">
+                  {t.story.steps.map((step) => (
+                    <li key={step.phase} className="automate-timeline-item">
+                      <span
+                        className="automate-timeline-node"
+                        aria-hidden="true"
+                      />
+                      <span className="automate-timeline-phase">
+                        {step.phase}
+                      </span>
+                      <h4 className="automate-timeline-title">{step.title}</h4>
+                      <p className="automate-timeline-text">{step.text}</p>
+                    </li>
+                  ))}
+                </ol>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* Band 5: Warm Tint Asymmetric Founder Teaser Banner */}
+        <section id="over-mij" className="automate-band automate-band--tint">
+          <div className="automate-band-inner">
+            <div className="automate-teaser-banner">
+              <div className="automate-teaser-copy">
+                <span className="automate-eyebrow">{t.aboutTeaser.eyebrow}</span>
+                <h2 className="automate-h2">{t.aboutTeaser.title}</h2>
+                <p className="automate-prose">{t.aboutTeaser.summary}</p>
+              </div>
+              <div className="automate-teaser-action">
+                <a
+                  href={aboutHref}
+                  className="automate-btn automate-btn-primary"
+                  onClick={(e) => handleInternalRoute(e, 'about', onOpenAbout)}
+                >
+                  {t.aboutTeaser.ctaLabel}
+                </a>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* Band 6: Full-Bleed White Asymmetric Direct Contact + Interactive Inquiry Form */}
+        <section
+          id="automate-contact"
+          className="automate-band automate-band--white"
+        >
+          <div className="automate-band-inner">
+            <div className="automate-contact-split">
+              <div className="automate-contact-info">
+                <span className="automate-eyebrow">{t.form.eyebrow}</span>
+                <h2 className="automate-h2">{t.form.title}</h2>
+                <p className="automate-prose">{t.form.subtitle}</p>
+
+                <div className="automate-contact-details">
+                  <div className="automate-contact-detail">
+                    <span className="automate-detail-label">
+                      {t.aboutPage.emailLabel}
+                    </span>
+                    <a
+                      href="mailto:grey.beimers@gmail.com"
+                      className="automate-detail-link"
+                      onClick={() => {
+                        trackInteraction('automate_direct_email_click', {
+                          lang,
+                          source: 'contact_band',
+                        });
+                        capturePostHogEvent('automate_direct_email_click', {
+                          lang,
+                          source: 'contact_band',
+                        });
+                      }}
+                    >
+                      {automateConfig.email}
+                    </a>
+                  </div>
+
+                  <div className="automate-contact-detail">
+                    <span className="automate-detail-label">
+                      {t.aboutPage.linkedinLabel}
+                    </span>
+                    <a
+                      href={automateConfig.linkedinUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="automate-detail-link"
+                      onClick={() => {
+                        trackInteraction('automate_linkedin_click', {
+                          lang,
+                          source: 'contact_band',
+                        });
+                        capturePostHogEvent('automate_linkedin_click', {
+                          lang,
+                          source: 'contact_band',
+                        });
+                      }}
+                    >
+                      Greyson Beimers — LinkedIn
+                    </a>
+                  </div>
+
+                  <div className="automate-contact-detail">
+                    <span className="automate-detail-label">
+                      {t.aboutPage.locationLabel}
+                    </span>
+                    <p className="automate-detail-value">
+                      {automateConfig.cities.join(' · ')}
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              <div className="automate-contact-form-wrap">
+                <form
+                  className="automate-form-panel"
+                  onSubmit={handleSubmit}
+                  noValidate
+                >
+                  <div className="automate-form-grid">
+                    <div className="automate-field">
+                      <label htmlFor="automate-name" className="automate-label">
+                        {t.form.nameLabel} *
+                      </label>
+                      <input
+                        id="automate-name"
+                        name="name"
+                        type="text"
+                        required
+                        maxLength={INQUIRY_MAX_LENGTHS.name}
+                        autoComplete="name"
+                        className="automate-input"
+                        placeholder={t.form.namePlaceholder}
+                        value={name}
+                        onChange={(e) =>
+                          setName(
+                            sanitizeInquiryField(
+                              e.target.value,
+                              INQUIRY_MAX_LENGTHS.name
+                            )
+                          )
+                        }
+                      />
+                    </div>
+
+                    <div className="automate-field">
+                      <label
+                        htmlFor="automate-company"
+                        className="automate-label"
+                      >
+                        {t.form.companyLabel}
+                      </label>
+                      <input
+                        id="automate-company"
+                        name="company"
+                        type="text"
+                        maxLength={INQUIRY_MAX_LENGTHS.company}
+                        autoComplete="organization"
+                        className="automate-input"
+                        placeholder={t.form.companyPlaceholder}
+                        value={company}
+                        onChange={(e) =>
+                          setCompany(
+                            sanitizeInquiryField(
+                              e.target.value,
+                              INQUIRY_MAX_LENGTHS.company
+                            )
+                          )
+                        }
+                      />
+                    </div>
+
+                    <div className="automate-field">
+                      <label
+                        htmlFor="automate-contact-input"
+                        className="automate-label"
+                      >
+                        {t.form.contactLabel} *
+                      </label>
+                      <input
+                        id="automate-contact-input"
+                        name="contact"
+                        type="text"
+                        required
+                        maxLength={INQUIRY_MAX_LENGTHS.contact}
+                        autoComplete="email"
+                        className="automate-input"
+                        placeholder={t.form.contactPlaceholder}
+                        value={contact}
+                        onChange={(e) =>
+                          setContact(
+                            sanitizeInquiryField(
+                              e.target.value,
+                              INQUIRY_MAX_LENGTHS.contact
+                            )
+                          )
+                        }
+                      />
+                    </div>
+
+                    <div className="automate-field">
+                      <label
+                        htmlFor="automate-interest"
+                        className="automate-label"
+                      >
+                        {t.form.interestLabel}
+                      </label>
+                      <select
+                        id="automate-interest"
+                        name="interest"
+                        className="automate-select"
+                        value={interest}
+                        onChange={handleInterestChange}
+                      >
+                        {t.form.interestOptions.map((option) => (
+                          <option key={option} value={option}>
+                            {option}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+
+                    <div className="automate-field is-full">
+                      <label
+                        htmlFor="automate-message"
+                        className="automate-label"
+                      >
+                        {t.form.messageLabel} *
+                      </label>
+                      <textarea
+                        id="automate-message"
+                        name="message"
+                        required
+                        maxLength={INQUIRY_MAX_LENGTHS.message}
+                        className="automate-textarea"
+                        placeholder={t.form.messagePlaceholder}
+                        value={message}
+                        onChange={(e) =>
+                          setMessage(
+                            sanitizeInquiryField(
+                              e.target.value,
+                              INQUIRY_MAX_LENGTHS.message,
+                              true
+                            )
+                          )
+                        }
+                      />
+                    </div>
+                  </div>
+
+                  {hasError && (
+                    <div className="automate-error-text" role="alert">
+                      {t.form.validationError}
+                    </div>
+                  )}
+
+                  <div className="automate-form-footer">
+                    <button
+                      type="submit"
+                      className="automate-btn automate-btn-primary"
+                    >
+                      {t.form.submitButton}
+                    </button>
+                    <p className="automate-direct-note">
+                      {renderDirectEmailNote(t.form.directEmailNote, () => {
+                        trackInteraction('automate_direct_email_click', { lang });
+                        capturePostHogEvent('automate_direct_email_click', {
+                          lang,
+                        });
+                      })}
+                    </p>
+                  </div>
+
+                  {submitted && (
+                    <div className="automate-success-box" role="status">
+                      <strong>{t.form.submittedTitle}</strong>
+                      <p>{t.form.submittedDescription}</p>
+                      <div className="automate-success-actions">
+                        <a
+                          href={submitted.mailtoUrl}
+                          className="automate-btn automate-btn-primary"
+                        >
+                          {t.form.submitButton}
+                        </a>
+                        <button
+                          type="button"
+                          className="automate-btn automate-btn-secondary"
+                          onClick={handleCopyFallback}
+                        >
+                          {t.form.copyFallbackButton}
+                        </button>
+                      </div>
+                      {copied && (
+                        <div className="automate-copy-status">
+                          {t.form.copiedNotice}
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </form>
+              </div>
+            </div>
+          </div>
+        </section>
+      </main>
+
+      <footer className="automate-band automate-band--footer">
+        <div className="automate-band-inner automate-footer-inner">
           <div className="automate-footer-brand">
             <BrandLogo size="sm" label={t.nav.brand} />
-            <span>{t.footer.note}</span>
+            <p className="automate-footer-note">{t.footer.note}</p>
           </div>
           <div className="automate-footer-links">
             <a
               href={aboutHref}
-              className="automate-inline-link"
+              className="automate-nav-link"
               onClick={(e) => handleInternalRoute(e, 'about', onOpenAbout)}
             >
               {t.footer.aboutLinkLabel}
             </a>
             <a
               href={dashboardHref}
-              className="automate-inline-link"
+              className="automate-nav-link"
               onClick={(e) =>
                 handleInternalRoute(e, 'dashboard', onOpenDashboard)
               }
@@ -749,8 +974,8 @@ export const AutomatePage: React.FC<AutomatePageProps> = ({
               {t.nav.dashboardLabel}
             </a>
           </div>
-        </footer>
-      </div>
+        </div>
+      </footer>
     </div>
   );
 };
