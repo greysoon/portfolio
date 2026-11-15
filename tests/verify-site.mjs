@@ -228,8 +228,9 @@ check('Automate Styling & Routing', 'src/styles/automate.css, App.tsx routing, C
     'utf8'
   );
   assert.ok(
-    contactSectionSrc.includes('automate.greyson.nl'),
-    'src/components/ContactSection.tsx must link to automate.greyson.nl'
+    contactSectionSrc.includes('automation.greyson.nl') ||
+      contactSectionSrc.includes('automate.greyson.nl'),
+    'src/components/ContactSection.tsx must link to automation.greyson.nl or automate.greyson.nl'
   );
 
   const appYamlPath = path.join(rootDir, '.do/app.yaml');
@@ -245,9 +246,94 @@ check('Automate Styling & Routing', 'src/styles/automate.css, App.tsx routing, C
 });
 
 // ---------------------------------------------------------------------------
-// 7. Red Team / Blue Team Security Suite Integration (`SEC-01` .. `SEC-06`)
+// 7. Sprint 03 — Light + Red Theme, Subdomain Routing & PostHog Dashboard
 // ---------------------------------------------------------------------------
-check('Security Ledger', 'All Red Team / Blue Team security controls (SEC-01 through SEC-06) pass verification', () => {
+check('Light + Red Theme', 'index.css, siteConfig.ts, index.html, App.tsx & PastelGlobe.tsx implement Light Background + Signature Red palette', () => {
+  assert.ok(indexCssSrc.includes('--bg-base: #f7f5f2'), 'Missing light --bg-base token in index.css');
+  assert.ok(indexCssSrc.includes('--pastel-red: #d94f48'), 'Missing signature red --pastel-red token in index.css');
+  assert.ok(siteConfigSrc.includes("bgBase: '#F7F5F2'"), 'Missing bgBase #F7F5F2 in siteConfig.ts');
+  assert.ok(siteConfigSrc.includes("primaryPastelRed: '#D94F48'"), 'Missing primaryPastelRed #D94F48 in siteConfig.ts');
+  assert.ok(indexHtml.includes('content="#F7F5F2"'), 'Missing light theme-color #F7F5F2 in index.html');
+  assert.ok(appSrc.includes('theme.defaultAlgorithm'), 'App.tsx must use Ant Design light theme.defaultAlgorithm');
+  assert.ok(pastelGlobeSrc.includes('#EFECE6'), 'PastelGlobe.tsx ocean sphere must use warm light stone #EFECE6');
+});
+
+check('Subdomain Routing & CV', 'App.tsx routes greyson.nl/automation to automate, about/cv to portfolio+CV, /dashboard to AnalyticsDashboard & .do/app.yaml/sitemap include all domains', () => {
+  assert.ok(appSrc.includes('resolveViewFromLocation'), 'Missing resolveViewFromLocation in App.tsx');
+  assert.ok(appSrc.includes("host.startsWith('dashboard.')"), 'App.tsx must route dashboard.*');
+  assert.ok(appSrc.includes("host.startsWith('about.')"), 'App.tsx must route about.*');
+  assert.ok(appSrc.includes("host.startsWith('cv.')"), 'App.tsx must route cv.*');
+  assert.ok(appSrc.includes("host.startsWith('automation.')"), 'App.tsx must route automation.*');
+  assert.ok(appSrc.includes("return { view: 'automate', portfolioMode: 'about' }"), 'App.tsx default route must be automate');
+  assert.ok(appSrc.includes('initPostHogBridge()'), 'App.tsx must call initPostHogBridge()');
+
+  const contactSectionSrc = fs.readFileSync(
+    path.join(rootDir, 'src/components/ContactSection.tsx'),
+    'utf8'
+  );
+  assert.ok(contactSectionSrc.includes('cv-card'), 'ContactSection.tsx must render .cv-card for cv.greyson.nl');
+  assert.ok(siteConfigSrc.includes('cvSummary:'), 'siteConfig.ts must define cvSummary');
+
+  const appYaml = fs.readFileSync(path.join(rootDir, '.do/app.yaml'), 'utf8');
+  for (const domain of [
+    'domain: greyson.nl',
+    'domain: www.greyson.nl',
+    'domain: automation.greyson.nl',
+    'domain: automate.greyson.nl',
+    'domain: about.greyson.nl',
+    'domain: cv.greyson.nl',
+  ]) {
+    assert.ok(appYaml.includes(domain), `Missing ${domain} in .do/app.yaml`);
+  }
+
+  const distSitemap = fs.readFileSync(path.join(distDir, 'sitemap.xml'), 'utf8');
+  for (const url of [
+    'https://greyson.nl/',
+    'https://automation.greyson.nl/',
+    'https://automate.greyson.nl/',
+    'https://about.greyson.nl/',
+    'https://cv.greyson.nl/',
+  ]) {
+    assert.ok(distSitemap.includes(url), `Missing ${url} in dist/sitemap.xml`);
+  }
+});
+
+check('PostHog & Dashboard', 'posthogClient.ts, AnalyticsDashboard.tsx & automate.css provide SHA-256 auth, live PostHog client & dashboard UI', () => {
+  const posthogPath = path.join(rootDir, 'src/utils/posthogClient.ts');
+  const dashboardPath = path.join(rootDir, 'src/components/AnalyticsDashboard.tsx');
+  const automateCss = fs.readFileSync(path.join(rootDir, 'src/styles/automate.css'), 'utf8');
+
+  assert.ok(fs.existsSync(posthogPath), 'Missing src/utils/posthogClient.ts');
+  assert.ok(fs.existsSync(dashboardPath), 'Missing src/components/AnalyticsDashboard.tsx');
+
+  const posthogSrc = fs.readFileSync(posthogPath, 'utf8');
+  const dashboardSrc = fs.readFileSync(dashboardPath, 'utf8');
+
+  for (const fn of [
+    'export async function verifyOwnerPassphrase',
+    'export function initPostHogBridge',
+    'export function capturePostHogEvent',
+    'export async function fetchPostHogAnalytics',
+    'export async function verifyPostHogPersonalKey',
+    'export function getLocalVisitorAnalytics',
+  ]) {
+    assert.ok(posthogSrc.includes(fn), `Missing export in posthogClient.ts: ${fn}`);
+  }
+
+  assert.ok(dashboardSrc.includes('verifyOwnerPassphrase'), 'AnalyticsDashboard must integrate verifyOwnerPassphrase');
+  assert.ok(dashboardSrc.includes('verifyPostHogPersonalKey'), 'AnalyticsDashboard must integrate verifyPostHogPersonalKey');
+  assert.ok(dashboardSrc.includes('Who Is Visiting'), 'AnalyticsDashboard must render Who Is Visiting table');
+  assert.ok(dashboardSrc.includes('What They Do'), 'AnalyticsDashboard must render What They Do stream');
+
+  for (const cls of ['.dashboard-root', '.dashboard-login-card', '.dashboard-kpi-grid', '.cv-card']) {
+    assert.ok(automateCss.includes(cls), `Missing CSS selector in src/styles/automate.css: ${cls}`);
+  }
+});
+
+// ---------------------------------------------------------------------------
+// 8. Red Team / Blue Team Security Suite Integration (`SEC-01` .. `SEC-07`)
+// ---------------------------------------------------------------------------
+check('Security Ledger', 'All Red Team / Blue Team security controls (SEC-01 through SEC-07) pass verification', () => {
   const secResults = runSecurityAuditChecks();
   for (const item of secResults) {
     assert.ok(item.remediated, `Security check ${item.id} failed: ${item.title}`);

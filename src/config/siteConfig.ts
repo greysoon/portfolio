@@ -29,13 +29,33 @@ export const siteConfig = {
     lon: 4.9,
   },
   colors: {
-    bgBase: '#121316',
-    bgElevated: '#1A1C22',
-    primaryPastelRed: '#F28B82',
-    secondaryPastelRed: '#FFAFB0',
-    textPrimary: '#F5F5F7',
-    textSecondary: '#D4D4D8',
-    textMuted: '#9E9EA8',
+    bgBase: '#F7F5F2',
+    bgElevated: '#FFFFFF',
+    primaryPastelRed: '#D94F48',
+    secondaryPastelRed: '#F28B82',
+    textPrimary: '#18191C',
+    textSecondary: '#3A3D45',
+    textMuted: '#5C606B',
+  },
+  cvSummary: {
+    title: 'Curriculum Vitae — Greyson Beimers',
+    role: 'Software Engineer — Full-Stack Web & Practical AI Automation',
+    location: 'Amsterdam & Friesland, Netherlands',
+    availability:
+      'Available for Friesland SME automation & full-stack engineering projects',
+    coreStack: [
+      'TypeScript',
+      'React',
+      'Node.js',
+      'Python',
+      'Three.js / WebGL',
+      'AI & Workflow Automation',
+    ],
+    highlights: [
+      'Builds fast, accessible TypeScript & React web applications, customer portals, and interactive Three.js / WebGL experiences.',
+      'Designs practical AI and workflow automations for Dutch SMEs (MKB) with strong attention to data privacy and maintainability.',
+      'Ships end-to-end production software from UI/UX and frontend architecture to CI/CD, security hardening, and performance telemetry.',
+    ],
   },
 } as const;
 

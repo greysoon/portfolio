@@ -3,8 +3,16 @@ export type AutomateLocale = 'nl' | 'en';
 export const automateConfig = {
   brandName: 'GREYSON AUTOMATION',
   domain: 'automate.greyson.nl',
+  primaryDomains: [
+    'greyson.nl',
+    'automation.greyson.nl',
+    'automate.greyson.nl',
+  ],
   siteUrl: 'https://automate.greyson.nl',
   portfolioUrl: 'https://greyson.nl',
+  aboutUrl: 'https://about.greyson.nl',
+  cvUrl: 'https://cv.greyson.nl',
+  dashboardPath: '/dashboard',
   email: 'grey.beimers@gmail.com',
   region: 'Friesland, Nederland',
   cities: [
@@ -21,6 +29,9 @@ export const automateConfig = {
       nav: {
         brand: 'GREYSON AUTOMATION',
         backToPortfolio: 'Portfolio (greyson.nl)',
+        aboutLabel: 'Over mij (about.greyson.nl)',
+        cvLabel: 'CV (cv.greyson.nl)',
+        dashboardLabel: 'Dashboard',
         languageLabel: 'Taal kiezen',
       },
       hero: {
@@ -141,13 +152,16 @@ export const automateConfig = {
       },
       footer: {
         note: 'Greyson Beimers — Praktische AI, automatisering & maatwerk software voor Friesland.',
-        portfolioLinkLabel: 'Bekijk software-portfolio op greyson.nl',
+        portfolioLinkLabel: 'Bekijk software-portfolio op about.greyson.nl',
       },
     },
     en: {
       nav: {
         brand: 'GREYSON AUTOMATION',
         backToPortfolio: 'Portfolio (greyson.nl)',
+        aboutLabel: 'About (about.greyson.nl)',
+        cvLabel: 'CV (cv.greyson.nl)',
+        dashboardLabel: 'Dashboard',
         languageLabel: 'Select language',
       },
       hero: {
@@ -268,7 +282,7 @@ export const automateConfig = {
       },
       footer: {
         note: 'Greyson Beimers — Practical AI, workflow automation & custom software for Friesland.',
-        portfolioLinkLabel: 'View engineering portfolio at greyson.nl',
+        portfolioLinkLabel: 'View engineering portfolio at about.greyson.nl',
       },
     },
   },

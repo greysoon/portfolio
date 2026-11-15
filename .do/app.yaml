@@ -15,7 +15,13 @@ domains:
     type: PRIMARY
   - domain: www.greyson.nl
     type: ALIAS
+  - domain: automation.greyson.nl
+    type: ALIAS
   - domain: automate.greyson.nl
+    type: ALIAS
+  - domain: about.greyson.nl
+    type: ALIAS
+  - domain: cv.greyson.nl
     type: ALIAS
 static_sites:
   - name: web

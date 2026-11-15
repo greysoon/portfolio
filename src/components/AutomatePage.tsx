@@ -1,10 +1,13 @@
 import React, { useEffect, useState } from 'react';
 import { automateConfig, AutomateLocale } from '../config/automateConfig';
 import { trackInteraction } from '../utils/telemetry';
+import { capturePostHogEvent } from '../utils/posthogClient';
 import '../styles/automate.css';
 
 interface AutomatePageProps {
-  onBackToPortfolio?: () => void;
+  onOpenAbout?: () => void;
+  onOpenCv?: () => void;
+  onOpenDashboard?: () => void;
 }
 
 interface SubmittedPayload {
@@ -23,7 +26,11 @@ const MAX_LENGTHS = {
 /**
  * Strips ASCII control characters and enforces an upper character bound.
  */
-function sanitizeField(value: string, maxLength: number, allowNewlines = false): string {
+function sanitizeField(
+  value: string,
+  maxLength: number,
+  allowNewlines = false
+): string {
   const cleaned = allowNewlines
     ? value.replace(/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/g, '')
     : value.replace(/[\x00-\x1F\x7F]/g, ' ');
@@ -69,7 +76,11 @@ function renderDirectEmailNote(
   );
 }
 
-export const AutomatePage: React.FC<AutomatePageProps> = ({ onBackToPortfolio }) => {
+export const AutomatePage: React.FC<AutomatePageProps> = ({
+  onOpenAbout,
+  onOpenCv,
+  onOpenDashboard,
+}) => {
   const [lang, setLang] = useState<AutomateLocale>('nl');
   const [name, setName] = useState('');
   const [company, setCompany] = useState('');
@@ -85,11 +96,16 @@ export const AutomatePage: React.FC<AutomatePageProps> = ({ onBackToPortfolio })
 
   const t = automateConfig.copy[lang];
 
-  const isAutomateSubdomain =
+  const isGreysonProd =
     typeof window !== 'undefined' &&
-    window.location.hostname.toLowerCase().startsWith('automate.');
+    (window.location.hostname.toLowerCase() === 'greyson.nl' ||
+      window.location.hostname.toLowerCase().endsWith('.greyson.nl'));
 
-  const portfolioHref = isAutomateSubdomain ? automateConfig.portfolioUrl : '/';
+  const aboutHref = isGreysonProd ? automateConfig.aboutUrl : '?site=about';
+  const cvHref = isGreysonProd ? automateConfig.cvUrl : '?site=cv';
+  const dashboardHref = isGreysonProd
+    ? automateConfig.dashboardPath
+    : '?site=dashboard';
 
   useEffect(() => {
     const previousLang = document.documentElement.lang;
@@ -108,21 +124,30 @@ export const AutomatePage: React.FC<AutomatePageProps> = ({ onBackToPortfolio })
     );
     setHasError(false);
     trackInteraction('automate_language_toggle', { lang: nextLang });
+    capturePostHogEvent('automate_language_toggle', { lang: nextLang });
   };
 
-  const handlePortfolioClick = (e: React.MouseEvent<HTMLAnchorElement>) => {
-    trackInteraction('automate_back_to_portfolio', { lang });
-    if (
-      !isAutomateSubdomain &&
-      onBackToPortfolio &&
+  const handleSubdomainNav = (
+    e: React.MouseEvent<HTMLAnchorElement>,
+    target: 'about' | 'cv' | 'dashboard',
+    callback?: () => void
+  ) => {
+    trackInteraction('automate_nav_click', { target, lang });
+    capturePostHogEvent('automate_link_click', { target, lang });
+
+    const isNormalLeftClick =
       !e.metaKey &&
       !e.ctrlKey &&
       !e.shiftKey &&
       !e.altKey &&
-      e.button === 0
-    ) {
+      e.button === 0;
+
+    if (!isNormalLeftClick || !callback) return;
+
+    // Dashboard stays on same origin (/dashboard); about/cv switch locally off production subdomains
+    if (target === 'dashboard' || !isGreysonProd) {
       e.preventDefault();
-      onBackToPortfolio();
+      callback();
     }
   };
 
@@ -179,6 +204,10 @@ export const AutomatePage: React.FC<AutomatePageProps> = ({ onBackToPortfolio })
       interest: safeInterest,
       lang,
     });
+    capturePostHogEvent('automate_inquiry_submit', {
+      interest: safeInterest,
+      lang,
+    });
 
     setSubmitted({ subject, body, mailtoUrl });
     setCopied(false);
@@ -194,6 +223,7 @@ export const AutomatePage: React.FC<AutomatePageProps> = ({ onBackToPortfolio })
         await navigator.clipboard.writeText(clipboardText);
         setCopied(true);
         trackInteraction('automate_copy_fallback', { lang });
+        capturePostHogEvent('automate_copy_fallback', { lang });
       }
     } catch {
       // Ignore clipboard permission errors gracefully
@@ -216,14 +246,31 @@ export const AutomatePage: React.FC<AutomatePageProps> = ({ onBackToPortfolio })
             </span>
 
             <div className="automate-nav-actions">
-              <a
-                href={portfolioHref}
-                className="automate-back-link"
-                onClick={handlePortfolioClick}
-              >
-                <span aria-hidden="true">&larr;</span>
-                <span>{t.nav.backToPortfolio}</span>
-              </a>
+              <div className="automate-nav-links">
+                <a
+                  href={aboutHref}
+                  className="automate-back-link"
+                  onClick={(e) => handleSubdomainNav(e, 'about', onOpenAbout)}
+                >
+                  {t.nav.aboutLabel}
+                </a>
+                <a
+                  href={cvHref}
+                  className="automate-back-link"
+                  onClick={(e) => handleSubdomainNav(e, 'cv', onOpenCv)}
+                >
+                  {t.nav.cvLabel}
+                </a>
+                <a
+                  href={dashboardHref}
+                  className="automate-back-link"
+                  onClick={(e) =>
+                    handleSubdomainNav(e, 'dashboard', onOpenDashboard)
+                  }
+                >
+                  {t.nav.dashboardLabel}
+                </a>
+              </div>
 
               <div
                 className="automate-lang-switch"
@@ -263,18 +310,32 @@ export const AutomatePage: React.FC<AutomatePageProps> = ({ onBackToPortfolio })
               <a
                 href="#automate-contact"
                 className="automate-btn-primary"
-                onClick={() =>
-                  trackInteraction('automate_cta_click', { target: 'contact', lang })
-                }
+                onClick={() => {
+                  trackInteraction('automate_cta_click', {
+                    target: 'contact',
+                    lang,
+                  });
+                  capturePostHogEvent('automate_cta_click', {
+                    target: 'contact',
+                    lang,
+                  });
+                }}
               >
                 {t.hero.primaryCta}
               </a>
               <a
                 href="#automate-usecases"
                 className="automate-btn-secondary"
-                onClick={() =>
-                  trackInteraction('automate_cta_click', { target: 'usecases', lang })
-                }
+                onClick={() => {
+                  trackInteraction('automate_cta_click', {
+                    target: 'usecases',
+                    lang,
+                  });
+                  capturePostHogEvent('automate_cta_click', {
+                    target: 'usecases',
+                    lang,
+                  });
+                }}
               >
                 {t.hero.secondaryCta}
               </a>
@@ -456,7 +517,9 @@ export const AutomatePage: React.FC<AutomatePageProps> = ({ onBackToPortfolio })
                     placeholder={t.form.messagePlaceholder}
                     value={message}
                     onChange={(e) =>
-                      setMessage(sanitizeField(e.target.value, MAX_LENGTHS.message, true))
+                      setMessage(
+                        sanitizeField(e.target.value, MAX_LENGTHS.message, true)
+                      )
                     }
                   />
                 </div>
@@ -496,9 +559,10 @@ export const AutomatePage: React.FC<AutomatePageProps> = ({ onBackToPortfolio })
               )}
 
               <p className="automate-form-note">
-                {renderDirectEmailNote(t.form.directEmailNote, () =>
-                  trackInteraction('automate_direct_email_click', { lang })
-                )}
+                {renderDirectEmailNote(t.form.directEmailNote, () => {
+                  trackInteraction('automate_direct_email_click', { lang });
+                  capturePostHogEvent('automate_direct_email_click', { lang });
+                })}
               </p>
             </div>
           </section>
@@ -506,13 +570,31 @@ export const AutomatePage: React.FC<AutomatePageProps> = ({ onBackToPortfolio })
 
         <footer className="automate-footer">
           <span>{t.footer.note}</span>
-          <a
-            href={portfolioHref}
-            className="automate-inline-link"
-            onClick={handlePortfolioClick}
-          >
-            {t.footer.portfolioLinkLabel}
-          </a>
+          <div className="automate-footer-links">
+            <a
+              href={aboutHref}
+              className="automate-inline-link"
+              onClick={(e) => handleSubdomainNav(e, 'about', onOpenAbout)}
+            >
+              {t.footer.portfolioLinkLabel}
+            </a>
+            <a
+              href={cvHref}
+              className="automate-inline-link"
+              onClick={(e) => handleSubdomainNav(e, 'cv', onOpenCv)}
+            >
+              {t.nav.cvLabel}
+            </a>
+            <a
+              href={dashboardHref}
+              className="automate-inline-link"
+              onClick={(e) =>
+                handleSubdomainNav(e, 'dashboard', onOpenDashboard)
+              }
+            >
+              {t.nav.dashboardLabel}
+            </a>
+          </div>
         </footer>
       </div>
     </div>

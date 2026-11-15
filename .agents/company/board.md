@@ -224,3 +224,25 @@
   - `node tests/verify-site.mjs`: **`16 / 16 checks PASS`** (extended with `AutomatePage.tsx`, `automateConfig.ts`, `automate.css`, `App.tsx`, `ContactSection.tsx`, `.do/app.yaml`, and `dist/sitemap.xml` assertions).
   - `node tests/security/red-team-audit.mjs`: **`6 / 6 checks PASS`** (`SEC-01` through `SEC-06`).
 - **Release Certification**: **SPRINT 02 CERTIFIED FOR PRODUCTION RELEASE (`SIGNED_OFF` by `security-qa`)**
+
+---
+
+## 10. Sprint 03 — Light + Red Theme, Subdomain Routing & PostHog Analytics Dashboard (`security-qa` Certification)
+
+- **Sprint Status**: `COMPLETED & CERTIFIED`
+- **Mission**: Promote the Friesland AI & automation site (`AutomatePage`) to the default experience on `greyson.nl` and `automation.greyson.nl`, transition the design system to the Light Background + Signature Red palette (`#F7F5F2` / `#D94F48`), route `about.greyson.nl` and `cv.greyson.nl` to the engineering portfolio + CV card, and launch the protected `/dashboard` (`dashboard.greyson.nl`) PostHog Cloud & visitor analytics console.
+- **Sprint 03 Deliverables Audited**:
+  - **`src/utils/posthogClient.ts` (`data-analytics`)**: Salted SHA-256 (`WebCrypto` + pure-TS fallback) constant-time owner verification (`OWNER_EMAIL = 'grey.beimers@gmail.com'`), 5-attempt / 60s lockout rate limiter, `sessionStorage`-isolated `personalApiKey` (`phx_...`), EU/US PostHog `/capture/` bridge (`window.__GREYSON_POSTHOG_SESSION__`), HogQL live query API (`fetchPostHogAnalytics`, `verifyPostHogPersonalKey`), and `getLocalVisitorAnalytics()` telemetry fallback.
+  - **`src/components/AnalyticsDashboard.tsx`, `src/App.tsx`, `src/components/AutomatePage.tsx`, `src/components/ContactSection.tsx`, `src/components/PastelGlobe.tsx` (`frontend-engineer`)**: Protected owner passphrase + PostHog Personal Key login screen, KPI summary cards, Subdomain Traffic Breakdown, Who Is Visiting table, What They Do stream, `resolveViewFromLocation()` subdomain/path/query routing, Ant Design light `theme.defaultAlgorithm`, `.cv-card` summary on `cv.greyson.nl`, and `#EFECE6` light-stone Three.js globe sphere.
+  - **`src/config/siteConfig.ts`, `src/config/automateConfig.ts` (`copywriter`)**: Light + red `colors` tokens, `cvSummary` data for `cv.greyson.nl`, and subdomain nav/URL tokens (`primaryDomains`, `aboutUrl`, `cvUrl`, `dashboardPath`).
+  - **`src/index.css`, `src/styles/automate.css` (`ui-ux-designer`)**: Harmonized `#f7f5f2` / `#ffffff` / `#d94f48` / `#18191c` light theme tokens, `.dashboard-*` console styles, and `.cv-card` styles while preserving all WCAG AAA contrast, `:focus-visible`, `.skip-link`, `.sr-only`, `.globe-fallback`, and reduced-motion/mobile rules.
+  - **`.do/app.yaml`, `public/sitemap.xml`, `index.html` (`backend-devops`)**: Configured `greyson.nl` (`PRIMARY`) plus `www.greyson.nl`, `automation.greyson.nl`, `automate.greyson.nl`, `about.greyson.nl`, and `cv.greyson.nl` (`ALIAS`) in `.do/app.yaml` and `public/sitemap.xml`; updated `<meta name="theme-color" content="#F7F5F2" />` and CSP `connect-src 'self' https://*.posthog.com https://*.i.posthog.com;` in `index.html`.
+- **Security Audit Findings (`security-qa` — `SEC-07` Closed)**:
+  - **Zero Plaintext Passphrase Exposure**: `src/utils/posthogClient.ts` embeds only the 64-char SHA-256 hex digest (`OWNER_PASSPHRASE_SHA256`) and compares hashes via `constantTimeEqual` after `computeSha256Hex`.
+  - **Brute-Force Rate Limiting & Session Isolation**: Enforces `MAX_FAILED_LOGIN_ATTEMPTS = 5` with `LOGIN_LOCKOUT_DURATION_MS = 60_000` across memory + `sessionStorage`; stores `personalApiKey` strictly in `sessionStorage` (`PERSONAL_KEY_SESSION_KEY`), never `localStorage` or cookies (`document.cookie` untouched).
+  - **Safe Rendering, Input Bounds & CSP**: Zero `dangerouslySetInnerHTML`, `eval`, or `.innerHTML` across `posthogClient.ts` and `AnalyticsDashboard.tsx`; `maxLength` enforced on all 7 dashboard inputs (`254` / `256` / `32`); CSP `connect-src` restricted to `'self' https://*.posthog.com https://*.i.posthog.com;`.
+- **Automated Test & Build Certification**:
+  - `npm run build` (`tsc -b && vite build`): **`PASS`** (`0` TypeScript/Vite errors; `dist/index.html` `4.64 kB`, `dist/assets/index-*.css` `22.29 kB`, `dist/assets/index-*.js` `189.33 kB`, `dist/assets/antd-*.js` `426.23 kB`, `dist/assets/three-*.js` `471.35 kB`, zero `.map` sourcemaps).
+  - `node tests/verify-site.mjs`: **`19 / 19 checks PASS`** (including `Light + Red Theme`, `Subdomain Routing & CV`, `PostHog & Dashboard`, and `SEC-01`–`SEC-07`).
+  - `node tests/security/red-team-audit.mjs`: **`7 / 7 checks PASS`** (`SEC-01` through `SEC-07`).
+- **Release Certification**: **SPRINT 03 CERTIFIED FOR PRODUCTION RELEASE (`SIGNED_OFF` by `security-qa`)**

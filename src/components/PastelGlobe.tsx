@@ -87,12 +87,12 @@ export const PastelGlobe: React.FC<{ visible: boolean }> = ({ visible }) => {
     const primaryColor = new THREE.Color(siteConfig.colors.primaryPastelRed);
     const secondaryColor = new THREE.Color(siteConfig.colors.secondaryPastelRed);
 
-    // 1. Dark ocean sphere (occludes back-hemisphere continents so front map is crystal clear)
+    // 1. Warm light stone ocean sphere (occludes back-hemisphere continents cleanly on light background)
     const coreGeo = new THREE.SphereGeometry(radius * 0.992, 64, 64);
     const coreMat = new THREE.MeshBasicMaterial({
-      color: new THREE.Color('#141519'),
+      color: new THREE.Color('#EFECE6'),
       transparent: true,
-      opacity: 0.96,
+      opacity: 0.97,
     });
     globeGroup.add(new THREE.Mesh(coreGeo, coreMat));
 
@@ -100,7 +100,7 @@ export const PastelGlobe: React.FC<{ visible: boolean }> = ({ visible }) => {
     const graticuleMat = new THREE.LineBasicMaterial({
       color: primaryColor,
       transparent: true,
-      opacity: 0.11,
+      opacity: 0.16,
     });
 
     for (let lat = -60; lat <= 60; lat += 30) {
@@ -134,9 +134,9 @@ export const PastelGlobe: React.FC<{ visible: boolean }> = ({ visible }) => {
     landGeo.setAttribute('position', new THREE.BufferAttribute(landPositions, 3));
     const landMat = new THREE.PointsMaterial({
       color: secondaryColor,
-      size: 0.055,
+      size: 0.058,
       transparent: true,
-      opacity: 0.72,
+      opacity: 0.85,
     });
     globeGroup.add(new THREE.Points(landGeo, landMat));
 
@@ -144,7 +144,7 @@ export const PastelGlobe: React.FC<{ visible: boolean }> = ({ visible }) => {
     const coastMat = new THREE.LineBasicMaterial({
       color: primaryColor,
       transparent: true,
-      opacity: 0.82,
+      opacity: 0.9,
     });
 
     WORLD_COASTLINE_RINGS.forEach((ring) => {
@@ -159,7 +159,7 @@ export const PastelGlobe: React.FC<{ visible: boolean }> = ({ visible }) => {
     );
     const hollandBorderGeo = new THREE.BufferGeometry().setFromPoints(hollandBorderPts);
     const hollandBorderMat = new THREE.LineBasicMaterial({
-      color: new THREE.Color('#FFAFB0'),
+      color: new THREE.Color('#962721'),
       transparent: true,
       opacity: 1,
     });
@@ -193,9 +193,9 @@ export const PastelGlobe: React.FC<{ visible: boolean }> = ({ visible }) => {
     globeGroup.add(pinHeadMesh);
 
     // Pin surface anchor dot
-    const surfaceDotGeo = new THREE.SphereGeometry(0.045, 16, 16);
+    const surfaceDotGeo = new THREE.SphereGeometry(0.048, 16, 16);
     const surfaceDotMat = new THREE.MeshBasicMaterial({
-      color: new THREE.Color('#FFFFFF'),
+      color: new THREE.Color('#18191C'),
     });
     const surfaceDotMesh = new THREE.Mesh(surfaceDotGeo, surfaceDotMat);
     surfaceDotMesh.position.copy(hollandSurface);
@@ -226,11 +226,11 @@ export const PastelGlobe: React.FC<{ visible: boolean }> = ({ visible }) => {
       { name: 'Ireland', lat: 53.35, lon: -7.8 },
     ];
 
-    const destDotGeo = new THREE.SphereGeometry(0.032, 12, 12);
+    const destDotGeo = new THREE.SphereGeometry(0.034, 12, 12);
     const destDotMat = new THREE.MeshBasicMaterial({
-      color: secondaryColor,
+      color: primaryColor,
       transparent: true,
-      opacity: 0.9,
+      opacity: 0.92,
     });
 
     destinations.forEach((dest) => {
@@ -249,9 +249,9 @@ export const PastelGlobe: React.FC<{ visible: boolean }> = ({ visible }) => {
       const curve = new THREE.QuadraticBezierCurve3(start, mid, end);
       const arcGeo = new THREE.BufferGeometry().setFromPoints(curve.getPoints(48));
       const arcMat = new THREE.LineBasicMaterial({
-        color: secondaryColor,
+        color: primaryColor,
         transparent: true,
-        opacity: 0.62,
+        opacity: 0.56,
       });
       globeGroup.add(new THREE.Line(arcGeo, arcMat));
 

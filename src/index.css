@@ -1,12 +1,13 @@
 :root {
-  --bg-base: #121316;
-  --bg-elevated: #1a1c22;
-  --pastel-red: #f28b82;
-  --pastel-red-soft: #ffafb0;
-  --text-primary: #f5f5f7;
-  --text-secondary: #d4d4d8;
-  --text-muted: #9e9ea8;
-  --focus-ring: #ffafb0;
+  --bg-base: #f7f5f2;
+  --bg-elevated: #ffffff;
+  --pastel-red: #d94f48;
+  --pastel-red-soft: #f28b82;
+  --text-primary: #18191c;
+  --text-secondary: #3a3d45;
+  --text-muted: #5c606b;
+  --focus-ring: #d94f48;
+  --red-accessible: #962721;
 }
 
 * {
@@ -34,11 +35,12 @@
   z-index: 100;
   padding: 8px 14px;
   background-color: var(--bg-elevated);
-  color: var(--pastel-red-soft);
+  color: var(--red-accessible);
   border: 2px solid var(--focus-ring);
   border-radius: 6px;
   font-weight: 700;
   text-decoration: none;
+  box-shadow: 0 6px 18px rgba(24, 25, 28, 0.12);
   transition: top 0.2s ease;
 }
 
@@ -69,6 +71,7 @@ body,
   height: 100dvh;
   background-color: var(--bg-base);
   color: var(--text-primary);
+  color-scheme: light;
   overflow: hidden;
   user-select: none;
   -webkit-font-smoothing: antialiased;
@@ -77,9 +80,9 @@ body,
 .portfolio-layout {
   min-height: 100dvh;
   background: radial-gradient(
-    circle at 50% 72%,
-    rgba(242, 139, 130, 0.08) 0%,
-    rgba(18, 19, 22, 1) 62%
+    circle at 50% 18%,
+    rgba(242, 139, 130, 0.18) 0%,
+    rgba(247, 245, 242, 1) 68%
   ) !important;
   position: relative;
   overflow: hidden;
@@ -121,7 +124,7 @@ body,
 }
 
 .intro-header .intro-cursor {
-  color: var(--pastel-red-soft);
+  color: var(--pastel-red);
 }
 
 /* Main Content Container */
@@ -159,13 +162,13 @@ body,
 }
 
 .age-ticker {
-  color: var(--pastel-red);
+  color: var(--red-accessible);
   font-variant-numeric: tabular-nums;
 }
 
 .role-accent {
   display: inline-block;
-  color: var(--pastel-red-soft);
+  color: var(--red-accessible);
   position: relative;
 }
 
@@ -190,7 +193,7 @@ body,
 
 /* Interactive Underlined Links (matches ottomated.net) */
 .pastel-link {
-  color: var(--pastel-red) !important;
+  color: var(--red-accessible) !important;
   text-decoration: none !important;
   display: inline-block;
   position: relative;
@@ -200,7 +203,7 @@ body,
 
 .pastel-link:hover,
 .pastel-link:focus-visible {
-  color: var(--pastel-red-soft) !important;
+  color: var(--pastel-red) !important;
 }
 
 .underline {
@@ -220,7 +223,7 @@ body,
 .pastel-link:hover > .underline,
 .pastel-link:focus-visible > .underline {
   width: 100%;
-  background-color: var(--pastel-red-soft);
+  background-color: var(--red-accessible);
 }
 
 /* 3D Globe Wrapper */
@@ -260,16 +263,17 @@ body,
   gap: 8px;
   padding: 20px 28px;
   margin: 16px;
-  border: 1px solid rgba(242, 139, 130, 0.35);
+  border: 1px solid rgba(217, 79, 72, 0.26);
   border-radius: 12px;
-  background: rgba(26, 28, 34, 0.75);
+  background: rgba(255, 255, 255, 0.92);
+  box-shadow: 0 8px 24px rgba(24, 25, 28, 0.06);
   color: var(--text-secondary);
   text-align: center;
   max-width: 360px;
 }
 
 .globe-fallback-coords {
-  color: var(--pastel-red-soft);
+  color: var(--red-accessible);
   font-size: 1.15rem;
   font-weight: 700;
   letter-spacing: 0.04em;
