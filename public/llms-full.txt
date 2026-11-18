@@ -2,15 +2,15 @@
 
 ## Missie (Nederlands)
 
-AI gaat razendsnel. Bijna elk bedrijf in het MKB heeft processen die vastgeroest zitten of irritaties die vóór 2025/2026 simpelweg bleven liggen omdat traditioneel maatwerk maanden doorlooptijd en hoge bureaukosten vroeg.
+AI gaat razendsnel. Bijna elk bedrijf in het MKB heeft processen die vastgeroest zitten of irritaties op kantoor en de werkvloer die vóór 2025/2026 simpelweg bleven liggen omdat traditioneel maatwerk maanden doorlooptijd en hoge bureaukosten vroeg.
 
-Greyson Beimers (full-stack software engineer) gaat direct met bedrijven in Friesland in gesprek, brengt knelpunten en werkwijzen in 30 minuten visueel in kaart, en bouwt binnen één middag of één dag een werkende custom tool of AI-proces. Het resultaat: tot wel 80% minder saai handwerk, lagere foutkans en een werkdag die zowel efficiënter als leuker wordt.
+Greyson Beimers is werkzaam bij een bedrijf en merkt daar van dichtbij hoe snel je achterop kunt raken als je niet op tijd schakelt. Om zichzelf verder te ontwikkelen én ondernemers in Friesland te ondersteunen, brengt hij knelpunten en werkwijzen in 30 minuten visueel in gewone taal in kaart en bouwt binnen één middag of dag een werkende custom tool of AI-proces — zonder zware abonnementen of wurgcontracten, zodat het werk leuk blijft en de koers recht.
 
 ### Hoe de samenwerking werkt in 3 stappen
 
-1. **Inzichtelijk maken (30 min)**: Samen aan tafel of via videobellen tekenen we uit waar mail, PDF's, Excel en losse systemen tijd weglaten lopen.
+1. **Inzichtelijk maken (30 min)**: Samen aan tafel of via videobellen tekenen we in heldere taal uit waar mail, PDF's, Excel en losse systemen tijd weglaten lopen op kantoor of werkvloer.
 2. **Direct bouwen (1 middag / 1 dag)**: Met AI-versnelde engineering wordt direct een werkende tool of koppeling gebouwd op jouw eigen werkwijze — zonder tussenpersonen.
-3. **Efficiënter & leuker werk (Elke dag live)**: Veilig geïnstalleerd in eigen beheer, met 100% eigendom over code, data en koppelingen.
+3. **Efficiënter & leuker werk (Elke dag live)**: Nuchter ingezet in jullie dagelijkse proces zodat het team elke week uren bespaart.
 
 ### Vier veelvoorkomende voorbeelden (Voor & Na)
 
@@ -20,9 +20,9 @@ Greyson Beimers (full-stack software engineer) gaat direct met bedrijven in Frie
 2. **Planning, Orders & Excel-lijsten (Gebouwd in 1 dag)**
    - Oud (< 2025): Mailtjes → Kopiëren tussen losse Excel-tabbladen → Handmatig factureren.
    - Nieuw (2026): Eén overzichtelijke custom web-tool met live planning en automatische synchronisatie.
-3. **Interne Vraagbaak & Kennisbank (Gebouwd in 1 middag)**
+3. **Slimme Vraagbaak & Kennisbank (Gebouwd in 1 middag)**
    - Oud (< 2025): Mappen doorzoeken → Ervaren collega bellen → Tijdverlies (20 min).
-   - Nieuw (2026): Vraag stellen in gewoon Nederlands → Privé AI zoekt alleen in eigen handleidingen → Antwoord met bronpagina in 3 seconden.
+   - Nieuw (2026): Vraag stellen in gewoon Nederlands → AI doorzoekt eigen handleidingen → Antwoord met bronpagina in 3 seconden.
 4. **Klantportaal & Bedrijfswebsite (Gebouwd in 1 dag)**
    - Oud (< 2025): Klanten bellen voor statusupdates of om bestanden door te geven.
    - Nieuw (2026): Snel portaal op eigen domein waarin klanten veilig inloggen, documenten aanleveren en direct de status zien.
@@ -35,15 +35,15 @@ Leeuwarden, Sneek, Heerenveen, Drachten, Harlingen, Franeker, Dokkum, geheel Fri
 
 ## Mission & Context (English)
 
-AI has fundamentally changed how fast tailored software can be engineered. Bottlenecks and legacy habits that SMEs left untouched before 2025 because bespoke agencies needed 6–12 weeks can now often be solved cleanly in a single afternoon or day.
+AI has fundamentally changed how fast tailored software can be built. Bottlenecks and rusty habits that SMEs left untouched before 2025 because bespoke agencies needed 6–12 weeks can now often be solved cleanly in a single afternoon or day.
 
-Greyson Beimers connects directly with companies to visualize how daily work flows across inbox, spreadsheets, CRM, and staff knowledge—and builds private AI workflows or custom web applications that eliminate repetitive copy-pasting and make work faster and more enjoyable.
+Alongside a regular company role where he sees firsthand how fast businesses can fall behind if they fail to adapt, Greyson Beimers visits business owners to map out bottlenecks across office and operations in plain language—delivering custom tools or AI workflows with no lock-in contracts so daily work stays effective and enjoyable.
 
-### Privacy, Security & Architecture Standards
+### Collaboration Principles
 
-- Private data stays under client ownership and is never sent to train public AI models.
-- Tech stack: TypeScript, React, Node.js, Python, Postgres/API integrations, modern cloud deployment.
-- Security posture: strict Content-Security-Policy, zero plaintext secrets, clean code ownership.
+- Visual clarity first in plain, everyday language.
+- Built in an afternoon or day instead of quarterly agency retainers.
+- Honest tool advice with zero lock-in contracts.
 
 ### Contact & Canonical URLs
 

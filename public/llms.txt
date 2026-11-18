@@ -2,35 +2,35 @@
 
 > Practical AI workflows, process automation, and custom web tools built in an afternoon or day for businesses across Friesland, Netherlands — turning outdated manual routines from before 2025 into software that makes daily work faster and more enjoyable.
 
-Greyson Beimers works directly with business owners in Friesland (Leeuwarden, Sneek, Heerenveen, Drachten, Harlingen, Franeker, Dokkum) and across the Netherlands. Instead of months-long agency trajectories and heavy consulting decks, workflows are mapped visually in 30 minutes and solved in 1 afternoon to 1 day.
+Greyson Beimers works alongside a full-time company role with business owners across Friesland (Leeuwarden, Sneek, Heerenveen, Drachten, Harlingen, Franeker, Dokkum) and the Netherlands. Seeing firsthand how fast technology moves and how quickly businesses fall behind if they do not adapt, Greyson started this mission to keep work enjoyable and on a steady course — mapping workflows visually in 30 minutes and shipping practical 1-day custom tools or AI flows without lock-in contracts.
 
 ## Core Shift (< 2025 vs. 2026)
 
-- **Before 2025**: Everyday operational bottlenecks (re-typing email quotes, patched Excel sheets, scattered manuals, manual client updates) required 6–12 weeks of costly bespoke development, so SMEs postponed fixing them.
-- **Now in 2026**: Modern AI lets an experienced full-stack engineer map a bottleneck visually and build a tailored internal tool, automation bridge, or portal in one afternoon or one day.
+- **Before 2025**: Everyday bottlenecks in office and shop-floor work (re-typing email quotes, patched Excel sheets, scattered manuals, manual client updates) required 6–12 weeks of costly bespoke development, so SMEs postponed fixing them.
+- **Now in 2026**: Modern AI lets a builder map a bottleneck visually and deliver a tailored internal tool, automation bridge, or portal in one afternoon or one day.
 
 ## Services & Approach
 
 - [Homepage — De omslag (< 2025 vs. Nu)](https://greyson.nl/): Interactive before/after workflow scenarios, 3-step visual blueprint, and direct inquiry form.
 - [Automation Subdomain — Automate Friesland](https://automate.greyson.nl/): Dedicated AI & automation portal for regional companies in Friesland.
-- [Over mij & Contact](https://greyson.nl/over-mij): Background, visual working principles (process mapped first, built in 1 day, 100% private data ownership), and direct contact.
-- [Extended LLM Documentation](https://greyson.nl/llms-full.txt): Full bilingual Dutch and English breakdown of use cases, privacy standards, and tech stack.
+- [Over mij & Contact](https://greyson.nl/over-mij): Personal mission story, visual working principles (mapped in plain language first, built in 1 day, practical & no lock-in contracts), and direct contact.
+- [Extended LLM Documentation](https://greyson.nl/llms-full.txt): Full bilingual Dutch and English breakdown of use cases, approach, and contact channels.
 
 ## Typical 1-Day Solutions
 
 - **Offertes & Intake (1 middag)**: Automatically turn inbound emails, dimensions, and PDF attachments into structured quote drafts ready for 1-click approval.
 - **Oude Excel-lijsten naar Custom Web Tool (1 dag)**: Replace disconnected spreadsheets with one live internal planning, order, or inventory tool.
-- **Privé Interne Kennisbank (1 middag)**: Private Q&A assistant over company manuals, installation guides, and past projects without sharing data with public AI training models.
+- **Slimme Interne Vraagbaak (1 middag)**: Smart Q&A assistant over company manuals, guidelines, and past notes so office and floor staff find answers in seconds.
 - **Modern Klantportaal (1 dag)**: Clean customer self-service portal for status tracking, appointments, and document exchange.
 
-## Privacy & Ownership
+## Collaboration & Practicality
 
-- Sensitive company, customer, and pricing records are never sent to train public AI models.
-- Custom software, domains, and integrations remain 100% under the client's own ownership.
+- Plain-language visual intake first: clarify what stalls daily work before building anything.
+- Pragmatic tool choice & no lock-in contracts: transparent advice on which cloud AI providers or custom tools genuinely fit your workflow without heavy agency retainers.
 
 ## Direct Contact
 
-- **Founder & Engineer**: Greyson Beimers
+- **Founder**: Greyson Beimers
 - **Email**: grey.beimers@gmail.com
 - **LinkedIn**: https://www.linkedin.com/in/greyson-beimers-68749b1a1/
 - **Service Region**: Leeuwarden, Sneek, Heerenveen, Drachten, Harlingen, Franeker, Dokkum (Friesland, NL) & Amsterdam

@@ -67,7 +67,7 @@ export const automateConfig = {
         },
         inputLabel: 'Vastgeroeste werkwijze (< 2025)',
         engineLabel: 'Custom AI Tool (2026)',
-        outputLabel: 'Resultaat op de werkvloer',
+        outputLabel: 'Resultaat op kantoor & werkvloer',
         metricLabel: 'Verschil in tijd',
         scenarios: [
           {
@@ -111,14 +111,14 @@ export const automateConfig = {
             oldDuration: '20 min zoeken',
             newDuration: '3 sec antwoord',
             oldFlow: ['Mappen zoeken', 'Collega bellen', 'Wachten'],
-            newFlow: ['Vraag in NL', 'Eigen AI-zoektool', 'Direct bron + antwoord'],
+            newFlow: ['Vraag in NL', 'Slimme AI-zoektool', 'Direct bron + antwoord'],
             headline: 'Nooit meer graven in mappen of collega’s storen',
             input:
-              'Monteur of binnendienst zoekt naar een voorschrift, handleiding of oude afspraak.',
+              'Collega op kantoor of werkvloer zoekt naar een voorschrift, handleiding of oude afspraak.',
             engine:
-              'Een eigen afgeschermde zoektool doorzoekt alleen jullie interne documenten.',
+              'Een slimme zoektool doorzoekt direct jullie interne documenten en handleidingen.',
             output:
-              'Binnen 3 seconden het juiste antwoord met bronpagina, 100% privé.',
+              'Binnen 3 seconden het juiste antwoord met de juiste bronpagina erbij.',
             metric: 'Van 20 min zoeken naar 3 sec — gebouwd in 1 middag',
           },
         ],
@@ -170,8 +170,8 @@ export const automateConfig = {
           },
           {
             badge: 'Stap 3 · Direct live',
-            stage: 'Rust op kantoor',
-            detail: 'Jij keurt goed, het saai werk verdwijnt',
+            stage: 'Rust op kantoor & werkvloer',
+            detail: 'Jij keurt goed, het saaie werk verdwijnt',
           },
         ],
         softwareEyebrow: 'De nieuwe realiteit van 2026',
@@ -186,12 +186,12 @@ export const automateConfig = {
           },
           {
             label: '2026 · Custom Tool met AI',
-            value: 'In 1 middag of dag gebouwd → Direct live op de werkvloer',
+            value: 'In 1 middag of dag gebouwd → Direct live op kantoor & werkvloer',
             tone: 'accent',
           },
           {
-            label: 'Resultaat & Eigendom',
-            value: '-80% saai handwerk · 100% privé & in eigen beheer',
+            label: 'Resultaat & Werkplezier',
+            value: '-80% saai handwerk · Meer tijd voor klanten en vakwerk',
             tone: 'result',
           },
         ],
@@ -236,15 +236,15 @@ export const automateConfig = {
             id: 'knowledge',
             tag: 'Team & Vakkennis',
             buildBadge: 'Gebouwd in 1 middag',
-            title: 'Privé vraagbaak op eigen documenten',
+            title: 'Slimme vraagbaak op jullie eigen documenten',
             situation:
               '“Nieuwe collega’s blijven bellen omdat voorschriften verstopt zitten.”',
             oldWayLabel: 'Oud',
             newWayLabel: 'Nieuw',
             oldSteps: ['Mappen klikken', 'Collega bellen', 'Halfuur kwijt'],
-            newSteps: ['Vraag typen', 'Eigen AI zoekt', 'Antwoord + bron'],
+            newSteps: ['Vraag typen', 'AI zoekt direct', 'Antwoord + bron'],
             narrative:
-              'Direct antwoord uit jullie eigen bestanden zonder dat data het pand verlaat.',
+              'Direct antwoord uit jullie eigen handleidingen en werkafspraken zonder eindeloos zoeken.',
           },
           {
             id: 'portal',
@@ -293,8 +293,8 @@ export const automateConfig = {
           {
             badge: 'Elke dag plezier',
             phase: '3 · Efficiënter werken',
-            title: 'Minder handwerk, volledig in eigen bezit',
-            text: 'Veilig geïnstalleerd op jouw eigen omgeving zodat het team elke dag tijd bespaart.',
+            title: 'Minder handwerk op kantoor en werkvloer',
+            text: 'Direct bruikbaar in jullie dagelijkse proces zodat het hele team elke week uren bespaart.',
           },
         ],
         regionLine:
@@ -304,7 +304,7 @@ export const automateConfig = {
         eyebrow: 'Wie er langskomt',
         title: 'Rechtstreeks bouwen met Greyson Beimers.',
         summary:
-          'Geen verkopers, wel nuchtere full-stack engineering in Friesland. Bekijk op de over-mij-pagina hoe ik werk.',
+          'Geen verkopers, wel nuchtere begeleiding in Friesland. Bekijk op de over-mij-pagina hoe ik werk.',
         ctaLabel: 'Over mij & direct contact',
       },
       aboutPage: {
@@ -314,7 +314,7 @@ export const automateConfig = {
           'Ik breng vastgeroeste bedrijfsprocessen visueel in kaart en bouw binnen een middag of dag een custom tool of AI-flow die het werk leuker maakt.',
         introTitle: 'Waarom ik hiermee begonnen ben',
         introParagraphs: [
-          'In mijn dagelijkse werk bij een bedrijf merk ik van dichtbij hoe hard AI en digitale werkwijzen gaan — en hoe snel je achterop kunt raken als je niet op tijd schakelt.',
+          'In mijn dagelijkse werk bij een bedrijf merk ik van dichtbij hoe hard AI en digitale werkwijzen op kantoor én de werkvloer gaan — en hoe snel je achterop kunt raken als je niet op tijd schakelt.',
           'Om mijzelf continu verder te ontwikkelen én ondernemers te ondersteunen, ben ik dit begonnen als missie: samen zorgen dat het werk leuk blijft en je koers recht blijft, zonder dat je achterloopt of hoeft af te wijken omdat je een ontwikkeling mist.',
         ],
         principlesTitle: 'Waarom het werkt',
@@ -322,7 +322,7 @@ export const automateConfig = {
           {
             icon: 'insight',
             title: 'Proces eerst visueel scherp',
-            body: 'We brengen zonder vakjargon in beeld welke stappen overbodig zijn geworden.',
+            body: 'We brengen in gewone, heldere taal in beeld welke stappen op kantoor of de werkvloer slimmer kunnen.',
           },
           {
             icon: 'speed',
@@ -331,8 +331,8 @@ export const automateConfig = {
           },
           {
             icon: 'shield',
-            title: '100% privé & eigen eigendom',
-            body: 'Bedrijfsdata traint geen publieke modellen en alle code blijft van jouw bedrijf.',
+            title: 'Nuchtere inzet & geen wurgcontract',
+            body: 'We kiezen eerlijk welke bestaande AI-tools of custom oplossingen wel en niet bij jouw situatie passen, zonder zware abonnementen.',
           },
         ],
         profileTitle: '< 2025 vs. 2026 · Mijn missie',
@@ -373,13 +373,18 @@ export const automateConfig = {
         messagePlaceholder:
           'Welk terugkerend klusje kost jullie nu de meeste frustratie of tijd?',
         submitButton: 'Stuur bericht per e-mail',
+        submittingButton: 'Bezig met versturen...',
+        openMailAppFallback: 'Open ook in eigen mailapp',
         copyFallbackButton: 'Kopieer bericht & e-mailadres (grey.beimers@gmail.com)',
         copiedNotice: 'Bericht en grey.beimers@gmail.com gekopieerd naar klembord.',
         directEmailNote:
           'Liever zelf een mail sturen? Gebruik direct grey.beimers@gmail.com.',
-        submittedTitle: 'Je e-mailprogramma wordt geopend',
+        submittedTitle: 'Bericht is verstuurd naar Greyson!',
         submittedDescription:
-          'Opent er niets vanzelf in de browser? Kopieer het bericht dan met één klik hieronder.',
+          'Bedankt! Je bericht is direct doorgestuurd naar grey.beimers@gmail.com. Ik reageer meestal binnen één werkdag (of gebruik hieronder de knop als je het bericht ook in je eigen mailapp wilt openen).',
+        fallbackSubmittedTitle: 'Je e-mailprogramma wordt geopend',
+        fallbackSubmittedDescription:
+          'Lukt direct versturen vanaf dit netwerk niet? Dan openen we je mailapp automatisch, of kopieer je alles met één klik hieronder.',
         validationError:
           'Vul je naam, contactgegevens en een korte toelichting in voordat je verstuurt.',
       },
@@ -430,7 +435,7 @@ export const automateConfig = {
         },
         inputLabel: 'Rusty manual habit (< 2025)',
         engineLabel: 'Custom AI Tool (2026)',
-        outputLabel: 'On-the-floor result',
+        outputLabel: 'Office & shop-floor result',
         metricLabel: 'Time difference',
         scenarios: [
           {
@@ -474,14 +479,14 @@ export const automateConfig = {
             oldDuration: '20 min searching',
             newDuration: '3 sec answer',
             oldFlow: ['Dig in folders', 'Call colleague', 'Wait'],
-            newFlow: ['Ask in plain text', 'Private AI tool', 'Exact source'],
+            newFlow: ['Ask in plain text', 'Smart AI search', 'Exact source'],
             headline: 'Instant cited answers from your own manuals',
             input:
-              'Staff search for safety rules, installation steps, or old project notes.',
+              'Staff in the office or field search for safety rules, steps, or old notes.',
             engine:
-              'A private internal search tool querying only your verified company docs.',
+              'A smart search tool querying your company manuals and guidelines directly.',
             output:
-              'Exact cited answers in 3 seconds with 100% data privacy.',
+              'Exact cited answers in 3 seconds right when you need them.',
             metric: '20 min digging down to 3 sec — built in 1 afternoon',
           },
         ],
@@ -533,7 +538,7 @@ export const automateConfig = {
           },
           {
             badge: 'Step 3 · Live now',
-            stage: 'Enjoyable workflow',
+            stage: 'Calm across office & floor',
             detail: 'You stay in charge, busywork disappears',
           },
         ],
@@ -549,12 +554,12 @@ export const automateConfig = {
           },
           {
             label: '2026 · Custom Tool powered by AI',
-            value: 'Built in 1 afternoon or day → Live right away',
+            value: 'Built in 1 afternoon or day → Live across office & floor',
             tone: 'accent',
           },
           {
-            label: 'Result & Ownership',
-            value: '-80% repetitive admin · 100% private & yours forever',
+            label: 'Result & Work Enjoyment',
+            value: '-80% repetitive admin · More focus on customers and craft',
             tone: 'result',
           },
         ],
@@ -599,15 +604,15 @@ export const automateConfig = {
             id: 'knowledge',
             tag: 'Team Knowledge',
             buildBadge: 'Built in 1 afternoon',
-            title: 'Private Q&A hub over company files',
+            title: 'Smart Q&A hub over your company documents',
             situation:
               '“New hires keep calling because instructions sit in buried folders.”',
             oldWayLabel: 'Old',
             newWayLabel: 'New',
             oldSteps: ['Browse folders', 'Call senior', '30 min lost'],
-            newSteps: ['Ask question', 'Private AI', 'Cited answer'],
+            newSteps: ['Ask question', 'AI finds page', 'Cited answer'],
             narrative:
-              'Instant answers from your own manuals while files stay 100% private.',
+              'Instant answers from your own manuals and guidelines without digging through folders.',
           },
           {
             id: 'portal',
@@ -656,8 +661,8 @@ export const automateConfig = {
           {
             badge: 'Daily relief',
             phase: '3 · Better workdays',
-            title: 'Faster, safer & yours forever',
-            text: 'Installed cleanly under your own ownership so the team saves hours every week.',
+            title: 'Less manual friction in the office & field',
+            text: 'Built directly around your daily routine so the team saves hours every single week.',
           },
         ],
         regionLine:
@@ -667,7 +672,7 @@ export const automateConfig = {
         eyebrow: 'Who visits your team',
         title: 'Build directly with Greyson Beimers.',
         summary:
-          'No sales layers, just grounded full-stack engineering in Friesland. See how I work on the About page.',
+          'No sales layers, just grounded practical help in Friesland. See how I work on the About page.',
         ctaLabel: 'About me & direct contact',
       },
       aboutPage: {
@@ -677,7 +682,7 @@ export const automateConfig = {
           'I map rusty business workflows visually and build custom tools or AI flows in an afternoon or day so work becomes faster and more fun.',
         introTitle: 'Why I started this mission',
         introParagraphs: [
-          'In my day-to-day role at a company, I see firsthand how fast AI and modern workflows evolve — and how quickly a business can fall behind if it does not adapt in time.',
+          'In my day-to-day role at a company, I see firsthand how fast AI and modern workflows evolve across office and operations — and how quickly a business can fall behind if it does not adapt in time.',
           'To keep developing myself while supporting business owners, I started this as a mission: keeping daily work enjoyable and keeping your course steady, without falling behind or drifting off track because you missed a shift.',
         ],
         principlesTitle: 'Why it works',
@@ -685,17 +690,17 @@ export const automateConfig = {
           {
             icon: 'insight',
             title: 'Workflow mapped visually first',
-            body: 'No buzzwords — we picture every wasted step clearly before building.',
+            body: 'In plain, everyday language we map out which steps in the office or on the shop floor can run smarter.',
           },
           {
             icon: 'speed',
             title: 'Built in an afternoon or day',
-            body: 'Modern AI tooling lets us launch real working software in record time.',
+            body: 'Modern AI tooling lets us launch a working prototype or integration in record time.',
           },
           {
             icon: 'shield',
-            title: 'Private & 100% your ownership',
-            body: 'Company records never feed public models and all code belongs to you.',
+            title: 'Honest advice & no lock-in contracts',
+            body: 'We choose practically which proven AI tools or custom workflows fit your situation, without heavy retainers.',
           },
         ],
         profileTitle: '< 2025 vs. 2026 · My mission',
@@ -735,14 +740,19 @@ export const automateConfig = {
         messageLabel: 'Short note',
         messagePlaceholder:
           'Which recurring task creates the most friction or wasted time right now?',
-        submitButton: 'Open email draft',
+        submitButton: 'Send message by email',
+        submittingButton: 'Sending message...',
+        openMailAppFallback: 'Also open in my email app',
         copyFallbackButton: 'Copy message & email (grey.beimers@gmail.com)',
         copiedNotice: 'Message and grey.beimers@gmail.com copied to clipboard.',
         directEmailNote:
           'Prefer emailing directly? Write anytime to grey.beimers@gmail.com.',
-        submittedTitle: 'Opening your email app',
+        submittedTitle: 'Message sent to Greyson!',
         submittedDescription:
-          'Using webmail and nothing opened automatically? Copy the ready message below.',
+          'Thanks! Your message has been forwarded directly to grey.beimers@gmail.com. I usually reply within one business day (or use the buttons below to open or copy it in your own email app).',
+        fallbackSubmittedTitle: 'Opening your email app',
+        fallbackSubmittedDescription:
+          'Direct delivery was blocked on this network? Your mail app is opening cleanly, or copy the ready message below.',
         validationError:
           'Please enter your name, contact details, and a short note before continuing.',
       },

@@ -313,3 +313,18 @@
   - `node tests/verify-site.mjs`: `21 / 21 checks PASS`.
   - `node tests/security/red-team-audit.mjs`: `8 / 8 checks PASS` (`SEC-01`–`SEC-08`).
   - Live Browser Check (`http://localhost:5173/`): Confirmed equal box heights (`312.21px` vs `312.21px` in `#diensten`; `590.35px` vs `590.35px` in `#werkwijze`), smooth header menu scrolling, and `16/16` `.automate-reveal.is-visible` activation.
+
+---
+
+### Sprint 08 — Authentic Copy Refinements & Direct Email Form Delivery
+
+- **Copy & Honest Positioning (`copywriter`, `marketing-seo`)**:
+  - Updated `src/config/automateConfig.ts` (`nl` & `en`), `index.html` (`FAQPage`), `public/llms.txt`, `public/.well-known/llms.txt`, and `public/llms-full.txt` to pair `kantoor & werkvloer` consistently, replace `"vakjargon"` with `"in gewone, heldere taal"`, and remove technical stack mentions (`stackLine`) on `/over-mij` in favor of Greyson's authentic story (employed at a company, seeing how fast businesses fall behind without adapting, and keeping work enjoyable & on a steady course).
+  - Replaced self-hosted AI privacy over-claims with honest, realistic positioning (`Nuchtere inzet & geen wurgcontract` — transparent cloud AI/custom tool choices without lock-in retainers).
+- **Working Async Inquiry Form (`frontend-engineer`, `blue-team-security`)**:
+  - Exported `sendInquiryEmail` (`https://formsubmit.co/ajax/grey.beimers@gmail.com`) in `src/components/AutomatePage.tsx`, integrated async direct delivery + loading lock (`isSubmitting`) + clean fallback (`mailto:` + clipboard copy) across both `AutomatePage.tsx` and `AboutMePage.tsx`, and added `https://formsubmit.co` to `connect-src` in `index.html` CSP while preserving `SEC-01`–`SEC-08` zero-PII telemetry.
+- **Verification**:
+  - `npm run build`: `PASS` (`1448` modules transformed in `4.70s`; `dist/assets/index-*.js` `239.19 kB`).
+  - `node tests/verify-site.mjs`: `21 / 21 checks PASS`.
+  - `node tests/security/red-team-audit.mjs`: `8 / 8 checks PASS` (`SEC-01`–`SEC-08`).
+  - Live Browser Check (`http://localhost:5173/?site=about` & `http://localhost:5173/`): Verified updated `/over-mij` mission + honest principles (`Nuchtere inzet & geen wurgcontract`) without tech tags.

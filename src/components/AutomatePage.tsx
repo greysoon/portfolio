@@ -83,6 +83,47 @@ export async function copyInquiryTextToClipboard(
 }
 
 /**
+ * Delivers an inquiry email directly via FormSubmit AJAX without leaving the page.
+ * Returns true on confirmed acceptance or false so callers can fall back to mailto:.
+ */
+export async function sendInquiryEmail(params: {
+  subject: string;
+  name: string;
+  company: string;
+  contact: string;
+  interest: string;
+  message: string;
+}): Promise<boolean> {
+  try {
+    const response = await fetch(
+      `https://formsubmit.co/ajax/${automateConfig.email}`,
+      {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Accept: 'application/json',
+        },
+        body: JSON.stringify({
+          _subject: params.subject,
+          _template: 'table',
+          _captcha: 'false',
+          Naam: params.name,
+          Bedrijf: params.company || '-',
+          Contactgegevens: params.contact,
+          Onderwerp: params.interest,
+          Toelichting: params.message,
+        }),
+      }
+    );
+    if (!response.ok) return false;
+    const data = (await response.json()) as { success?: string | boolean };
+    return data.success === true || data.success === 'true';
+  } catch {
+    return false;
+  }
+}
+
+/**
  * Renders the copywriter's direct-email note with an interactive mailto: link.
  */
 export function renderDirectEmailNote(
@@ -325,6 +366,8 @@ export const AutomatePage: React.FC<AutomatePageProps> = ({
   const [interest, setInterest] = useState<string>(t.form.interestOptions[0]);
   const [message, setMessage] = useState('');
   const [hasError, setHasError] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [sentDirectly, setSentDirectly] = useState(false);
   const [submitted, setSubmitted] = useState<InquiryFormPayload | null>(null);
   const [copied, setCopied] = useState(false);
 
@@ -455,8 +498,9 @@ export const AutomatePage: React.FC<AutomatePageProps> = ({
     setInterest(t.form.interestOptions[safeIdx]);
   };
 
-  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+    if (isSubmitting) return;
 
     const cleanName = sanitizeInquiryField(name, INQUIRY_MAX_LENGTHS.name).trim();
     const cleanCompany = sanitizeInquiryField(
@@ -509,9 +553,28 @@ export const AutomatePage: React.FC<AutomatePageProps> = ({
       lang,
     });
 
+    setIsSubmitting(true);
+    const delivered = await sendInquiryEmail({
+      subject,
+      name: cleanName,
+      company: cleanCompany,
+      contact: cleanContact,
+      interest: safeInterest,
+      message: cleanMessage,
+    });
+    setIsSubmitting(false);
+    setSentDirectly(delivered);
     setSubmitted({ subject, body, mailtoUrl });
     setCopied(false);
-    window.location.href = mailtoUrl;
+
+    if (delivered) {
+      setName('');
+      setCompany('');
+      setContact('');
+      setMessage('');
+    } else {
+      window.location.href = mailtoUrl;
+    }
   };
 
   const handleCopyFallback = async () => {
@@ -1413,8 +1476,11 @@ export const AutomatePage: React.FC<AutomatePageProps> = ({
                     <button
                       type="submit"
                       className="automate-btn automate-btn-primary"
+                      disabled={isSubmitting}
                     >
-                      {t.form.submitButton}
+                      {isSubmitting
+                        ? t.form.submittingButton
+                        : t.form.submitButton}
                     </button>
                     <p className="automate-direct-note">
                       {renderDirectEmailNote(t.form.directEmailNote, () => {
@@ -1428,14 +1494,26 @@ export const AutomatePage: React.FC<AutomatePageProps> = ({
 
                   {submitted && (
                     <div className="automate-success-box" role="status">
-                      <strong>{t.form.submittedTitle}</strong>
-                      <p>{t.form.submittedDescription}</p>
+                      <strong>
+                        {sentDirectly
+                          ? t.form.submittedTitle
+                          : t.form.fallbackSubmittedTitle}
+                      </strong>
+                      <p>
+                        {sentDirectly
+                          ? t.form.submittedDescription
+                          : t.form.fallbackSubmittedDescription}
+                      </p>
                       <div className="automate-success-actions">
                         <a
                           href={submitted.mailtoUrl}
-                          className="automate-btn automate-btn-primary"
+                          className={`automate-btn ${
+                            sentDirectly
+                              ? 'automate-btn-secondary'
+                              : 'automate-btn-primary'
+                          }`}
                         >
-                          {t.form.submitButton}
+                          {t.form.openMailAppFallback}
                         </a>
                         <button
                           type="button"

@@ -10,6 +10,7 @@ import {
   InquiryFormPayload,
   renderDirectEmailNote,
   sanitizeInquiryField,
+  sendInquiryEmail,
 } from './AutomatePage';
 import '../styles/automate.css';
 
@@ -38,6 +39,8 @@ export const AboutMePage: React.FC<AboutMePageProps> = ({
   const [interest, setInterest] = useState<string>(t.form.interestOptions[0]);
   const [message, setMessage] = useState('');
   const [hasError, setHasError] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [sentDirectly, setSentDirectly] = useState(false);
   const [submitted, setSubmitted] = useState<InquiryFormPayload | null>(null);
   const [copied, setCopied] = useState(false);
 
@@ -159,8 +162,9 @@ export const AboutMePage: React.FC<AboutMePageProps> = ({
     setInterest(t.form.interestOptions[safeIdx]);
   };
 
-  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+    if (isSubmitting) return;
 
     const cleanName = sanitizeInquiryField(name, INQUIRY_MAX_LENGTHS.name).trim();
     const cleanCompany = sanitizeInquiryField(
@@ -213,9 +217,28 @@ export const AboutMePage: React.FC<AboutMePageProps> = ({
       lang,
     });
 
+    setIsSubmitting(true);
+    const delivered = await sendInquiryEmail({
+      subject,
+      name: cleanName,
+      company: cleanCompany,
+      contact: cleanContact,
+      interest: safeInterest,
+      message: cleanMessage,
+    });
+    setIsSubmitting(false);
+    setSentDirectly(delivered);
     setSubmitted({ subject, body, mailtoUrl });
     setCopied(false);
-    window.location.href = mailtoUrl;
+
+    if (delivered) {
+      setName('');
+      setCompany('');
+      setContact('');
+      setMessage('');
+    } else {
+      window.location.href = mailtoUrl;
+    }
   };
 
   const handleCopyFallback = async () => {
@@ -764,8 +787,11 @@ export const AboutMePage: React.FC<AboutMePageProps> = ({
                     <button
                       type="submit"
                       className="automate-btn automate-btn-primary"
+                      disabled={isSubmitting}
                     >
-                      {t.form.submitButton}
+                      {isSubmitting
+                        ? t.form.submittingButton
+                        : t.form.submitButton}
                     </button>
                     <p className="automate-direct-note">
                       {renderDirectEmailNote(t.form.directEmailNote, () => {
@@ -779,14 +805,26 @@ export const AboutMePage: React.FC<AboutMePageProps> = ({
 
                   {submitted && (
                     <div className="automate-success-box" role="status">
-                      <strong>{t.form.submittedTitle}</strong>
-                      <p>{t.form.submittedDescription}</p>
+                      <strong>
+                        {sentDirectly
+                          ? t.form.submittedTitle
+                          : t.form.fallbackSubmittedTitle}
+                      </strong>
+                      <p>
+                        {sentDirectly
+                          ? t.form.submittedDescription
+                          : t.form.fallbackSubmittedDescription}
+                      </p>
                       <div className="automate-success-actions">
                         <a
                           href={submitted.mailtoUrl}
-                          className="automate-btn automate-btn-primary"
+                          className={`automate-btn ${
+                            sentDirectly
+                              ? 'automate-btn-secondary'
+                              : 'automate-btn-primary'
+                          }`}
                         >
-                          {t.form.submitButton}
+                          {t.form.openMailAppFallback}
                         </a>
                         <button
                           type="button"
