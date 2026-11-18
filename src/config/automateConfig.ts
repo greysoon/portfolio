@@ -315,7 +315,7 @@ export const automateConfig = {
         introTitle: 'Waarom ik hiermee begonnen ben',
         introParagraphs: [
           'In mijn dagelijkse werk bij een bedrijf merk ik van dichtbij hoe hard AI en digitale werkwijzen op kantoor én de werkvloer gaan — en hoe snel je achterop kunt raken als je niet op tijd schakelt.',
-          'Om mijzelf continu verder te ontwikkelen én ondernemers te ondersteunen, ben ik dit begonnen als missie: samen zorgen dat het werk leuk blijft en je koers recht blijft, zonder dat je achterloopt of hoeft af te wijken omdat je een ontwikkeling mist.',
+          'Door mijzelf continu in de nieuwste mogelijkheden te verdiepen én die kennis direct in de praktijk in te zetten, wil ik ondernemers nuchter vooruithelpen. Mijn missie: zorgen dat het werk voor jou en je team leuk en overzichtelijk blijft — zodat je op je eigen koers kunt blijven bouwen, zonder de slag te missen.',
         ],
         principlesTitle: 'Waarom het werkt',
         principles: [
@@ -683,7 +683,7 @@ export const automateConfig = {
         introTitle: 'Why I started this mission',
         introParagraphs: [
           'In my day-to-day role at a company, I see firsthand how fast AI and modern workflows evolve across office and operations — and how quickly a business can fall behind if it does not adapt in time.',
-          'To keep developing myself while supporting business owners, I started this as a mission: keeping daily work enjoyable and keeping your course steady, without falling behind or drifting off track because you missed a shift.',
+          'By continuously diving into the latest possibilities and putting that knowledge straight to work, I want to help business owners move forward in a grounded way. My mission: keeping daily work enjoyable and clear for you and your team — so you can stay focused on your own course without missing the boat.',
         ],
         principlesTitle: 'Why it works',
         principles: [

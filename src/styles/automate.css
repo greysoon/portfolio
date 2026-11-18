@@ -1129,18 +1129,21 @@ a.automate-brand:hover .automate-logo-mark,
   display: grid;
   grid-template-columns: minmax(0, 1.12fr) minmax(0, 0.88fr);
   gap: clamp(32px, 5vw, 68px);
-  align-items: start;
+  align-items: stretch;
 }
 
 .automate-hero-copy {
+  height: 100%;
   display: flex;
   flex-direction: column;
   align-items: flex-start;
-  gap: 20px;
-  padding-top: 8px;
+  justify-content: space-between;
+  gap: 24px;
+  padding-top: 0;
 }
 
 .automate-hero-showcase {
+  height: 100%;
   background-color: #ffffff;
   border: 1px solid rgba(24, 25, 28, 0.1);
   border-radius: 16px;
@@ -1148,6 +1151,7 @@ a.automate-brand:hover .automate-logo-mark,
   box-shadow: 0 22px 54px rgba(24, 25, 28, 0.06);
   display: flex;
   flex-direction: column;
+  justify-content: space-between;
   gap: 18px;
 }
 
@@ -1848,15 +1852,17 @@ a.automate-brand:hover .automate-logo-mark,
    Visual-First Diagrams, < 2025 vs 2026 Comparisons & SVG Infographics
    -------------------------------------------------------------------------- */
 .automate-hero-visual-strip {
+  width: 100%;
   display: flex;
   flex-wrap: wrap;
   align-items: center;
+  justify-content: space-between;
   gap: 10px 12px;
-  margin-top: 8px;
-  padding: 12px 16px;
-  background-color: rgba(255, 255, 255, 0.85);
-  border: 1px solid rgba(24, 25, 28, 0.08);
-  border-radius: 12px;
+  margin-top: 0;
+  padding: 16px 20px;
+  background-color: rgba(255, 255, 255, 0.9);
+  border: 1px solid rgba(24, 25, 28, 0.09);
+  border-radius: 14px;
 }
 
 .automate-strip-item {
@@ -2622,6 +2628,8 @@ a.automate-brand:hover .automate-logo-mark,
     grid-template-columns: 1fr;
   }
 
+  .automate-hero-copy,
+  .automate-hero-showcase,
   .automate-service-pillar,
   .automate-story-narrative,
   .automate-story-timeline-col {
