@@ -282,3 +282,16 @@
   - `npm run build` (`tsc -b && vite build`): `PASS` (`0` errors, `1448` modules).
   - `node tests/verify-site.mjs`: `21 / 21 checks PASS`.
   - `node tests/security/red-team-audit.mjs`: `8 / 8 checks PASS` (`SEC-01`–`SEC-08`).
+
+---
+
+### Sprint 06 — Visual-First `< 2025 vs. 2026` Storytelling & 1-Day AI Solutions
+
+- **Concise Visual Storytelling (`copywriter`, `ui-ux-designer`, `frontend-engineer`)**:
+  - Compressed copy in `src/config/automateConfig.ts` (`nl` & `en`) to focus immediately on the core mission: bottlenecks and outdated manual habits (`< 2025`) that companies previously shelved due to multi-month custom software fees can now often be solved with a custom tool or AI flow built in an afternoon or day (`2026`), making daily work both more efficient and more enjoyable (`efficiënter én leuker`).
+  - Added visual-first diagrams and custom SVG infographics across `src/components/AutomatePage.tsx` and `src/components/AboutMePage.tsx`: a 3-step visual hero strip, side-by-side `< 2025 vs. 2026` era cards, interactive 3-scenario node-flow diagrams (`Offertes & Mail`, `Oude Excel-lijsten`, `Interne Vraagbaak`), a 3-panel SVG infographic (`#diensten`), a 2×2 Before/After transformation grid (`#automate-usecases`), and a dark-contrast impact shift bar (`#werkwijze`).
+  - Styled all visual blocks and responsive breakpoints cleanly in `src/styles/automate.css` while preserving `.cv-card*`, `.dashboard-*`, and accessibility controls.
+- **Verification**:
+  - `npm run build` (`tsc -b && vite build`): `PASS` (`0` errors, `1448` modules transformed; `dist/assets/index-*.css` `48.24 kB`, `dist/assets/index-*.js` `233.62 kB`).
+  - `node tests/verify-site.mjs`: `21 / 21 checks PASS`.
+  - `node tests/security/red-team-audit.mjs`: `8 / 8 checks PASS` (`SEC-01`–`SEC-08`).

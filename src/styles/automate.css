@@ -1782,6 +1782,436 @@ a.automate-brand:hover .automate-logo-mark,
 }
 
 /* --------------------------------------------------------------------------
+   Visual-First Diagrams, < 2025 vs 2026 Comparisons & SVG Infographics
+   -------------------------------------------------------------------------- */
+.automate-hero-visual-strip {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px 12px;
+  margin-top: 8px;
+  padding: 12px 16px;
+  background-color: rgba(255, 255, 255, 0.85);
+  border: 1px solid rgba(24, 25, 28, 0.08);
+  border-radius: 12px;
+}
+
+.automate-strip-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.automate-strip-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 8px;
+  background-color: #fdf2f1;
+  color: var(--red-accessible);
+  flex-shrink: 0;
+}
+
+.automate-strip-text {
+  color: var(--text-primary);
+  font-size: 0.88rem;
+  font-weight: 700;
+}
+
+.automate-strip-arrow {
+  color: rgba(24, 25, 28, 0.35);
+  font-weight: 700;
+}
+
+.automate-era-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.automate-era-card {
+  padding: 12px 14px;
+  border-radius: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.automate-era-card.is-before {
+  background-color: #f3f0ec;
+  border: 1px solid rgba(24, 25, 28, 0.1);
+  color: var(--text-secondary);
+}
+
+.automate-era-card.is-now {
+  background-color: #fdf2f1;
+  border: 1px solid rgba(184, 55, 48, 0.35);
+  color: var(--text-primary);
+}
+
+.automate-era-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.automate-era-tag {
+  font-family: 'Inconsolata', monospace;
+  font-size: 0.78rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.automate-era-card.is-now .automate-era-top {
+  color: var(--red-accessible);
+}
+
+.automate-era-title {
+  font-size: 0.96rem;
+  font-weight: 700;
+  line-height: 1.25;
+}
+
+.automate-era-detail {
+  font-size: 0.82rem;
+  color: var(--text-secondary);
+  line-height: 1.4;
+}
+
+.automate-visual-flow-diagram {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.automate-flow-node.is-before {
+  background-color: #f7f5f2;
+  border-left-color: #9ca3af;
+}
+
+.automate-flow-node-top {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px 12px;
+}
+
+.automate-flow-duration {
+  font-family: 'Inconsolata', monospace;
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: var(--text-secondary);
+  padding: 2px 8px;
+  border-radius: 999px;
+  background-color: rgba(24, 25, 28, 0.06);
+}
+
+.automate-flow-duration.is-accent {
+  color: var(--red-accessible);
+  background-color: rgba(184, 55, 48, 0.14);
+}
+
+.automate-flow-pills {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  margin-top: 6px;
+}
+
+.automate-flow-pill {
+  padding: 4px 10px;
+  border-radius: 7px;
+  font-size: 0.82rem;
+  font-weight: 600;
+  line-height: 1.3;
+}
+
+.automate-flow-pill.is-muted {
+  background-color: #ffffff;
+  border: 1px solid rgba(24, 25, 28, 0.12);
+  color: var(--text-secondary);
+}
+
+.automate-flow-pill.is-accent {
+  background-color: #ffffff;
+  border: 1px solid rgba(184, 55, 48, 0.28);
+  color: var(--text-primary);
+}
+
+.automate-flow-sep {
+  color: var(--text-muted);
+  font-weight: 700;
+  font-size: 0.82rem;
+}
+
+.automate-flow-bridge {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 10px;
+  padding: 6px 10px;
+  color: var(--red-accessible);
+}
+
+.automate-bridge-pill {
+  padding: 3px 9px;
+  border-radius: 999px;
+  background-color: #b83730;
+  color: #ffffff;
+  font-family: 'Inconsolata', monospace;
+  font-size: 0.78rem;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.automate-bridge-text {
+  color: var(--text-secondary);
+  font-size: 0.86rem;
+  line-height: 1.4;
+}
+
+/* 3-Panel Infographic Cards (#diensten) */
+.automate-infographic-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: clamp(18px, 2.5vw, 28px);
+  margin-bottom: clamp(32px, 4vw, 48px);
+}
+
+.automate-infographic-card {
+  background-color: #ffffff;
+  border: 1px solid rgba(24, 25, 28, 0.1);
+  border-radius: 16px;
+  padding: 22px;
+  box-shadow: 0 12px 30px rgba(24, 25, 28, 0.04);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.automate-infographic-svg {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+.automate-pipeline-badge {
+  display: inline-block;
+  align-self: flex-start;
+  margin-bottom: 2px;
+  font-family: 'Inconsolata', monospace;
+  font-size: 0.76rem;
+  font-weight: 700;
+  color: var(--red-accessible);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+/* Visual Before -> After Flow Grid (#automate-usecases) */
+.automate-case-visual-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: clamp(20px, 2.5vw, 28px);
+}
+
+.automate-case-row.is-card {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding: clamp(22px, 2.6vw, 30px);
+  background-color: #ffffff;
+  border: 1px solid rgba(24, 25, 28, 0.1);
+  border-radius: 16px;
+  box-shadow: 0 12px 32px rgba(24, 25, 28, 0.04);
+}
+
+.automate-case-top {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.automate-ba-badge {
+  padding: 4px 10px;
+  border-radius: 999px;
+  background-color: #fdf2f1;
+  border: 1px solid rgba(184, 55, 48, 0.25);
+  color: var(--red-accessible);
+  font-family: 'Inconsolata', monospace;
+  font-size: 0.8rem;
+  font-weight: 700;
+}
+
+.automate-ba-diagram {
+  padding: 14px;
+  border-radius: 12px;
+  background-color: #f7f5f2;
+  border: 1px solid rgba(24, 25, 28, 0.08);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.automate-ba-row {
+  display: grid;
+  grid-template-columns: 62px minmax(0, 1fr);
+  align-items: center;
+  gap: 10px;
+}
+
+.automate-ba-row-label {
+  font-family: 'Inconsolata', monospace;
+  font-size: 0.78rem;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  padding: 3px 7px;
+  border-radius: 6px;
+  text-align: center;
+}
+
+.automate-ba-row.is-before .automate-ba-row-label {
+  background-color: rgba(24, 25, 28, 0.08);
+  color: var(--text-secondary);
+}
+
+.automate-ba-row.is-after .automate-ba-row-label {
+  background-color: #b83730;
+  color: #ffffff;
+}
+
+.automate-ba-steps {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 5px;
+}
+
+.automate-ba-node {
+  padding: 4px 9px;
+  border-radius: 6px;
+  font-size: 0.82rem;
+  font-weight: 600;
+  background-color: #ffffff;
+  border: 1px solid rgba(24, 25, 28, 0.1);
+  color: var(--text-primary);
+}
+
+.automate-ba-row.is-after .automate-ba-node {
+  border-color: rgba(184, 55, 48, 0.3);
+}
+
+.automate-ba-arrow {
+  color: var(--text-muted);
+  font-weight: 700;
+  font-size: 0.8rem;
+}
+
+/* Dark Shift Impact Card (#werkwijze) */
+.automate-dark-shift-card {
+  width: 100%;
+  margin-top: 6px;
+  padding: 20px 22px;
+  border-radius: 14px;
+  background-color: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.automate-dark-shift-bars {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.automate-dark-bar {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.automate-dark-bar-meta {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 6px 12px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #f7f5f2;
+}
+
+.automate-dark-bar.is-old .automate-dark-bar-meta {
+  color: #b8bec9;
+}
+
+.automate-dark-bar.is-new .automate-dark-bar-meta span:last-child {
+  color: #f6a59f;
+}
+
+.automate-dark-bar-track {
+  width: 100%;
+  height: 8px;
+  border-radius: 999px;
+  background-color: rgba(255, 255, 255, 0.12);
+  overflow: hidden;
+}
+
+.automate-dark-bar-fill {
+  height: 100%;
+  border-radius: 999px;
+}
+
+.automate-dark-bar.is-old .automate-dark-bar-fill {
+  width: 86%;
+  background-color: #6b7280;
+}
+
+.automate-dark-bar.is-new .automate-dark-bar-fill {
+  width: 24%;
+  background-color: #d94f48;
+}
+
+.automate-timeline-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px 12px;
+}
+
+.automate-timeline-badge {
+  padding: 2px 9px;
+  border-radius: 999px;
+  background-color: rgba(242, 139, 130, 0.18);
+  border: 1px solid rgba(242, 139, 130, 0.32);
+  color: #f6a59f;
+  font-family: 'Inconsolata', monospace;
+  font-size: 0.78rem;
+  font-weight: 700;
+}
+
+.automate-principle-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 38px;
+  height: 38px;
+  border-radius: 10px;
+  background-color: #fdf2f1;
+  color: var(--red-accessible);
+}
+
+/* --------------------------------------------------------------------------
    CV Card (cv.greyson.nl)
    -------------------------------------------------------------------------- */
 .cv-card {
@@ -2118,7 +2548,9 @@ a.automate-brand:hover .automate-logo-mark,
 @media (max-width: 960px) {
   .automate-hero-split,
   .automate-about-hero,
+  .automate-infographic-grid,
   .automate-services-split,
+  .automate-case-visual-grid,
   .automate-case-row,
   .automate-story-split,
   .automate-contact-split,
@@ -2179,8 +2611,18 @@ a.automate-brand:hover .automate-logo-mark,
     gap: 14px;
   }
 
-  .automate-showcase-tabs {
+  .automate-showcase-tabs,
+  .automate-era-grid {
     grid-template-columns: 1fr;
+  }
+
+  .automate-ba-row {
+    grid-template-columns: 1fr;
+    gap: 6px;
+  }
+
+  .automate-ba-row-label {
+    justify-self: start;
   }
 
   .automate-cta-row {

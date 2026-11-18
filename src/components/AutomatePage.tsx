@@ -121,6 +121,182 @@ export function renderDirectEmailNote(
   );
 }
 
+const renderInfographicVisual = (
+  id: 'map' | 'build' | 'joy',
+  beforeLabel?: string,
+  afterLabel?: string,
+  oldTag?: string,
+  newTag?: string,
+  statValue?: string
+) => {
+  if (id === 'map') {
+    return (
+      <svg
+        className="automate-infographic-svg"
+        viewBox="0 0 320 132"
+        role="img"
+        aria-hidden="true"
+      >
+        <rect x="6" y="10" width="308" height="112" rx="12" fill="#f7f5f2" />
+        {/* Left: tangled routine */}
+        <circle cx="40" cy="40" r="10" fill="#d4d7de" />
+        <circle cx="52" cy="86" r="10" fill="#d4d7de" />
+        <circle cx="96" cy="54" r="10" fill="#d4d7de" />
+        <path
+          d="M40 40 C75 20, 30 98, 96 54 M52 86 C70 40, 82 95, 96 54"
+          fill="none"
+          stroke="#9ca3af"
+          strokeWidth="2.2"
+          strokeDasharray="4 4"
+        />
+        <text
+          x="64"
+          y="112"
+          textAnchor="middle"
+          fontSize="10.5"
+          fontWeight="700"
+          fill="#5c606b"
+        >
+          {beforeLabel ?? 'Mail / Excel'}
+        </text>
+        {/* Bridge arrow */}
+        <path
+          d="M126 64 L164 64 M156 56 L165 64 L156 72"
+          fill="none"
+          stroke="#b83730"
+          strokeWidth="2.8"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        />
+        {/* Right: clear structured flow */}
+        <rect
+          x="180"
+          y="34"
+          width="116"
+          height="58"
+          rx="10"
+          fill="#ffffff"
+          stroke="#b83730"
+          strokeWidth="1.8"
+        />
+        <circle cx="204" cy="63" r="8" fill="#b83730" />
+        <line
+          x1="212"
+          y1="63"
+          x2="230"
+          y2="63"
+          stroke="#b83730"
+          strokeWidth="2.4"
+        />
+        <circle cx="238" cy="63" r="8" fill="#18191c" />
+        <line
+          x1="246"
+          y1="63"
+          x2="264"
+          y2="63"
+          stroke="#18191c"
+          strokeWidth="2.4"
+        />
+        <circle cx="272" cy="63" r="8" fill="#b83730" />
+        <text
+          x="238"
+          y="112"
+          textAnchor="middle"
+          fontSize="10.5"
+          fontWeight="700"
+          fill="#962721"
+        >
+          {afterLabel ?? 'Helder proces'}
+        </text>
+      </svg>
+    );
+  }
+
+  if (id === 'build') {
+    return (
+      <svg
+        className="automate-infographic-svg"
+        viewBox="0 0 320 132"
+        role="img"
+        aria-hidden="true"
+      >
+        <rect x="6" y="10" width="308" height="112" rx="12" fill="#f7f5f2" />
+        {/* Old < 2025 bar */}
+        <text x="24" y="34" fontSize="11" fontWeight="700" fill="#5c606b">
+          {oldTag ?? '< 2025: 6–12 wkn'}
+        </text>
+        <rect x="24" y="42" width="272" height="16" rx="8" fill="#dcdfe6" />
+        <line
+          x1="26"
+          y1="50"
+          x2="292"
+          y2="50"
+          stroke="#8c919b"
+          strokeWidth="2"
+          strokeDasharray="6 6"
+        />
+        {/* 2026 fast bar */}
+        <text x="24" y="82" fontSize="11.5" fontWeight="800" fill="#962721">
+          {newTag ?? '2026: 1 middag/dag'}
+        </text>
+        <rect x="24" y="90" width="272" height="18" rx="9" fill="#ece7e1" />
+        <rect x="24" y="90" width="64" height="18" rx="9" fill="#b83730" />
+        <path
+          d="M104 99 L282 99"
+          stroke="#b83730"
+          strokeWidth="2"
+          strokeDasharray="3 5"
+        />
+        <circle cx="288" cy="99" r="5" fill="#18191c" />
+      </svg>
+    );
+  }
+
+  return (
+    <svg
+      className="automate-infographic-svg"
+      viewBox="0 0 320 132"
+      role="img"
+      aria-hidden="true"
+    >
+      <rect x="6" y="10" width="308" height="112" rx="12" fill="#f7f5f2" />
+      {/* Chart grid lines */}
+      <line x1="24" y1="34" x2="296" y2="34" stroke="#e4dfd9" strokeWidth="1" />
+      <line x1="24" y1="64" x2="296" y2="64" stroke="#e4dfd9" strokeWidth="1" />
+      <line x1="24" y1="94" x2="296" y2="94" stroke="#e4dfd9" strokeWidth="1" />
+      {/* Manual busywork dropping curve */}
+      <path
+        d="M32 34 C96 36, 136 86, 224 92 L288 94"
+        fill="none"
+        stroke="#9ca3af"
+        strokeWidth="2.5"
+        strokeDasharray="5 4"
+      />
+      {/* Joy / efficiency rising curve */}
+      <path
+        d="M32 90 C102 86, 148 40, 224 32 L288 28"
+        fill="none"
+        stroke="#b83730"
+        strokeWidth="3.5"
+        strokeLinecap="round"
+      />
+      <circle cx="288" cy="28" r="5.5" fill="#b83730" />
+      <circle cx="288" cy="94" r="4.5" fill="#9ca3af" />
+      <rect x="172" y="98" width="124" height="20" rx="10" fill="#18191c" />
+      <text
+        x="234"
+        y="112"
+        textAnchor="middle"
+        fontSize="10.5"
+        fontWeight="700"
+        fill="#ffffff"
+      >
+        {statValue ?? '-80% handwerk'}
+      </text>
+    </svg>
+  );
+};
+
 interface AutomatePageProps {
   lang?: AutomateLocale;
   onLocaleChange?: (nextLang: AutomateLocale) => void;
@@ -146,9 +322,7 @@ export const AutomatePage: React.FC<AutomatePageProps> = ({
   const [company, setCompany] = useState('');
   const [contact, setContact] = useState('');
   const [interestIndex, setInterestIndex] = useState(0);
-  const [interest, setInterest] = useState<string>(
-    t.form.interestOptions[0]
-  );
+  const [interest, setInterest] = useState<string>(t.form.interestOptions[0]);
   const [message, setMessage] = useState('');
   const [hasError, setHasError] = useState(false);
   const [submitted, setSubmitted] = useState<InquiryFormPayload | null>(null);
@@ -384,7 +558,7 @@ export const AutomatePage: React.FC<AutomatePageProps> = ({
       </header>
 
       <main id="main-content">
-        {/* Band 1: Full-Bleed Warm Editorial Split Hero + Interactive Live Workflow Preview */}
+        {/* Band 1: Visual-First Split Hero + < 2025 vs 2026 Interactive Flow Diagram */}
         <section id="overzicht" className="automate-band automate-band--hero">
           <div className="automate-band-inner">
             <div className="automate-hero-split">
@@ -426,6 +600,43 @@ export const AutomatePage: React.FC<AutomatePageProps> = ({
                     {t.hero.secondaryCta}
                   </a>
                 </div>
+
+                {/* Compact 3-Step Visual Mission Strip */}
+                <div
+                  className="automate-hero-visual-strip"
+                  aria-label="Mission summary"
+                >
+                  {t.hero.missionStrip.map((item, idx) => (
+                    <React.Fragment key={item.step}>
+                      <div className="automate-strip-item">
+                        <span className="automate-strip-icon" aria-hidden="true">
+                          {idx === 0 && (
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2">
+                              <circle cx="11" cy="11" r="7" />
+                              <path d="M21 21l-4.35-4.35" />
+                            </svg>
+                          )}
+                          {idx === 1 && (
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2">
+                              <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z" />
+                            </svg>
+                          )}
+                          {idx === 2 && (
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2">
+                              <path d="M20 6L9 17l-5-5" />
+                            </svg>
+                          )}
+                        </span>
+                        <span className="automate-strip-text">{item.label}</span>
+                      </div>
+                      {idx < t.hero.missionStrip.length - 1 && (
+                        <span className="automate-strip-arrow" aria-hidden="true">
+                          →
+                        </span>
+                      )}
+                    </React.Fragment>
+                  ))}
+                </div>
               </div>
 
               <aside
@@ -439,6 +650,61 @@ export const AutomatePage: React.FC<AutomatePageProps> = ({
                   </p>
                 </div>
 
+                {/* < 2025 vs 2026 Visual Shift Comparison */}
+                <div className="automate-era-grid">
+                  <div className="automate-era-card is-before">
+                    <div className="automate-era-top">
+                      <span className="automate-era-tag">
+                        {t.heroShowcase.eraBefore.tag}
+                      </span>
+                      <svg
+                        width="16"
+                        height="16"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="2"
+                        aria-hidden="true"
+                      >
+                        <circle cx="12" cy="12" r="9" />
+                        <path d="M12 7v5l3 2" />
+                      </svg>
+                    </div>
+                    <strong className="automate-era-title">
+                      {t.heroShowcase.eraBefore.title}
+                    </strong>
+                    <span className="automate-era-detail">
+                      {t.heroShowcase.eraBefore.detail}
+                    </span>
+                  </div>
+
+                  <div className="automate-era-card is-now">
+                    <div className="automate-era-top">
+                      <span className="automate-era-tag">
+                        {t.heroShowcase.eraNow.tag}
+                      </span>
+                      <svg
+                        width="16"
+                        height="16"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="2.2"
+                        aria-hidden="true"
+                      >
+                        <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z" />
+                      </svg>
+                    </div>
+                    <strong className="automate-era-title">
+                      {t.heroShowcase.eraNow.title}
+                    </strong>
+                    <span className="automate-era-detail">
+                      {t.heroShowcase.eraNow.detail}
+                    </span>
+                  </div>
+                </div>
+
+                {/* Interactive Workflow Scenario Tabs */}
                 <div
                   className="automate-showcase-tabs"
                   role="tablist"
@@ -463,6 +729,7 @@ export const AutomatePage: React.FC<AutomatePageProps> = ({
                   })}
                 </div>
 
+                {/* Visual Node Flow Diagram */}
                 <div
                   id="hero-showcase-panel"
                   className="automate-showcase-panel"
@@ -473,26 +740,81 @@ export const AutomatePage: React.FC<AutomatePageProps> = ({
                     {activeScenario.headline}
                   </h2>
 
-                  <div className="automate-showcase-flow">
-                    <div className="automate-flow-node">
-                      <span className="automate-flow-label">
-                        {t.heroShowcase.inputLabel}
+                  <div className="automate-visual-flow-diagram">
+                    <div className="automate-flow-node is-before">
+                      <div className="automate-flow-node-top">
+                        <span className="automate-flow-label">
+                          {t.heroShowcase.inputLabel}
+                        </span>
+                        <span className="automate-flow-duration">
+                          {activeScenario.oldDuration}
+                        </span>
+                      </div>
+                      <div className="automate-flow-pills">
+                        {activeScenario.oldFlow.map((step, idx) => (
+                          <React.Fragment key={step}>
+                            <span className="automate-flow-pill is-muted">
+                              {step}
+                            </span>
+                            {idx < activeScenario.oldFlow.length - 1 && (
+                              <span
+                                className="automate-flow-sep"
+                                aria-hidden="true"
+                              >
+                                →
+                              </span>
+                            )}
+                          </React.Fragment>
+                        ))}
+                      </div>
+                    </div>
+
+                    <div className="automate-flow-bridge">
+                      <svg
+                        width="16"
+                        height="16"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="2.4"
+                        aria-hidden="true"
+                      >
+                        <path d="M12 5v14M5 12l7 7 7-7" />
+                      </svg>
+                      <span className="automate-bridge-pill">
+                        {activeScenario.buildTime}
                       </span>
-                      <p className="automate-flow-text">{activeScenario.input}</p>
+                      <span className="automate-bridge-text">
+                        {activeScenario.engine}
+                      </span>
                     </div>
 
                     <div className="automate-flow-node is-accent">
-                      <span className="automate-flow-label">
-                        {t.heroShowcase.engineLabel}
-                      </span>
-                      <p className="automate-flow-text">{activeScenario.engine}</p>
-                    </div>
-
-                    <div className="automate-flow-node">
-                      <span className="automate-flow-label">
-                        {t.heroShowcase.outputLabel}
-                      </span>
-                      <p className="automate-flow-text">{activeScenario.output}</p>
+                      <div className="automate-flow-node-top">
+                        <span className="automate-flow-label">
+                          {t.heroShowcase.outputLabel}
+                        </span>
+                        <span className="automate-flow-duration is-accent">
+                          {activeScenario.newDuration}
+                        </span>
+                      </div>
+                      <div className="automate-flow-pills">
+                        {activeScenario.newFlow.map((step, idx) => (
+                          <React.Fragment key={step}>
+                            <span className="automate-flow-pill is-accent">
+                              {step}
+                            </span>
+                            {idx < activeScenario.newFlow.length - 1 && (
+                              <span
+                                className="automate-flow-sep"
+                                aria-hidden="true"
+                              >
+                                →
+                              </span>
+                            )}
+                          </React.Fragment>
+                        ))}
+                      </div>
                     </div>
                   </div>
 
@@ -510,13 +832,32 @@ export const AutomatePage: React.FC<AutomatePageProps> = ({
           </div>
         </section>
 
-        {/* Band 2: Full-Bleed White Asymmetric Capabilities Band */}
+        {/* Band 2: Full-Bleed White Visual Blueprint Infographic + Comparison */}
         <section id="diensten" className="automate-band automate-band--white">
           <div className="automate-band-inner">
             <div className="automate-band-header">
               <span className="automate-eyebrow">{t.services.eyebrow}</span>
               <h2 className="automate-h2">{t.services.title}</h2>
               <p className="automate-lead">{t.services.intro}</p>
+            </div>
+
+            {/* 3-Panel Visual SVG Infographic */}
+            <div className="automate-infographic-grid">
+              {t.services.infographicPanels.map((panel) => (
+                <article key={panel.id} className="automate-infographic-card">
+                  <span className="automate-kicker">{panel.step}</span>
+                  <h3 className="automate-h3">{panel.title}</h3>
+                  {renderInfographicVisual(
+                    panel.id,
+                    'beforeLabel' in panel ? panel.beforeLabel : undefined,
+                    'afterLabel' in panel ? panel.afterLabel : undefined,
+                    'oldTag' in panel ? panel.oldTag : undefined,
+                    'newTag' in panel ? panel.newTag : undefined,
+                    'statValue' in panel ? panel.statValue : undefined
+                  )}
+                  <p className="automate-prose">{panel.caption}</p>
+                </article>
+              ))}
             </div>
 
             <div className="automate-services-split">
@@ -540,6 +881,9 @@ export const AutomatePage: React.FC<AutomatePageProps> = ({
                         )}
                       </div>
                       <div className="automate-pipeline-body">
+                        <span className="automate-pipeline-badge">
+                          {stage.badge}
+                        </span>
                         <span className="automate-pipeline-name">
                           {stage.stage}
                         </span>
@@ -589,7 +933,7 @@ export const AutomatePage: React.FC<AutomatePageProps> = ({
           </div>
         </section>
 
-        {/* Band 3: Horizontal Editorial Case Study Rows on Warm Stone */}
+        {/* Band 3: Visual Before -> After Flow Cards Grid */}
         <section
           id="automate-usecases"
           className="automate-band automate-band--stone"
@@ -601,26 +945,66 @@ export const AutomatePage: React.FC<AutomatePageProps> = ({
               <p className="automate-lead">{t.useCases.intro}</p>
             </div>
 
-            <div className="automate-case-list">
+            <div className="automate-case-visual-grid">
               {t.useCases.items.map((item) => (
-                <article key={item.id} className="automate-case-row">
-                  <div className="automate-case-quote-col">
+                <article key={item.id} className="automate-case-row is-card">
+                  <div className="automate-case-top">
                     <span className="automate-case-tag">{item.tag}</span>
-                    <blockquote className="automate-case-quote">
-                      {item.situation}
-                    </blockquote>
+                    <span className="automate-ba-badge">{item.buildBadge}</span>
                   </div>
-                  <div className="automate-case-solution-col">
-                    <h3 className="automate-h3">{item.title}</h3>
-                    <p className="automate-prose">{item.narrative}</p>
+
+                  <h3 className="automate-h3">{item.title}</h3>
+                  <blockquote className="automate-case-quote">
+                    {item.situation}
+                  </blockquote>
+
+                  {/* Before -> After Visual Flow Diagram */}
+                  <div className="automate-ba-diagram">
+                    <div className="automate-ba-row is-before">
+                      <span className="automate-ba-row-label">
+                        {item.oldWayLabel}
+                      </span>
+                      <div className="automate-ba-steps">
+                        {item.oldSteps.map((step, idx) => (
+                          <React.Fragment key={step}>
+                            <span className="automate-ba-node">{step}</span>
+                            {idx < item.oldSteps.length - 1 && (
+                              <span className="automate-ba-arrow" aria-hidden="true">
+                                →
+                              </span>
+                            )}
+                          </React.Fragment>
+                        ))}
+                      </div>
+                    </div>
+
+                    <div className="automate-ba-row is-after">
+                      <span className="automate-ba-row-label">
+                        {item.newWayLabel}
+                      </span>
+                      <div className="automate-ba-steps">
+                        {item.newSteps.map((step, idx) => (
+                          <React.Fragment key={step}>
+                            <span className="automate-ba-node">{step}</span>
+                            {idx < item.newSteps.length - 1 && (
+                              <span className="automate-ba-arrow" aria-hidden="true">
+                                →
+                              </span>
+                            )}
+                          </React.Fragment>
+                        ))}
+                      </div>
+                    </div>
                   </div>
+
+                  <p className="automate-prose">{item.narrative}</p>
                 </article>
               ))}
             </div>
           </div>
         </section>
 
-        {/* Band 4: Full-Bleed Dark Charcoal Editorial Story & Vertical Collaboration Timeline */}
+        {/* Band 4: Full-Bleed Dark Charcoal Visual Mission & 3-Step Timeline */}
         <section id="werkwijze" className="automate-band automate-band--dark">
           <div className="automate-band-inner">
             <div className="automate-story-split">
@@ -638,6 +1022,34 @@ export const AutomatePage: React.FC<AutomatePageProps> = ({
                     </p>
                   ))}
                 </div>
+
+                {/* Visual Impact Shift Graphic on Dark Ground */}
+                <div className="automate-dark-shift-card">
+                  <span className="automate-kicker automate-kicker--light">
+                    {t.story.shiftCard.title}
+                  </span>
+                  <div className="automate-dark-shift-bars">
+                    <div className="automate-dark-bar is-old">
+                      <div className="automate-dark-bar-meta">
+                        <span>{t.story.shiftCard.oldLabel}</span>
+                        <span>{t.story.shiftCard.oldStat}</span>
+                      </div>
+                      <div className="automate-dark-bar-track" aria-hidden="true">
+                        <div className="automate-dark-bar-fill" />
+                      </div>
+                    </div>
+                    <div className="automate-dark-bar is-new">
+                      <div className="automate-dark-bar-meta">
+                        <span>{t.story.shiftCard.newLabel}</span>
+                        <span>{t.story.shiftCard.newStat}</span>
+                      </div>
+                      <div className="automate-dark-bar-track" aria-hidden="true">
+                        <div className="automate-dark-bar-fill" />
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
                 <p className="automate-story-region">{t.story.regionLine}</p>
               </div>
 
@@ -652,9 +1064,14 @@ export const AutomatePage: React.FC<AutomatePageProps> = ({
                         className="automate-timeline-node"
                         aria-hidden="true"
                       />
-                      <span className="automate-timeline-phase">
-                        {step.phase}
-                      </span>
+                      <div className="automate-timeline-head">
+                        <span className="automate-timeline-phase">
+                          {step.phase}
+                        </span>
+                        <span className="automate-timeline-badge">
+                          {step.badge}
+                        </span>
+                      </div>
                       <h4 className="automate-timeline-title">{step.title}</h4>
                       <p className="automate-timeline-text">{step.text}</p>
                     </li>
@@ -665,7 +1082,7 @@ export const AutomatePage: React.FC<AutomatePageProps> = ({
           </div>
         </section>
 
-        {/* Band 5: Warm Tint Asymmetric Founder Teaser Banner */}
+        {/* Band 5: Warm Tint Founder Teaser Banner */}
         <section id="over-mij" className="automate-band automate-band--tint">
           <div className="automate-band-inner">
             <div className="automate-teaser-banner">

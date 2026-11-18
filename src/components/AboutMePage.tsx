@@ -288,6 +288,61 @@ export const AboutMePage: React.FC<AboutMePageProps> = ({
                     {t.aboutPage.profileTitle}
                   </span>
                 </div>
+
+                {/* < 2025 vs 2026 Era Shift Graphic */}
+                <div className="automate-era-grid">
+                  <div className="automate-era-card is-before">
+                    <div className="automate-era-top">
+                      <span className="automate-era-tag">
+                        {t.heroShowcase.eraBefore.tag}
+                      </span>
+                      <svg
+                        width="16"
+                        height="16"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="2"
+                        aria-hidden="true"
+                      >
+                        <circle cx="12" cy="12" r="9" />
+                        <path d="M12 7v5l3 2" />
+                      </svg>
+                    </div>
+                    <strong className="automate-era-title">
+                      {t.heroShowcase.eraBefore.title}
+                    </strong>
+                    <span className="automate-era-detail">
+                      {t.heroShowcase.eraBefore.detail}
+                    </span>
+                  </div>
+
+                  <div className="automate-era-card is-now">
+                    <div className="automate-era-top">
+                      <span className="automate-era-tag">
+                        {t.heroShowcase.eraNow.tag}
+                      </span>
+                      <svg
+                        width="16"
+                        height="16"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="2.2"
+                        aria-hidden="true"
+                      >
+                        <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z" />
+                      </svg>
+                    </div>
+                    <strong className="automate-era-title">
+                      {t.heroShowcase.eraNow.title}
+                    </strong>
+                    <span className="automate-era-detail">
+                      {t.heroShowcase.eraNow.detail}
+                    </span>
+                  </div>
+                </div>
+
                 <p className="automate-prose">{t.aboutPage.profileBody}</p>
                 <p className="automate-stack-line">{t.aboutPage.stackLine}</p>
 
@@ -377,6 +432,48 @@ export const AboutMePage: React.FC<AboutMePageProps> = ({
                       key={principle.title}
                       className="automate-principle-col"
                     >
+                      <span
+                        className="automate-principle-icon"
+                        aria-hidden="true"
+                      >
+                        {principle.icon === 'insight' && (
+                          <svg
+                            width="20"
+                            height="20"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                            strokeWidth="2.1"
+                          >
+                            <circle cx="11" cy="11" r="7" />
+                            <path d="M21 21l-4.35-4.35" />
+                          </svg>
+                        )}
+                        {principle.icon === 'speed' && (
+                          <svg
+                            width="20"
+                            height="20"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                            strokeWidth="2.1"
+                          >
+                            <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z" />
+                          </svg>
+                        )}
+                        {principle.icon === 'shield' && (
+                          <svg
+                            width="20"
+                            height="20"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                            strokeWidth="2.1"
+                          >
+                            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+                          </svg>
+                        )}
+                      </span>
                       <h3 className="automate-h3">{principle.title}</h3>
                       <p className="automate-prose">{principle.body}</p>
                     </article>
