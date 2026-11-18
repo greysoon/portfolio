@@ -6,6 +6,7 @@ import { initTelemetry, trackInteraction } from './utils/telemetry';
 import {
   capturePostHogEvent,
   initPostHogBridge,
+  isLocalDashboardHost,
 } from './utils/posthogClient';
 import { TypingHeader } from './components/TypingHeader';
 import { LiveAgeBio } from './components/LiveAgeBio';
@@ -37,9 +38,10 @@ function resolveViewFromLocation(): RouteResolution {
   const page = params.get('page')?.toLowerCase();
 
   if (
-    host.startsWith('dashboard.') ||
-    path.startsWith('/dashboard') ||
-    site === 'dashboard'
+    isLocalDashboardHost(host) &&
+    (host.startsWith('dashboard.') ||
+      path.startsWith('/dashboard') ||
+      site === 'dashboard')
   ) {
     return { view: 'dashboard', portfolioMode: 'about' };
   }

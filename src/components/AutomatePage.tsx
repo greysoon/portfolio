@@ -349,7 +349,6 @@ export const AutomatePage: React.FC<AutomatePageProps> = ({
   lang: controlledLang,
   onLocaleChange,
   onOpenAbout,
-  onOpenDashboard,
 }) => {
   const [internalLang, setInternalLang] = useState<AutomateLocale>('nl');
   const lang = controlledLang ?? internalLang;
@@ -381,9 +380,6 @@ export const AutomatePage: React.FC<AutomatePageProps> = ({
       window.location.hostname.toLowerCase().endsWith('.greyson.nl'));
 
   const aboutHref = isGreysonProd ? automateConfig.aboutPath : '?site=about';
-  const dashboardHref = isGreysonProd
-    ? automateConfig.dashboardPath
-    : '?site=dashboard';
 
   useEffect(() => {
     const previousLang = document.documentElement.lang;
@@ -640,15 +636,6 @@ export const AutomatePage: React.FC<AutomatePageProps> = ({
                   }
                 >
                   {t.nav.contactLabel}
-                </a>
-                <a
-                  href={dashboardHref}
-                  className="automate-back-link"
-                  onClick={(e) =>
-                    handleInternalRoute(e, 'dashboard', onOpenDashboard)
-                  }
-                >
-                  {t.nav.dashboardLabel}
                 </a>
               </div>
 
@@ -1550,15 +1537,6 @@ export const AutomatePage: React.FC<AutomatePageProps> = ({
               onClick={(e) => handleInternalRoute(e, 'about', onOpenAbout)}
             >
               {t.footer.aboutLinkLabel}
-            </a>
-            <a
-              href={dashboardHref}
-              className="automate-nav-link"
-              onClick={(e) =>
-                handleInternalRoute(e, 'dashboard', onOpenDashboard)
-              }
-            >
-              {t.nav.dashboardLabel}
             </a>
           </div>
         </div>

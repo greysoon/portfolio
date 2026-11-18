@@ -7,6 +7,7 @@ import {
   getLocalVisitorAnalytics,
   getOwnerAuthStatus,
   getPostHogConfig,
+  isLocalDashboardHost,
   LocalVisitorAnalytics,
   normalizePostHogRegion,
   OWNER_EMAIL,
@@ -102,7 +103,13 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({
   const initialConfig = getPostHogConfig();
   const initialAuth = getOwnerAuthStatus();
 
-  const [unlocked, setUnlocked] = useState<boolean>(initialAuth.authenticated);
+  const isLocalOnly =
+    typeof window !== 'undefined' &&
+    isLocalDashboardHost(window.location.hostname);
+
+  const [unlocked, setUnlocked] = useState<boolean>(
+    isLocalOnly || initialAuth.authenticated
+  );
   const [authMethod, setAuthMethod] = useState<'passphrase' | 'posthog_key'>(
     'passphrase'
   );
@@ -545,7 +552,9 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({
                     : 'Local Session Telemetry Active'}
                 </span>
                 <span className="dashboard-badge">
-                  Auth: {authMethod === 'posthog_key' ? 'PostHog Key' : OWNER_EMAIL}
+                  {isLocalOnly
+                    ? 'Local Stats Console (localhost only)'
+                    : `Auth: ${authMethod === 'posthog_key' ? 'PostHog Key' : OWNER_EMAIL}`}
                 </span>
                 <span className="dashboard-badge">
                   DNT: {localSnapshot.doNotTrack ? 'Enabled' : 'Off'}
@@ -575,13 +584,15 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({
               >
                 Refresh Local
               </button>
-              <button
-                type="button"
-                className="automate-btn-primary"
-                onClick={handleSignOut}
-              >
-                Sign Out
-              </button>
+              {!isLocalOnly && (
+                <button
+                  type="button"
+                  className="automate-btn-primary"
+                  onClick={handleSignOut}
+                >
+                  Sign Out
+                </button>
+              )}
             </div>
           </header>
 

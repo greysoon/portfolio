@@ -5,6 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
+    "dashboard": "vite --port 5173 --open /dashboard",
     "build": "tsc -b && vite build",
     "preview": "vite preview"
   },

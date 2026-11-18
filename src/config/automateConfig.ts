@@ -308,14 +308,14 @@ export const automateConfig = {
         ctaLabel: 'Over mij & direct contact',
       },
       aboutPage: {
-        badge: 'Over Greyson Beimers — Friesland & Amsterdam',
+        badge: 'Over Greyson Beimers — Friesland',
         title: 'Oude knelpunten oplossen met de snelheid van 2026.',
         subtitle:
           'Ik breng vastgeroeste bedrijfsprocessen visueel in kaart en bouw binnen een middag of dag een custom tool of AI-flow die het werk leuker maakt.',
         introTitle: 'Waarom ik hiermee begonnen ben',
         introParagraphs: [
           'In mijn dagelijkse werk bij een bedrijf merk ik van dichtbij hoe hard AI en digitale werkwijzen op kantoor én de werkvloer gaan — en hoe snel je achterop kunt raken als je niet op tijd schakelt.',
-          'Door mijzelf continu in de nieuwste mogelijkheden te verdiepen én die kennis direct in de praktijk in te zetten, wil ik ondernemers nuchter vooruithelpen. Mijn missie: zorgen dat het werk voor jou en je team leuk en overzichtelijk blijft — zodat je op je eigen koers kunt blijven bouwen, zonder de slag te missen.',
+          'Om mijzelf continu verder te ontwikkelen én ondernemers te ondersteunen, ben ik hiermee begonnen. Mijn doel is simpel: zorgen dat je niet achteropraakt, je eigen koers blijft varen en weer plezier houdt in het werk.',
         ],
         principlesTitle: 'Waarom het werkt',
         principles: [
@@ -340,7 +340,7 @@ export const automateConfig = {
           'Ik ben daarnaast werkzaam bij een bedrijf en zie dagelijks hoe snel je achter kunt lopen als je niet meebeweegt. Vanuit die praktijk help ik ondernemers in Friesland om bij te blijven, slimmer te werken en het werk leuk te houden.',
         stackLine: '',
         locationLabel: 'Werkgebied',
-        locationValue: 'Friesland & Amsterdam, Nederland',
+        locationValue: 'Friesland, Nederland',
         emailLabel: 'E-mail',
         linkedinLabel: 'LinkedIn',
         backHomeLabel: 'Terug naar overzicht',
@@ -676,14 +676,14 @@ export const automateConfig = {
         ctaLabel: 'About me & direct contact',
       },
       aboutPage: {
-        badge: 'About Greyson Beimers — Friesland & Amsterdam',
+        badge: 'About Greyson Beimers — Friesland',
         title: 'Solving yesterday’s bottlenecks at 2026 speed.',
         subtitle:
           'I map rusty business workflows visually and build custom tools or AI flows in an afternoon or day so work becomes faster and more fun.',
         introTitle: 'Why I started this mission',
         introParagraphs: [
           'In my day-to-day role at a company, I see firsthand how fast AI and modern workflows evolve across office and operations — and how quickly a business can fall behind if it does not adapt in time.',
-          'By continuously diving into the latest possibilities and putting that knowledge straight to work, I want to help business owners move forward in a grounded way. My mission: keeping daily work enjoyable and clear for you and your team — so you can stay focused on your own course without missing the boat.',
+          'To keep developing myself while supporting business owners, I started this initiative. My goal is simple: making sure you never fall behind, stay on your own course, and keep enjoying your daily work.',
         ],
         principlesTitle: 'Why it works',
         principles: [
@@ -708,7 +708,7 @@ export const automateConfig = {
           'Alongside this initiative I work at a company where I see every day how fast you can fall behind if you do not adapt. From that hands-on reality, I help entrepreneurs in Friesland stay ahead and keep work enjoyable.',
         stackLine: '',
         locationLabel: 'Region',
-        locationValue: 'Friesland & Amsterdam, Netherlands',
+        locationValue: 'Friesland, Netherlands',
         emailLabel: 'Email',
         linkedinLabel: 'LinkedIn',
         backHomeLabel: 'Back to overview',

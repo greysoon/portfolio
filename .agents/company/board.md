@@ -328,3 +328,20 @@
   - `node tests/verify-site.mjs`: `21 / 21 checks PASS`.
   - `node tests/security/red-team-audit.mjs`: `8 / 8 checks PASS` (`SEC-01`–`SEC-08`).
   - Live Browser Check (`http://localhost:5173/?site=about` & `http://localhost:5173/`): Verified updated `/over-mij` mission + honest principles (`Nuchtere inzet & geen wurgcontract`) without tech tags.
+
+---
+
+### Sprint 09 — Local-Only Analytics Console & Live PostHog EU Integration
+
+- **Public Site Cleanup & Local-Only Restriction (`frontend-engineer`, `backend-devops`, `blue-team-security`)**:
+  - Removed all public Dashboard links from header and footer in `src/components/AutomatePage.tsx` and `src/components/AboutMePage.tsx`.
+  - Restricted the `/dashboard` route in `src/App.tsx` via `isLocalDashboardHost(host)` (`localhost` / `127.0.0.1` / `[::1]` / `*.localhost`) so no dashboard renders on production domains (`greyson.nl`, `automate.greyson.nl`, `automation.greyson.nl`, `cv.greyson.nl`, `about.greyson.nl`).
+  - Auto-unlocked `src/components/AnalyticsDashboard.tsx` on `localhost` (`Local Stats Console (localhost only)`) and added `"dashboard": "vite --port 5173 --open /dashboard"` in `package.json`.
+- **Live PostHog EU Analytics (`data-analytics`, `backend-devops`)**:
+  - Configured `VITE_POSTHOG_PROJECT_TOKEN` and `VITE_POSTHOG_HOST=https://eu.i.posthog.com` via untracked local `.env` (protected by `.gitignore` — zero API keys stored in tracked Git files or `.do/*.yaml`), while `src/utils/posthogClient.ts` reads `import.meta.env` / runtime config with an empty fallback token (`''`).
+  - Enhanced `src/utils/posthogClient.ts` to read `VITE_POSTHOG_PROJECT_TOKEN` & `VITE_POSTHOG_HOST`, send `$set` person properties (`$browser`, `$os`, `$device_type`, `$timezone`, `language`, `region_hint`, `last_subdomain`), and track `$pageleave` on visibility hidden / `pagehide`.
+- **Verification**:
+  - `npm run build`: `PASS` (`1448` modules transformed in `4.65s`; `dist/assets/index-*.js` `239.84 kB`).
+  - `node tests/verify-site.mjs`: `21 / 21 checks PASS`.
+  - `node tests/security/red-team-audit.mjs`: `8 / 8 checks PASS` (`SEC-01`–`SEC-08`).
+  - Live Browser & Network Check (`http://localhost:5173/`, `/?site=about`, `/dashboard`): Verified `0` public dashboard links, live `POST https://eu.i.posthog.com/capture/` (`200 OK`), and auto-unlocked local console with local `.env` PostHog token.

@@ -25,7 +25,6 @@ export const AboutMePage: React.FC<AboutMePageProps> = ({
   lang: controlledLang,
   onLocaleChange,
   onOpenHome,
-  onOpenDashboard,
 }) => {
   const [internalLang, setInternalLang] = useState<AutomateLocale>('nl');
   const lang = controlledLang ?? internalLang;
@@ -51,9 +50,6 @@ export const AboutMePage: React.FC<AboutMePageProps> = ({
 
   const homeHref = '/';
   const aboutHref = isGreysonProd ? automateConfig.aboutPath : '?site=about';
-  const dashboardHref = isGreysonProd
-    ? automateConfig.dashboardPath
-    : '?site=dashboard';
 
   useEffect(() => {
     const previousLang = document.documentElement.lang;
@@ -288,15 +284,6 @@ export const AboutMePage: React.FC<AboutMePageProps> = ({
                   }
                 >
                   {t.nav.contactLabel}
-                </a>
-                <a
-                  href={dashboardHref}
-                  className="automate-back-link"
-                  onClick={(e) =>
-                    handleInternalRoute(e, 'dashboard', onOpenDashboard)
-                  }
-                >
-                  {t.nav.dashboardLabel}
                 </a>
               </div>
 
@@ -861,15 +848,6 @@ export const AboutMePage: React.FC<AboutMePageProps> = ({
               onClick={(e) => handleInternalRoute(e, 'home', onOpenHome)}
             >
               {t.nav.homeLabel}
-            </a>
-            <a
-              href={dashboardHref}
-              className="automate-nav-link"
-              onClick={(e) =>
-                handleInternalRoute(e, 'dashboard', onOpenDashboard)
-              }
-            >
-              {t.nav.dashboardLabel}
             </a>
           </div>
         </div>

@@ -159,7 +159,12 @@ export interface LocalVisitorAnalytics {
   readonly recentEvents: PostHogEventRecord[];
 }
 
+export const DEFAULT_POSTHOG_PROJECT_TOKEN = '';
+export const DEFAULT_POSTHOG_HOST = 'https://eu.i.posthog.com';
+
 interface ViteImportMetaEnv {
+  readonly VITE_POSTHOG_PROJECT_TOKEN?: string;
+  readonly VITE_POSTHOG_HOST?: string;
   readonly VITE_POSTHOG_KEY?: string;
   readonly VITE_POSTHOG_REGION?: string;
 }
@@ -236,6 +241,7 @@ let memoryOwnerAuthenticated = false;
 let memoryConfig: Partial<PostHogConfig> = {};
 let memoryDistinctId: string | null = null;
 let sessionEventCounter = 0;
+let pageleaveListenerAttached = false;
 
 function readStorage(storageType: 'local' | 'session', key: string): string | null {
   if (typeof window === 'undefined') return null;
@@ -269,9 +275,14 @@ function removeStorage(storageType: 'local' | 'session', key: string): void {
 
 function getViteEnv(): ViteImportMetaEnv {
   try {
+    const rawToken: unknown = import.meta.env?.VITE_POSTHOG_PROJECT_TOKEN;
+    const rawHost: unknown = import.meta.env?.VITE_POSTHOG_HOST;
     const rawKey: unknown = import.meta.env?.VITE_POSTHOG_KEY;
     const rawRegion: unknown = import.meta.env?.VITE_POSTHOG_REGION;
     return {
+      VITE_POSTHOG_PROJECT_TOKEN:
+        typeof rawToken === 'string' ? rawToken : undefined,
+      VITE_POSTHOG_HOST: typeof rawHost === 'string' ? rawHost : undefined,
       VITE_POSTHOG_KEY: typeof rawKey === 'string' ? rawKey : undefined,
       VITE_POSTHOG_REGION: typeof rawRegion === 'string' ? rawRegion : undefined,
     };
@@ -280,15 +291,54 @@ function getViteEnv(): ViteImportMetaEnv {
   }
 }
 
+export function isLocalDashboardHost(host: string): boolean {
+  const h = (host || '').toLowerCase();
+  return (
+    h === 'localhost' ||
+    h === '127.0.0.1' ||
+    h === '[::1]' ||
+    h.endsWith('.localhost')
+  );
+}
+
 export function normalizePostHogRegion(value: unknown): PostHogRegion {
-  if (typeof value === 'string' && value.trim().toLowerCase() === 'us') {
-    return 'us';
+  if (typeof value === 'string') {
+    const normalized = value.trim().toLowerCase();
+    if (normalized === 'us' || normalized.includes('us.')) {
+      return 'us';
+    }
   }
   return 'eu';
 }
 
+function resolveConfiguredHost(rawHost: string | undefined): string | null {
+  if (!rawHost) return null;
+  const trimmed = rawHost.trim().replace(/\/+$/, '');
+  if (/^https:\/\/[a-z0-9.-]+\.posthog\.com$/i.test(trimmed)) {
+    return trimmed;
+  }
+  return null;
+}
+
 export function getPostHogEndpoints(region: PostHogRegion = 'eu'): PostHogEndpoints {
-  return REGION_ENDPOINTS[normalizePostHogRegion(region)];
+  const normalizedRegion = normalizePostHogRegion(region);
+  const base = REGION_ENDPOINTS[normalizedRegion];
+  const env = getViteEnv();
+  const configuredHost = resolveConfiguredHost(
+    env.VITE_POSTHOG_HOST || DEFAULT_POSTHOG_HOST
+  );
+
+  if (configuredHost) {
+    const hostRegion = normalizePostHogRegion(configuredHost);
+    if (hostRegion === normalizedRegion) {
+      return {
+        ...base,
+        ingestUrl: configuredHost,
+      };
+    }
+  }
+
+  return base;
 }
 
 function sanitizeConfigToken(value: unknown, maxLength = 256): string {
@@ -620,8 +670,16 @@ export function getPostHogConfig(): PostHogConfig {
     }
   }
 
-  const envRegion = env.VITE_POSTHOG_REGION ? normalizePostHogRegion(env.VITE_POSTHOG_REGION) : 'eu';
-  const envProjectKey = sanitizeConfigToken(env.VITE_POSTHOG_KEY);
+  const envRegion = env.VITE_POSTHOG_REGION
+    ? normalizePostHogRegion(env.VITE_POSTHOG_REGION)
+    : env.VITE_POSTHOG_HOST
+      ? normalizePostHogRegion(env.VITE_POSTHOG_HOST)
+      : normalizePostHogRegion(DEFAULT_POSTHOG_HOST);
+  const envProjectKey = sanitizeConfigToken(
+    env.VITE_POSTHOG_PROJECT_TOKEN ||
+      env.VITE_POSTHOG_KEY ||
+      DEFAULT_POSTHOG_PROJECT_TOKEN
+  );
   const sessionPersonalKey = sanitizeConfigToken(readStorage('session', PERSONAL_KEY_SESSION_KEY));
 
   return {
@@ -930,7 +988,24 @@ function getOrCreateSessionStore(): PostHogSessionStore | null {
  * Safe and idempotent to call on application mount.
  */
 export function initPostHogBridge(): PostHogSessionStore | null {
-  return getOrCreateSessionStore();
+  const session = getOrCreateSessionStore();
+  if (
+    typeof window !== 'undefined' &&
+    typeof document !== 'undefined' &&
+    !pageleaveListenerAttached
+  ) {
+    pageleaveListenerAttached = true;
+    const sendLeave = () => {
+      capturePostHogEvent('$pageleave');
+    };
+    window.addEventListener('pagehide', sendLeave);
+    document.addEventListener('visibilitychange', () => {
+      if (document.visibilityState === 'hidden') {
+        sendLeave();
+      }
+    });
+  }
+  return session;
 }
 
 /**
@@ -1022,6 +1097,15 @@ export function capturePostHogEvent(
       language: ctx.language,
       viewport: ctx.viewport,
       region_hint: ctx.regionHint,
+      $set: {
+        $browser: ctx.browser,
+        $os: ctx.os,
+        $device_type: ctx.deviceType,
+        $timezone: ctx.timezone,
+        language: ctx.language,
+        region_hint: ctx.regionHint,
+        last_subdomain: ctx.activeSubdomain || ctx.host,
+      },
       ...cleanCustomProps,
     },
   };

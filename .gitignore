@@ -6,3 +6,6 @@ dist
 backup/
 design/
 scripts/
+.env
+.env.*
+!.env.example
