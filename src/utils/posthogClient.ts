@@ -12,6 +12,7 @@
  * - Live HogQL analytics queries + local telemetry fallback for immediate `/dashboard` rendering
  */
 
+import posthog from 'posthog-js';
 import {
   getTelemetrySnapshot,
   isDoNotTrackEnabled,
@@ -242,6 +243,7 @@ let memoryConfig: Partial<PostHogConfig> = {};
 let memoryDistinctId: string | null = null;
 let sessionEventCounter = 0;
 let pageleaveListenerAttached = false;
+let posthogSdkInitialized = false;
 
 function readStorage(storageType: 'local' | 'session', key: string): string | null {
   if (typeof window === 'undefined') return null;
@@ -983,12 +985,58 @@ function getOrCreateSessionStore(): PostHogSessionStore | null {
   return window.__GREYSON_POSTHOG_SESSION__;
 }
 
+function ensurePostHogSdkInitialized(session: PostHogSessionStore): boolean {
+  if (typeof window === 'undefined') return false;
+  if (window.location.pathname.startsWith('/dashboard')) return false;
+
+  const config = getPostHogConfig();
+  if (!config.projectApiKey || !config.projectApiKey.startsWith('phc_')) {
+    return false;
+  }
+
+  if (posthogSdkInitialized) {
+    return true;
+  }
+
+  const endpoints = getPostHogEndpoints(config.region);
+  try {
+    posthog.init(config.projectApiKey, {
+      api_host: endpoints.ingestUrl,
+      ui_host: endpoints.apiUrl,
+      person_profiles: 'always',
+      persistence: 'sessionStorage',
+      bootstrap: {
+        distinctID: session.distinctId,
+      },
+      autocapture: true,
+      capture_pageview: false,
+      capture_pageleave: false,
+      disable_session_recording: false,
+      session_recording: {
+        maskAllInputs: true,
+      },
+      loaded: (ph) => {
+        ph.register({ distinct_id: session.distinctId });
+        ph.startSessionRecording();
+      },
+    });
+    posthogSdkInitialized = true;
+    return true;
+  } catch {
+    return false;
+  }
+}
+
 /**
- * Initializes the in-memory PostHog visitor session bridge (`window.__GREYSON_POSTHOG_SESSION__`).
+ * Initializes the in-memory PostHog visitor session bridge (`window.__GREYSON_POSTHOG_SESSION__`)
+ * and boots the PostHog JS SDK with Session Replay enabled.
  * Safe and idempotent to call on application mount.
  */
 export function initPostHogBridge(): PostHogSessionStore | null {
   const session = getOrCreateSessionStore();
+  if (session) {
+    ensurePostHogSdkInitialized(session);
+  }
   if (
     typeof window !== 'undefined' &&
     typeof document !== 'undefined' &&
@@ -1009,8 +1057,9 @@ export function initPostHogBridge(): PostHogSessionStore | null {
 }
 
 /**
- * Records an enriched visitor event in `window.__GREYSON_POSTHOG_SESSION__` and sends
- * `POST https://${region}.i.posthog.com/capture/` (`keepalive: true`) when a Project API Key (`phc_...`) is configured.
+ * Records an enriched visitor event in `window.__GREYSON_POSTHOG_SESSION__` and forwards it
+ * via the `posthog-js` SDK (with Session Replay correlation) or `fetch()` fallback when a
+ * Project API Key (`phc_...`) is configured.
  */
 export function capturePostHogEvent(
   eventName: string,
@@ -1068,46 +1117,58 @@ export function capturePostHogEvent(
     return;
   }
 
-  if (typeof fetch !== 'function') {
-    return;
-  }
-
   const endpoints = getPostHogEndpoints(config.region);
   const currentUrl =
     typeof window !== 'undefined'
       ? sanitizeTelemetryString(`${window.location.origin}${window.location.pathname}`, 200)
       : `https://${ctx.activeSubdomain}${ctx.pathname}`;
 
-  const payload = {
-    api_key: config.projectApiKey,
-    event: cleanEvent,
-    distinct_id: session.distinctId,
-    timestamp,
-    properties: {
-      $current_url: currentUrl,
-      $host: ctx.activeSubdomain || ctx.host,
-      $pathname: ctx.pathname,
-      $referrer: ctx.referrer || undefined,
-      $referring_domain: ctx.referringDomain,
-      utm_source: ctx.utmSource || undefined,
+  const eventProperties: Record<string, unknown> = {
+    $current_url: currentUrl,
+    $host: ctx.activeSubdomain || ctx.host,
+    $pathname: ctx.pathname,
+    $referrer: ctx.referrer || undefined,
+    $referring_domain: ctx.referringDomain,
+    utm_source: ctx.utmSource || undefined,
+    $browser: ctx.browser,
+    $os: ctx.os,
+    $device_type: ctx.deviceType,
+    $timezone: ctx.timezone,
+    language: ctx.language,
+    viewport: ctx.viewport,
+    region_hint: ctx.regionHint,
+    $set: {
       $browser: ctx.browser,
       $os: ctx.os,
       $device_type: ctx.deviceType,
       $timezone: ctx.timezone,
       language: ctx.language,
-      viewport: ctx.viewport,
       region_hint: ctx.regionHint,
-      $set: {
-        $browser: ctx.browser,
-        $os: ctx.os,
-        $device_type: ctx.deviceType,
-        $timezone: ctx.timezone,
-        language: ctx.language,
-        region_hint: ctx.regionHint,
-        last_subdomain: ctx.activeSubdomain || ctx.host,
-      },
-      ...cleanCustomProps,
+      last_subdomain: ctx.activeSubdomain || ctx.host,
     },
+    ...cleanCustomProps,
+  };
+
+  const sdkActive = ensurePostHogSdkInitialized(session);
+  if (sdkActive) {
+    try {
+      posthog.capture(cleanEvent, eventProperties);
+      return;
+    } catch {
+      // Fall back to direct HTTP capture if SDK capture fails
+    }
+  }
+
+  if (typeof fetch !== 'function') {
+    return;
+  }
+
+  const payload = {
+    api_key: config.projectApiKey,
+    event: cleanEvent,
+    distinct_id: session.distinctId,
+    timestamp,
+    properties: eventProperties,
   };
 
   try {

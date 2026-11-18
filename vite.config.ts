@@ -27,7 +27,7 @@ export default defineConfig({
         manualChunks: {
           three: ['three'],
           antd: ['antd', '@ant-design/icons'],
-          vendor: ['react', 'react-dom', 'dayjs'],
+          vendor: ['react', 'react-dom', 'dayjs', 'posthog-js'],
         },
       },
     },
