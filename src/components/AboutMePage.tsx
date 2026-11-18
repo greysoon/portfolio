@@ -412,7 +412,9 @@ export const AboutMePage: React.FC<AboutMePageProps> = ({
                 </div>
 
                 <p className="automate-prose">{t.aboutPage.profileBody}</p>
-                <p className="automate-stack-line">{t.aboutPage.stackLine}</p>
+                {t.aboutPage.stackLine ? (
+                  <p className="automate-stack-line">{t.aboutPage.stackLine}</p>
+                ) : null}
 
                 <div className="automate-profile-meta">
                   <div className="automate-profile-row">

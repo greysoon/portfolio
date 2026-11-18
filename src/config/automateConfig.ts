@@ -312,10 +312,10 @@ export const automateConfig = {
         title: 'Oude knelpunten oplossen met de snelheid van 2026.',
         subtitle:
           'Ik breng vastgeroeste bedrijfsprocessen visueel in kaart en bouw binnen een middag of dag een custom tool of AI-flow die het werk leuker maakt.',
-        introTitle: 'Waarom ik dit doe',
+        introTitle: 'Waarom ik hiermee begonnen ben',
         introParagraphs: [
-          'Tot voor kort bleven kleine en middelgrote irritaties op kantoor liggen omdat maatwerksoftware simpelweg te traag en te duur was. Door moderne AI schrijf en test ik diezelfde oplossingen nu vele malen sneller.',
-          'Mijn doel is simpel: langskomen bij bedrijven, luisteren waar de energie weglekt en binnen no-time een eigen tool neerzetten die rust en werkplezier terugbrengt.',
+          'In mijn dagelijkse werk bij een bedrijf merk ik van dichtbij hoe hard AI en digitale werkwijzen gaan — en hoe snel je achterop kunt raken als je niet op tijd schakelt.',
+          'Om mijzelf continu verder te ontwikkelen én ondernemers te ondersteunen, ben ik dit begonnen als missie: samen zorgen dat het werk leuk blijft en je koers recht blijft, zonder dat je achterloopt of hoeft af te wijken omdat je een ontwikkeling mist.',
         ],
         principlesTitle: 'Waarom het werkt',
         principles: [
@@ -335,11 +335,10 @@ export const automateConfig = {
             body: 'Bedrijfsdata traint geen publieke modellen en alle code blijft van jouw bedrijf.',
           },
         ],
-        profileTitle: '< 2025 vs. 2026 · Profiel',
+        profileTitle: '< 2025 vs. 2026 · Mijn missie',
         profileBody:
-          'Full-stack software engineer (TypeScript, React, Node.js, Python & AI-workflows) die lokaal in Friesland bedrijven helpt versnellen.',
-        stackLine:
-          'TypeScript · React · Node.js · Python · Veilige AI-flows · Custom Web Tools',
+          'Ik ben daarnaast werkzaam bij een bedrijf en zie dagelijks hoe snel je achter kunt lopen als je niet meebeweegt. Vanuit die praktijk help ik ondernemers in Friesland om bij te blijven, slimmer te werken en het werk leuk te houden.',
+        stackLine: '',
         locationLabel: 'Werkgebied',
         locationValue: 'Friesland & Amsterdam, Nederland',
         emailLabel: 'E-mail',
@@ -676,10 +675,10 @@ export const automateConfig = {
         title: 'Solving yesterday’s bottlenecks at 2026 speed.',
         subtitle:
           'I map rusty business workflows visually and build custom tools or AI flows in an afternoon or day so work becomes faster and more fun.',
-        introTitle: 'Why I work this way',
+        introTitle: 'Why I started this mission',
         introParagraphs: [
-          'Before 2025, everyday operational headaches stayed unresolved because bespoke software took too long and cost too much. Pairing modern AI with full-stack craft shrinks that build cycle down to hours.',
-          'My goal is straightforward: meet business owners, visualize where energy is wasted, and ship a custom tool that restores clarity and enjoyment at work.',
+          'In my day-to-day role at a company, I see firsthand how fast AI and modern workflows evolve — and how quickly a business can fall behind if it does not adapt in time.',
+          'To keep developing myself while supporting business owners, I started this as a mission: keeping daily work enjoyable and keeping your course steady, without falling behind or drifting off track because you missed a shift.',
         ],
         principlesTitle: 'Why it works',
         principles: [
@@ -699,11 +698,10 @@ export const automateConfig = {
             body: 'Company records never feed public models and all code belongs to you.',
           },
         ],
-        profileTitle: '< 2025 vs. 2026 · Profile',
+        profileTitle: '< 2025 vs. 2026 · My mission',
         profileBody:
-          'Full-stack software engineer (TypeScript, React, Node.js, Python & AI workflows) helping SMEs across Friesland move faster.',
-        stackLine:
-          'TypeScript · React · Node.js · Python · Private AI Flows · Custom Web Apps',
+          'Alongside this initiative I work at a company where I see every day how fast you can fall behind if you do not adapt. From that hands-on reality, I help entrepreneurs in Friesland stay ahead and keep work enjoyable.',
+        stackLine: '',
         locationLabel: 'Region',
         locationValue: 'Friesland & Amsterdam, Netherlands',
         emailLabel: 'Email',
