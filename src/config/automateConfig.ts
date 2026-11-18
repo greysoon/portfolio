@@ -125,9 +125,8 @@ export const automateConfig = {
       },
       services: {
         eyebrow: 'De omslag in beeld',
-        title: '1 plaatje zegt genoeg: waarom wachten niet meer hoeft.',
-        intro:
-          'Ik neem contact op met bedrijven in Friesland, maak knelpunten visueel helder en los ze direct op.',
+        title: 'Waarom wachten niet meer hoeft.',
+        intro: '',
         infographicPanels: [
           {
             id: 'map',
@@ -485,9 +484,8 @@ export const automateConfig = {
       },
       services: {
         eyebrow: 'Visualizing the shift',
-        title: 'One visual says it all: why postponed fixes can happen now.',
-        intro:
-          'I reach out to businesses in Friesland, map out bottlenecks visually, and build practical tools right away.',
+        title: 'Why postponed fixes can happen now.',
+        intro: '',
         infographicPanels: [
           {
             id: 'map',

@@ -838,7 +838,9 @@ export const AutomatePage: React.FC<AutomatePageProps> = ({
             <div className="automate-band-header">
               <span className="automate-eyebrow">{t.services.eyebrow}</span>
               <h2 className="automate-h2">{t.services.title}</h2>
-              <p className="automate-lead">{t.services.intro}</p>
+              {t.services.intro ? (
+                <p className="automate-lead">{t.services.intro}</p>
+              ) : null}
             </div>
 
             {/* 3-Panel Visual SVG Infographic */}
