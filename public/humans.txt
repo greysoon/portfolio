@@ -1,0 +1,11 @@
+/* TEAM */
+Founder & Full-Stack AI / Software Engineer: Greyson Beimers
+Contact: grey.beimers@gmail.com
+LinkedIn: https://www.linkedin.com/in/greyson-beimers-68749b1a1/
+Location: Friesland & Amsterdam, Netherlands
+Service Region: Leeuwarden, Sneek, Heerenveen, Drachten, Harlingen, Franeker, Dokkum
+
+/* SITE */
+Last update: 2026-11-18
+Language: Dutch (nl), English (en)
+Standards: HTML5, CSS3, TypeScript, React, Schema.org JSON-LD, llms.txt

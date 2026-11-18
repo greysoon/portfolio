@@ -357,6 +357,58 @@ export const AutomatePage: React.FC<AutomatePageProps> = ({
     );
   }, [lang, interestIndex]);
 
+  useEffect(() => {
+    const nodes = Array.from(document.querySelectorAll('.automate-reveal'));
+    if (nodes.length === 0) return;
+
+    const prefersReduced =
+      typeof window !== 'undefined' &&
+      window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+    if (prefersReduced || typeof IntersectionObserver === 'undefined') {
+      nodes.forEach((node) => node.classList.add('is-visible'));
+      return;
+    }
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            entry.target.classList.add('is-visible');
+            observer.unobserve(entry.target);
+          }
+        });
+      },
+      { threshold: 0.12, rootMargin: '0px 0px -30px 0px' }
+    );
+
+    nodes.forEach((node) => observer.observe(node));
+    return () => observer.disconnect();
+  }, [lang]);
+
+  const handleSectionScroll = (
+    e: React.MouseEvent<HTMLAnchorElement>,
+    sectionId: string,
+    targetLabel: string
+  ) => {
+    e.preventDefault();
+    const target = document.getElementById(sectionId);
+    if (target) {
+      const prefersReduced = window.matchMedia(
+        '(prefers-reduced-motion: reduce)'
+      ).matches;
+      target.scrollIntoView({
+        behavior: prefersReduced ? 'auto' : 'smooth',
+        block: 'start',
+      });
+      if (window.history?.pushState) {
+        window.history.pushState(null, '', `#${sectionId}`);
+      }
+    }
+    trackInteraction('automate_nav_scroll', { target: targetLabel, lang });
+    capturePostHogEvent('automate_nav_scroll', { target: targetLabel, lang });
+  };
+
   const handleLocaleChange = (nextLang: AutomateLocale) => {
     if (nextLang === lang) return;
     if (onLocaleChange) {
@@ -477,19 +529,37 @@ export const AutomatePage: React.FC<AutomatePageProps> = ({
       <header className="automate-header">
         <div className="automate-header-inner">
           <nav className="automate-nav" aria-label="Primary navigation">
-            <a href="#overzicht" className="automate-brand">
+            <a
+              href="#overzicht"
+              className="automate-brand"
+              onClick={(e) => handleSectionScroll(e, 'overzicht', 'brand_top')}
+            >
               <BrandLogo label={t.nav.brand} />
             </a>
 
             <div className="automate-nav-actions">
               <div className="automate-nav-links">
-                <a href="#diensten" className="automate-nav-link">
+                <a
+                  href="#diensten"
+                  className="automate-nav-link"
+                  onClick={(e) => handleSectionScroll(e, 'diensten', 'nav_diensten')}
+                >
                   {t.nav.servicesLabel}
                 </a>
-                <a href="#automate-usecases" className="automate-nav-link">
+                <a
+                  href="#automate-usecases"
+                  className="automate-nav-link"
+                  onClick={(e) =>
+                    handleSectionScroll(e, 'automate-usecases', 'nav_usecases')
+                  }
+                >
                   {t.nav.useCasesLabel}
                 </a>
-                <a href="#werkwijze" className="automate-nav-link">
+                <a
+                  href="#werkwijze"
+                  className="automate-nav-link"
+                  onClick={(e) => handleSectionScroll(e, 'werkwijze', 'nav_werkwijze')}
+                >
                   {t.nav.processLabel}
                 </a>
                 <a
@@ -499,7 +569,13 @@ export const AutomatePage: React.FC<AutomatePageProps> = ({
                 >
                   {t.nav.aboutLabel}
                 </a>
-                <a href="#automate-contact" className="automate-nav-link">
+                <a
+                  href="#automate-contact"
+                  className="automate-nav-link"
+                  onClick={(e) =>
+                    handleSectionScroll(e, 'automate-contact', 'nav_contact')
+                  }
+                >
                   {t.nav.contactLabel}
                 </a>
                 <a
@@ -539,7 +615,8 @@ export const AutomatePage: React.FC<AutomatePageProps> = ({
               <a
                 href="#automate-contact"
                 className="automate-btn automate-btn-primary automate-nav-cta"
-                onClick={() => {
+                onClick={(e) => {
+                  handleSectionScroll(e, 'automate-contact', 'header_contact');
                   trackInteraction('automate_cta_click', {
                     target: 'header_contact',
                     lang,
@@ -570,7 +647,8 @@ export const AutomatePage: React.FC<AutomatePageProps> = ({
                   <a
                     href="#automate-contact"
                     className="automate-btn automate-btn-primary"
-                    onClick={() => {
+                    onClick={(e) => {
+                      handleSectionScroll(e, 'automate-contact', 'hero_contact');
                       trackInteraction('automate_cta_click', {
                         target: 'hero_contact',
                         lang,
@@ -586,7 +664,8 @@ export const AutomatePage: React.FC<AutomatePageProps> = ({
                   <a
                     href="#diensten"
                     className="automate-btn automate-btn-secondary"
-                    onClick={() => {
+                    onClick={(e) => {
+                      handleSectionScroll(e, 'diensten', 'hero_services');
                       trackInteraction('automate_cta_click', {
                         target: 'hero_services',
                         lang,
@@ -731,6 +810,7 @@ export const AutomatePage: React.FC<AutomatePageProps> = ({
 
                 {/* Visual Node Flow Diagram */}
                 <div
+                  key={activeScenario.id}
                   id="hero-showcase-panel"
                   className="automate-showcase-panel"
                   role="tabpanel"
@@ -835,7 +915,7 @@ export const AutomatePage: React.FC<AutomatePageProps> = ({
         {/* Band 2: Full-Bleed White Visual Blueprint Infographic + Comparison */}
         <section id="diensten" className="automate-band automate-band--white">
           <div className="automate-band-inner">
-            <div className="automate-band-header">
+            <div className="automate-band-header automate-reveal">
               <span className="automate-eyebrow">{t.services.eyebrow}</span>
               <h2 className="automate-h2">{t.services.title}</h2>
               {t.services.intro ? (
@@ -846,7 +926,10 @@ export const AutomatePage: React.FC<AutomatePageProps> = ({
             {/* 3-Panel Visual SVG Infographic */}
             <div className="automate-infographic-grid">
               {t.services.infographicPanels.map((panel) => (
-                <article key={panel.id} className="automate-infographic-card">
+                <article
+                  key={panel.id}
+                  className="automate-infographic-card automate-reveal"
+                >
                   <span className="automate-kicker">{panel.step}</span>
                   <h3 className="automate-h3">{panel.title}</h3>
                   {renderInfographicVisual(
@@ -863,7 +946,7 @@ export const AutomatePage: React.FC<AutomatePageProps> = ({
             </div>
 
             <div className="automate-services-split">
-              <article className="automate-service-pillar">
+              <article className="automate-service-pillar automate-reveal">
                 <span className="automate-kicker">
                   {t.services.automationEyebrow}
                 </span>
@@ -898,7 +981,7 @@ export const AutomatePage: React.FC<AutomatePageProps> = ({
                 </div>
               </article>
 
-              <article className="automate-service-pillar">
+              <article className="automate-service-pillar automate-reveal">
                 <span className="automate-kicker">
                   {t.services.softwareEyebrow}
                 </span>
@@ -913,7 +996,11 @@ export const AutomatePage: React.FC<AutomatePageProps> = ({
                     <div
                       key={row.label}
                       className={`automate-comparison-row ${
-                        row.tone === 'accent' ? 'is-accent' : 'is-muted'
+                        row.tone === 'accent'
+                          ? 'is-accent'
+                          : row.tone === 'result'
+                            ? 'is-result'
+                            : 'is-muted'
                       }`}
                     >
                       <div className="automate-comparison-meta">
@@ -941,7 +1028,7 @@ export const AutomatePage: React.FC<AutomatePageProps> = ({
           className="automate-band automate-band--stone"
         >
           <div className="automate-band-inner">
-            <div className="automate-band-header">
+            <div className="automate-band-header automate-reveal">
               <span className="automate-eyebrow">{t.useCases.eyebrow}</span>
               <h2 className="automate-h2">{t.useCases.title}</h2>
               <p className="automate-lead">{t.useCases.intro}</p>
@@ -949,7 +1036,10 @@ export const AutomatePage: React.FC<AutomatePageProps> = ({
 
             <div className="automate-case-visual-grid">
               {t.useCases.items.map((item) => (
-                <article key={item.id} className="automate-case-row is-card">
+                <article
+                  key={item.id}
+                  className="automate-case-row is-card automate-reveal"
+                >
                   <div className="automate-case-top">
                     <span className="automate-case-tag">{item.tag}</span>
                     <span className="automate-ba-badge">{item.buildBadge}</span>
@@ -1010,7 +1100,7 @@ export const AutomatePage: React.FC<AutomatePageProps> = ({
         <section id="werkwijze" className="automate-band automate-band--dark">
           <div className="automate-band-inner">
             <div className="automate-story-split">
-              <div className="automate-story-narrative">
+              <div className="automate-story-narrative automate-reveal">
                 <span className="automate-eyebrow automate-eyebrow--light">
                   {t.story.eyebrow}
                 </span>
@@ -1055,7 +1145,7 @@ export const AutomatePage: React.FC<AutomatePageProps> = ({
                 <p className="automate-story-region">{t.story.regionLine}</p>
               </div>
 
-              <div className="automate-story-timeline-col">
+              <div className="automate-story-timeline-col automate-reveal">
                 <h3 className="automate-kicker automate-kicker--light">
                   {t.story.processTitle}
                 </h3>
@@ -1087,7 +1177,7 @@ export const AutomatePage: React.FC<AutomatePageProps> = ({
         {/* Band 5: Warm Tint Founder Teaser Banner */}
         <section id="over-mij" className="automate-band automate-band--tint">
           <div className="automate-band-inner">
-            <div className="automate-teaser-banner">
+            <div className="automate-teaser-banner automate-reveal">
               <div className="automate-teaser-copy">
                 <span className="automate-eyebrow">{t.aboutTeaser.eyebrow}</span>
                 <h2 className="automate-h2">{t.aboutTeaser.title}</h2>
@@ -1113,7 +1203,7 @@ export const AutomatePage: React.FC<AutomatePageProps> = ({
         >
           <div className="automate-band-inner">
             <div className="automate-contact-split">
-              <div className="automate-contact-info">
+              <div className="automate-contact-info automate-reveal">
                 <span className="automate-eyebrow">{t.form.eyebrow}</span>
                 <h2 className="automate-h2">{t.form.title}</h2>
                 <p className="automate-prose">{t.form.subtitle}</p>
@@ -1176,7 +1266,7 @@ export const AutomatePage: React.FC<AutomatePageProps> = ({
                 </div>
               </div>
 
-              <div className="automate-contact-form-wrap">
+              <div className="automate-contact-form-wrap automate-reveal">
                 <form
                   className="automate-form-panel"
                   onSubmit={handleSubmit}

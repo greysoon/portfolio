@@ -37,8 +37,8 @@ function check(category, name, fn) {
 const distDir = path.join(rootDir, 'dist');
 const distAssetsDir = path.join(distDir, 'assets');
 
-check('Build', 'dist/ directory and core static files exist (index.html, robots.txt, sitemap.xml, manifest.webmanifest)', () => {
-  for (const file of ['index.html', 'robots.txt', 'sitemap.xml', 'manifest.webmanifest']) {
+check('Build', 'dist/ directory and core static files exist (index.html, robots.txt, sitemap.xml, manifest.webmanifest, llms.txt)', () => {
+  for (const file of ['index.html', 'robots.txt', 'sitemap.xml', 'manifest.webmanifest', 'llms.txt', 'llms-full.txt', 'humans.txt']) {
     const fullPath = path.join(distDir, file);
     assert.ok(fs.existsSync(fullPath), `Missing build output: dist/${file}`);
     assert.ok(fs.statSync(fullPath).size > 0, `Empty build output: dist/${file}`);

@@ -1,0 +1,36 @@
+# Greyson Automation — AI & Custom Tools Friesland
+
+> Practical AI workflows, process automation, and custom web tools built in an afternoon or day for businesses across Friesland, Netherlands — turning outdated manual routines from before 2025 into software that makes daily work faster and more enjoyable.
+
+Greyson Beimers works directly with business owners in Friesland (Leeuwarden, Sneek, Heerenveen, Drachten, Harlingen, Franeker, Dokkum) and across the Netherlands. Instead of months-long agency trajectories and heavy consulting decks, workflows are mapped visually in 30 minutes and solved in 1 afternoon to 1 day.
+
+## Core Shift (< 2025 vs. 2026)
+
+- **Before 2025**: Everyday operational bottlenecks (re-typing email quotes, patched Excel sheets, scattered manuals, manual client updates) required 6–12 weeks of costly bespoke development, so SMEs postponed fixing them.
+- **Now in 2026**: Modern AI lets an experienced full-stack engineer map a bottleneck visually and build a tailored internal tool, automation bridge, or portal in one afternoon or one day.
+
+## Services & Approach
+
+- [Homepage — De omslag (< 2025 vs. Nu)](https://greyson.nl/): Interactive before/after workflow scenarios, 3-step visual blueprint, and direct inquiry form.
+- [Automation Subdomain — Automate Friesland](https://automate.greyson.nl/): Dedicated AI & automation portal for regional companies in Friesland.
+- [Over mij & Contact](https://greyson.nl/over-mij): Background, visual working principles (process mapped first, built in 1 day, 100% private data ownership), and direct contact.
+- [Extended LLM Documentation](https://greyson.nl/llms-full.txt): Full bilingual Dutch and English breakdown of use cases, privacy standards, and tech stack.
+
+## Typical 1-Day Solutions
+
+- **Offertes & Intake (1 middag)**: Automatically turn inbound emails, dimensions, and PDF attachments into structured quote drafts ready for 1-click approval.
+- **Oude Excel-lijsten naar Custom Web Tool (1 dag)**: Replace disconnected spreadsheets with one live internal planning, order, or inventory tool.
+- **Privé Interne Kennisbank (1 middag)**: Private Q&A assistant over company manuals, installation guides, and past projects without sharing data with public AI training models.
+- **Modern Klantportaal (1 dag)**: Clean customer self-service portal for status tracking, appointments, and document exchange.
+
+## Privacy & Ownership
+
+- Sensitive company, customer, and pricing records are never sent to train public AI models.
+- Custom software, domains, and integrations remain 100% under the client's own ownership.
+
+## Direct Contact
+
+- **Founder & Engineer**: Greyson Beimers
+- **Email**: grey.beimers@gmail.com
+- **LinkedIn**: https://www.linkedin.com/in/greyson-beimers-68749b1a1/
+- **Service Region**: Leeuwarden, Sneek, Heerenveen, Drachten, Harlingen, Franeker, Dokkum (Friesland, NL) & Amsterdam

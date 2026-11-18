@@ -295,3 +295,21 @@
   - `npm run build` (`tsc -b && vite build`): `PASS` (`0` errors, `1448` modules transformed; `dist/assets/index-*.css` `48.24 kB`, `dist/assets/index-*.js` `233.62 kB`).
   - `node tests/verify-site.mjs`: `21 / 21 checks PASS`.
   - `node tests/security/red-team-audit.mjs`: `8 / 8 checks PASS` (`SEC-01`–`SEC-08`).
+
+---
+
+### Sprint 07 — SEO & LLM Discovery Standards, Equal-Height Grid Alignment, Smooth Scrolling & Motion
+
+- **SEO & LLM Answer Engine Optimization (`marketing-seo`, `backend-devops`)**:
+  - Updated `index.html` (`<html lang="nl">`) with Dutch Friesland AI & 1-day custom tools SEO/OpenGraph/Twitter metadata, `hreflang` links (`nl` / `en`), `<link rel="alternate" type="text/plain" href="/llms.txt" />`, `<link rel="author" href="/humans.txt" />`, and expanded `Schema.org` JSON-LD `@graph` (`Person`, `WebSite`, `ProfessionalService`, `FAQPage`).
+  - Added standard LLM and search engine files: `public/llms.txt`, `public/.well-known/llms.txt`, `public/llms-full.txt`, `public/humans.txt`, updated `public/robots.txt` (explicit search + AI answer-engine bot rules `Googlebot`, `OAI-SearchBot`, `GPTBot`, `ClaudeBot`, `PerplexityBot`, `Google-Extended`; `Disallow: /dashboard`), and updated `public/sitemap.xml`.
+  - Extended `tests/verify-site.mjs` Build check to assert `dist/llms.txt`, `dist/llms-full.txt`, and `dist/humans.txt`.
+- **Equal-Height Columns, Smooth Scroll Menu & Subtle Animations (`ui-ux-designer`, `frontend-engineer`)**:
+  - Balanced `.automate-comparison` (`#diensten`) with a 3rd visual bar row (`Resultaat & Eigendom` / `Result & Ownership`) and stretched both `.automate-pipeline` and `.automate-comparison` (`align-items: stretch; flex: 1; justify-content: space-between`) to identical rendered height (`312.21px` at `1280px` desktop).
+  - Stretched `.automate-story-split` (`#werkwijze`) and styled `.automate-timeline-item` cards with `justify-content: space-between` so `.automate-story-narrative` and `.automate-story-timeline-col` match exact height (`590.35px` at `1280px` desktop).
+  - Wired smooth section scrolling (`handleSectionScroll` + `scroll-margin-top: 74px`), `IntersectionObserver` `.automate-reveal` entrance transitions, tab-panel fade transition, bar-fill growth, dashed SVG flow, and subtle hover states with full `prefers-reduced-motion: reduce` support across `AutomatePage.tsx`, `AboutMePage.tsx`, and `src/styles/automate.css`.
+- **Verification**:
+  - `npm run build`: `PASS` (`1448` modules transformed in `4.55s`).
+  - `node tests/verify-site.mjs`: `21 / 21 checks PASS`.
+  - `node tests/security/red-team-audit.mjs`: `8 / 8 checks PASS` (`SEC-01`–`SEC-08`).
+  - Live Browser Check (`http://localhost:5173/`): Confirmed equal box heights (`312.21px` vs `312.21px` in `#diensten`; `590.35px` vs `590.35px` in `#werkwijze`), smooth header menu scrolling, and `16/16` `.automate-reveal.is-visible` activation.

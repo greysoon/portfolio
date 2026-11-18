@@ -1,0 +1,55 @@
+# Greyson Automation — Volledig Overzicht / Full Context (NL & EN)
+
+## Missie (Nederlands)
+
+AI gaat razendsnel. Bijna elk bedrijf in het MKB heeft processen die vastgeroest zitten of irritaties die vóór 2025/2026 simpelweg bleven liggen omdat traditioneel maatwerk maanden doorlooptijd en hoge bureaukosten vroeg.
+
+Greyson Beimers (full-stack software engineer) gaat direct met bedrijven in Friesland in gesprek, brengt knelpunten en werkwijzen in 30 minuten visueel in kaart, en bouwt binnen één middag of één dag een werkende custom tool of AI-proces. Het resultaat: tot wel 80% minder saai handwerk, lagere foutkans en een werkdag die zowel efficiënter als leuker wordt.
+
+### Hoe de samenwerking werkt in 3 stappen
+
+1. **Inzichtelijk maken (30 min)**: Samen aan tafel of via videobellen tekenen we uit waar mail, PDF's, Excel en losse systemen tijd weglaten lopen.
+2. **Direct bouwen (1 middag / 1 dag)**: Met AI-versnelde engineering wordt direct een werkende tool of koppeling gebouwd op jouw eigen werkwijze — zonder tussenpersonen.
+3. **Efficiënter & leuker werk (Elke dag live)**: Veilig geïnstalleerd in eigen beheer, met 100% eigendom over code, data en koppelingen.
+
+### Vier veelvoorkomende voorbeelden (Voor & Na)
+
+1. **Offertes & Intake (Gebouwd in 1 middag)**
+   - Oud (< 2025): Mail lezen → Maten & gegevens overtypen → Offerte handmatig opstellen (45 min).
+   - Nieuw (2026): AI leest aanvraag & PDF → Prijsregels automatisch ingevuld → 1 klik akkoord & versturen (30 sec controle).
+2. **Planning, Orders & Excel-lijsten (Gebouwd in 1 dag)**
+   - Oud (< 2025): Mailtjes → Kopiëren tussen losse Excel-tabbladen → Handmatig factureren.
+   - Nieuw (2026): Eén overzichtelijke custom web-tool met live planning en automatische synchronisatie.
+3. **Interne Vraagbaak & Kennisbank (Gebouwd in 1 middag)**
+   - Oud (< 2025): Mappen doorzoeken → Ervaren collega bellen → Tijdverlies (20 min).
+   - Nieuw (2026): Vraag stellen in gewoon Nederlands → Privé AI zoekt alleen in eigen handleidingen → Antwoord met bronpagina in 3 seconden.
+4. **Klantportaal & Bedrijfswebsite (Gebouwd in 1 dag)**
+   - Oud (< 2025): Klanten bellen voor statusupdates of om bestanden door te geven.
+   - Nieuw (2026): Snel portaal op eigen domein waarin klanten veilig inloggen, documenten aanleveren en direct de status zien.
+
+### Werkgebied in Friesland & Nederland
+
+Leeuwarden, Sneek, Heerenveen, Drachten, Harlingen, Franeker, Dokkum, geheel Friesland en Amsterdam / remote door heel Nederland.
+
+---
+
+## Mission & Context (English)
+
+AI has fundamentally changed how fast tailored software can be engineered. Bottlenecks and legacy habits that SMEs left untouched before 2025 because bespoke agencies needed 6–12 weeks can now often be solved cleanly in a single afternoon or day.
+
+Greyson Beimers connects directly with companies to visualize how daily work flows across inbox, spreadsheets, CRM, and staff knowledge—and builds private AI workflows or custom web applications that eliminate repetitive copy-pasting and make work faster and more enjoyable.
+
+### Privacy, Security & Architecture Standards
+
+- Private data stays under client ownership and is never sent to train public AI models.
+- Tech stack: TypeScript, React, Node.js, Python, Postgres/API integrations, modern cloud deployment.
+- Security posture: strict Content-Security-Policy, zero plaintext secrets, clean code ownership.
+
+### Contact & Canonical URLs
+
+- Main Site: https://greyson.nl/
+- Automation Portal: https://automate.greyson.nl/
+- About & Direct Contact Page: https://greyson.nl/over-mij
+- Portfolio / CV Mirror: https://cv.greyson.nl/ & https://about.greyson.nl/
+- Direct Email: grey.beimers@gmail.com
+- LinkedIn: https://www.linkedin.com/in/greyson-beimers-68749b1a1/

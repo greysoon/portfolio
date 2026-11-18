@@ -27,7 +27,7 @@ export const automateConfig = {
   copy: {
     nl: {
       nav: {
-        brand: 'GREYSON',
+        brand: 'AUTOMATE',
         homeLabel: 'Home',
         servicesLabel: 'De omslag',
         useCasesLabel: 'Voorbeelden',
@@ -181,13 +181,18 @@ export const automateConfig = {
         softwareComparison: [
           {
             label: '< 2025 · Traditioneel maatwerk',
-            value: 'Maanden wachttijd & hoge kosten → Bleef liggen',
+            value: '6–12 weken wachttijd & hoge kosten → Bleef liggen',
             tone: 'muted',
           },
           {
             label: '2026 · Custom Tool met AI',
-            value: 'In 1 middag of dag gebouwd → Direct efficiënter & leuker',
+            value: 'In 1 middag of dag gebouwd → Direct live op de werkvloer',
             tone: 'accent',
+          },
+          {
+            label: 'Resultaat & Eigendom',
+            value: '-80% saai handwerk · 100% privé & in eigen beheer',
+            tone: 'result',
           },
         ],
       },
@@ -386,7 +391,7 @@ export const automateConfig = {
     },
     en: {
       nav: {
-        brand: 'GREYSON',
+        brand: 'AUTOMATE',
         homeLabel: 'Home',
         servicesLabel: 'The Shift',
         useCasesLabel: 'Examples',
@@ -540,13 +545,18 @@ export const automateConfig = {
         softwareComparison: [
           {
             label: '< 2025 · Traditional custom build',
-            value: 'Months of wait & high agency fees → Shelved',
+            value: '6–12 weeks wait & high agency fees → Shelved',
             tone: 'muted',
           },
           {
             label: '2026 · Custom Tool powered by AI',
-            value: 'Built in 1 afternoon or day → Faster & more fun',
+            value: 'Built in 1 afternoon or day → Live right away',
             tone: 'accent',
+          },
+          {
+            label: 'Result & Ownership',
+            value: '-80% repetitive admin · 100% private & yours forever',
+            tone: 'result',
           },
         ],
       },

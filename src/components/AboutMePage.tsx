@@ -67,6 +67,58 @@ export const AboutMePage: React.FC<AboutMePageProps> = ({
     );
   }, [lang, interestIndex]);
 
+  useEffect(() => {
+    const nodes = Array.from(document.querySelectorAll('.automate-reveal'));
+    if (nodes.length === 0) return;
+
+    const prefersReduced =
+      typeof window !== 'undefined' &&
+      window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+    if (prefersReduced || typeof IntersectionObserver === 'undefined') {
+      nodes.forEach((node) => node.classList.add('is-visible'));
+      return;
+    }
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            entry.target.classList.add('is-visible');
+            observer.unobserve(entry.target);
+          }
+        });
+      },
+      { threshold: 0.12, rootMargin: '0px 0px -30px 0px' }
+    );
+
+    nodes.forEach((node) => observer.observe(node));
+    return () => observer.disconnect();
+  }, [lang]);
+
+  const handleSectionScroll = (
+    e: React.MouseEvent<HTMLAnchorElement>,
+    sectionId: string,
+    targetLabel: string
+  ) => {
+    e.preventDefault();
+    const target = document.getElementById(sectionId);
+    if (target) {
+      const prefersReduced = window.matchMedia(
+        '(prefers-reduced-motion: reduce)'
+      ).matches;
+      target.scrollIntoView({
+        behavior: prefersReduced ? 'auto' : 'smooth',
+        block: 'start',
+      });
+      if (window.history?.pushState) {
+        window.history.pushState(null, '', `#${sectionId}`);
+      }
+    }
+    trackInteraction('automate_nav_scroll', { target: targetLabel, lang });
+    capturePostHogEvent('automate_nav_scroll', { target: targetLabel, lang });
+  };
+
   const handleLocaleChange = (nextLang: AutomateLocale) => {
     if (nextLang === lang) return;
     if (onLocaleChange) {
@@ -205,7 +257,13 @@ export const AboutMePage: React.FC<AboutMePageProps> = ({
                 >
                   {t.nav.aboutLabel}
                 </a>
-                <a href="#about-contact" className="automate-nav-link">
+                <a
+                  href="#about-contact"
+                  className="automate-nav-link"
+                  onClick={(e) =>
+                    handleSectionScroll(e, 'about-contact', 'about_nav_contact')
+                  }
+                >
                   {t.nav.contactLabel}
                 </a>
                 <a
@@ -245,6 +303,9 @@ export const AboutMePage: React.FC<AboutMePageProps> = ({
               <a
                 href="#about-contact"
                 className="automate-btn automate-btn-primary automate-nav-cta"
+                onClick={(e) =>
+                  handleSectionScroll(e, 'about-contact', 'about_header_contact')
+                }
               >
                 {t.nav.contactLabel}
               </a>
@@ -266,6 +327,13 @@ export const AboutMePage: React.FC<AboutMePageProps> = ({
                   <a
                     href="#about-contact"
                     className="automate-btn automate-btn-primary"
+                    onClick={(e) =>
+                      handleSectionScroll(
+                        e,
+                        'about-contact',
+                        'about_hero_contact'
+                      )
+                    }
                   >
                     {t.aboutPage.directContactTitle}
                   </a>
@@ -411,7 +479,7 @@ export const AboutMePage: React.FC<AboutMePageProps> = ({
         <section className="automate-band automate-band--white">
           <div className="automate-band-inner">
             <div className="automate-about-editorial">
-              <div className="automate-about-story-col">
+              <div className="automate-about-story-col automate-reveal">
                 <span className="automate-eyebrow">
                   {t.aboutPage.introTitle}
                 </span>
@@ -430,7 +498,7 @@ export const AboutMePage: React.FC<AboutMePageProps> = ({
                   {t.aboutPage.principles.map((principle) => (
                     <article
                       key={principle.title}
-                      className="automate-principle-col"
+                      className="automate-principle-col automate-reveal"
                     >
                       <span
                         className="automate-principle-icon"
@@ -488,7 +556,7 @@ export const AboutMePage: React.FC<AboutMePageProps> = ({
         <section id="about-contact" className="automate-band automate-band--stone">
           <div className="automate-band-inner">
             <div className="automate-contact-split">
-              <div className="automate-contact-info">
+              <div className="automate-contact-info automate-reveal">
                 <span className="automate-eyebrow">
                   {t.aboutPage.directContactTitle}
                 </span>

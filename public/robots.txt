@@ -1,4 +1,36 @@
+# Standard Search Engines & AI Answer Engines Discovery Policy
 User-agent: *
 Allow: /
+Disallow: /dashboard
 
+User-agent: Googlebot
+Allow: /
+
+User-agent: Bingbot
+Allow: /
+
+User-agent: OAI-SearchBot
+Allow: /
+
+User-agent: ChatGPT-User
+Allow: /
+
+User-agent: GPTBot
+Allow: /
+
+User-agent: ClaudeBot
+Allow: /
+
+User-agent: PerplexityBot
+Allow: /
+
+User-agent: Google-Extended
+Allow: /
+
+User-agent: Applebot
+Allow: /
+
+# XML Sitemap & LLM Context Discovery
 Sitemap: https://greyson.nl/sitemap.xml
+# LLMs Context: https://greyson.nl/llms.txt
+# LLMs Full Reference: https://greyson.nl/llms-full.txt
