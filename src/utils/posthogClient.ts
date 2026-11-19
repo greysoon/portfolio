@@ -13,6 +13,7 @@
  */
 
 import posthog from 'posthog-js';
+import 'posthog-js/dist/posthog-recorder';
 import {
   getTelemetrySnapshot,
   isDoNotTrackEnabled,
@@ -988,6 +989,16 @@ function getOrCreateSessionStore(): PostHogSessionStore | null {
 function ensurePostHogSdkInitialized(session: PostHogSessionStore): boolean {
   if (typeof window === 'undefined') return false;
   if (window.location.pathname.startsWith('/dashboard')) return false;
+  try {
+    if (
+      new URLSearchParams(window.location.search).get('site')?.toLowerCase() ===
+      'dashboard'
+    ) {
+      return false;
+    }
+  } catch {
+    // Ignore malformed query string
+  }
 
   const config = getPostHogConfig();
   if (!config.projectApiKey || !config.projectApiKey.startsWith('phc_')) {
@@ -1017,9 +1028,10 @@ function ensurePostHogSdkInitialized(session: PostHogSessionStore): boolean {
       },
       loaded: (ph) => {
         ph.register({ distinct_id: session.distinctId });
-        ph.startSessionRecording();
+        ph.startSessionRecording(true);
       },
     });
+    posthog.startSessionRecording(true);
     posthogSdkInitialized = true;
     return true;
   } catch {

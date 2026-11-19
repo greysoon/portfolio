@@ -28,6 +28,7 @@ export default defineConfig({
           three: ['three'],
           antd: ['antd', '@ant-design/icons'],
           vendor: ['react', 'react-dom', 'dayjs', 'posthog-js'],
+          recorder: ['posthog-js/dist/posthog-recorder'],
         },
       },
     },
