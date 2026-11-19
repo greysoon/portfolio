@@ -15,7 +15,10 @@ export const automateConfig = {
   aboutPath: '/over-mij',
   dashboardPath: '/dashboard',
   email: 'info@greyson.nl',
-  contactApiUrl: (import.meta.env.VITE_CONTACT_ENDPOINT || '').trim(),
+  contactApiUrl: (
+    import.meta.env.VITE_CONTACT_ENDPOINT ||
+    'https://greyson-contact-mailer.grey-beimers.workers.dev'
+  ).trim(),
   dailySubmissionLimit: 3,
   linkedinUrl: 'https://www.linkedin.com/in/greyson-beimers-68749b1a1/',
   region: 'Friesland, Nederland',

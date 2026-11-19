@@ -4,15 +4,6 @@
    mobile responsiveness, & prefers-reduced-motion support
    ========================================================================== */
 
-@font-face {
-  font-family: 'Plus Jakarta Sans Fallback';
-  src: local('Segoe UI'), local('Arial'), local('Helvetica Neue');
-  ascent-override: 97%;
-  descent-override: 25%;
-  line-gap-override: 0%;
-  size-adjust: 103%;
-}
-
 .automate-scroll-root,
 .dashboard-root {
   width: 100%;
@@ -28,7 +19,7 @@
   scrollbar-width: thin;
   background-color: #f7f5f2;
   color: var(--text-primary);
-  font-family: 'Plus Jakarta Sans', 'Plus Jakarta Sans Fallback', -apple-system, BlinkMacSystemFont, 'Segoe UI',
+  font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI',
     sans-serif;
   line-height: 1.65;
   -webkit-font-smoothing: antialiased;
