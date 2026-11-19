@@ -101,7 +101,7 @@ export function runSecurityAuditChecks() {
       remediated:
         hasSafeSinks(automatePage) &&
         automatePage.includes('encodeURIComponent') &&
-        automatePage.includes('mailto:grey.beimers@gmail.com') &&
+        automatePage.includes('mailto:info@greyson.nl') &&
         maxLengthCount >= 4 &&
         hasZeroPiiSubmitTelemetry,
     },
@@ -111,7 +111,7 @@ export function runSecurityAuditChecks() {
       remediated:
         indexHtml.includes("form-action 'self' mailto:") &&
         automateConfig.includes('automate.greyson.nl') &&
-        automateConfig.includes('grey.beimers@gmail.com') &&
+        automateConfig.includes('info@greyson.nl') &&
         automateConfig.includes('Friesland') &&
         appYaml.includes('domain: automate.greyson.nl'),
     },
@@ -138,7 +138,7 @@ export function runSecurityAuditChecks() {
       remediated:
         hasSafeSinks(aboutMePage) &&
         aboutMePage.includes('encodeURIComponent') &&
-        aboutMePage.includes('mailto:grey.beimers@gmail.com') &&
+        aboutMePage.includes('mailto:info@greyson.nl') &&
         aboutMePage.includes('rel="noopener noreferrer"') &&
         aboutMaxLengthCount >= 4 &&
         aboutZeroPiiSubmitTelemetry &&

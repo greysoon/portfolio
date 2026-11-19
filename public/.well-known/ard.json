@@ -1,0 +1,59 @@
+{
+  "entries": [
+    {
+      "identifier": "urn:air:greyson.nl:docs:llms-context",
+      "displayName": "Greyson Automation — AI & Custom Tools Overview (llms.txt)",
+      "type": "text/markdown",
+      "url": "https://greyson.nl/llms.txt",
+      "description": "Concise structured guide to Greyson Automation services in Friesland and the Netherlands: 1-day custom web tools, quote and email automation, Excel replacement apps, and internal knowledge assistants.",
+      "tags": [
+        "ai-automation",
+        "custom-software",
+        "friesland",
+        "netherlands",
+        "sme",
+        "mkb"
+      ],
+      "representativeQueries": [
+        "Who builds 1-day custom AI tools for businesses in Friesland?",
+        "How does Greyson Automation replace manual Excel workflows?",
+        "Where can I find Greyson Beimers contact details for AI automation?"
+      ],
+      "version": "1.0.0",
+      "updatedAt": "2026-11-19T00:00:00Z",
+      "trustManifest": {
+        "identity": "https://greyson.nl",
+        "identityType": "https",
+        "contact": "mailto:info@greyson.nl",
+        "attestations": []
+      }
+    },
+    {
+      "identifier": "urn:air:greyson.nl:docs:llms-full",
+      "displayName": "Greyson Automation — Full Bilingual Context (NL & EN)",
+      "type": "text/markdown",
+      "url": "https://greyson.nl/llms-full.txt",
+      "description": "Complete Dutch and English reference detailing Greyson Beimers' 3-step workflow mapping approach, four before/after SME case studies, regional coverage in Friesland, and direct contact information.",
+      "tags": [
+        "bilingual",
+        "dutch",
+        "english",
+        "workflow-automation",
+        "friesland"
+      ],
+      "representativeQueries": [
+        "Full Dutch and English overview of Greyson Automation services",
+        "What are Greyson Beimers' collaboration principles and turnaround times?",
+        "Which cities in Friesland does Greyson Automation serve?"
+      ],
+      "version": "1.0.0",
+      "updatedAt": "2026-11-19T00:00:00Z",
+      "trustManifest": {
+        "identity": "https://greyson.nl",
+        "identityType": "https",
+        "contact": "mailto:info@greyson.nl",
+        "attestations": []
+      }
+    }
+  ]
+}

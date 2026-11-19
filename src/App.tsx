@@ -126,10 +126,12 @@ export const App: React.FC = () => {
       setIntroComplete(false);
     }
 
-    capturePostHogEvent('$pageview', {
-      view: route.view,
-      mode: route.view === 'portfolio' ? route.portfolioMode : route.view,
-    });
+    if (route.view !== 'dashboard') {
+      capturePostHogEvent('$pageview', {
+        view: route.view,
+        mode: route.view === 'portfolio' ? route.portfolioMode : route.view,
+      });
+    }
   }, [route.view, route.portfolioMode, locale]);
 
   const handleIntroComplete = useCallback(() => {

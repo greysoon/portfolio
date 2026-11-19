@@ -1,3 +1,5 @@
+/// <reference types="vite/client" />
+
 export type AutomateLocale = 'nl' | 'en';
 
 export const automateConfig = {
@@ -12,7 +14,9 @@ export const automateConfig = {
   portfolioUrl: 'https://greyson.nl',
   aboutPath: '/over-mij',
   dashboardPath: '/dashboard',
-  email: 'grey.beimers@gmail.com',
+  email: 'info@greyson.nl',
+  contactApiUrl: (import.meta.env.VITE_CONTACT_ENDPOINT || '').trim(),
+  dailySubmissionLimit: 3,
   linkedinUrl: 'https://www.linkedin.com/in/greyson-beimers-68749b1a1/',
   region: 'Friesland, Nederland',
   cities: [
@@ -349,7 +353,7 @@ export const automateConfig = {
           'Kom ik een keer meekijken? Mail gerust direct — meestal reageer ik dezelfde dag.',
         ctaTitle: 'Zullen we jouw proces eens bekijken?',
         ctaSubtitle:
-          'Vertel kort waar het schuurt of stuur direct een mail naar grey.beimers@gmail.com.',
+          'Vertel kort waar het schuurt of stuur direct een mail naar info@greyson.nl.',
       },
       form: {
         eyebrow: 'Kennismaken',
@@ -375,22 +379,57 @@ export const automateConfig = {
         submitButton: 'Stuur bericht per e-mail',
         submittingButton: 'Bezig met versturen...',
         openMailAppFallback: 'Open ook in eigen mailapp',
-        copyFallbackButton: 'Kopieer bericht & e-mailadres (grey.beimers@gmail.com)',
-        copiedNotice: 'Bericht en grey.beimers@gmail.com gekopieerd naar klembord.',
+        copyFallbackButton: 'Kopieer bericht & e-mailadres (info@greyson.nl)',
+        copiedNotice: 'Bericht en info@greyson.nl gekopieerd naar klembord.',
         directEmailNote:
-          'Liever zelf een mail sturen? Gebruik direct grey.beimers@gmail.com.',
+          'Liever zelf een mail sturen? Gebruik direct info@greyson.nl.',
         submittedTitle: 'Bericht is verstuurd naar Greyson!',
         submittedDescription:
-          'Bedankt! Je bericht is direct doorgestuurd naar grey.beimers@gmail.com. Ik reageer meestal binnen één werkdag (of gebruik hieronder de knop als je het bericht ook in je eigen mailapp wilt openen).',
-        fallbackSubmittedTitle: 'Je e-mailprogramma wordt geopend',
+          'Bedankt! Je bericht is direct verstuurd naar info@greyson.nl. Ik reageer meestal binnen één werkdag.',
+        fallbackSubmittedTitle: 'Direct versturen lukte even niet',
         fallbackSubmittedDescription:
-          'Lukt direct versturen vanaf dit netwerk niet? Dan openen we je mailapp automatisch, of kopieer je alles met één klik hieronder.',
+          'Geen zorgen — je kunt het bericht hieronder met één klik kopiëren of optioneel openen in je eigen mailapp.',
+        rateLimitTitle: 'Daglimiet bereikt (max. 3 berichten per dag)',
+        rateLimitDescription:
+          'Om misbruik te voorkomen kun je maximaal 3 berichten per dag direct via dit formulier versturen. Probeer het morgen opnieuw of mail zelf naar info@greyson.nl.',
+        honeypotLabel: 'Laat dit veld leeg',
         validationError:
           'Vul je naam, contactgegevens en een korte toelichting in voordat je verstuurt.',
       },
       footer: {
         note: 'Greyson Beimers — Custom tools & AI-processen in 1 dag voor Friesland.',
         aboutLinkLabel: 'Over mij & contact',
+        faqLinkLabel: 'Veelgestelde vragen',
+        switchLangLabel: 'English version',
+      },
+      faq: {
+        eyebrow: 'Veelgestelde vragen',
+        title: 'Heldere antwoorden voor ondernemers in Friesland',
+        items: [
+          {
+            question:
+              'Waarom kan maatwerk en AI-automatisering nu vaak in één middag of dag gebouwd worden?',
+            answer:
+              'Vóór 2025 vroeg het bouwen van een custom tool of proceskoppeling weken handmatig codeerwerk. Door moderne AI te combineren met ervaren full-stack engineering worden veel herkenbare knelpunten nu binnen één middag of dag werkend opgeleverd.',
+          },
+          {
+            question:
+              'Hoe verloopt een samenwerking voor een custom tool of AI-proces?',
+            answer:
+              'In 30 minuten brengen we in gewone taal het proces op kantoor of de werkvloer visueel in kaart, kiezen het grootste pijnpunt en bouwen binnen een middag of dag een werkende oplossing — nuchter en zonder zware abonnementen of wurgcontracten.',
+          },
+          {
+            question: 'In welke regio is Greyson Automation actief?',
+            answer:
+              'Greyson werkt actief voor bedrijven in heel Friesland, waaronder Leeuwarden, Sneek, Heerenveen, Drachten, Harlingen, Franeker en Dokkum, en remote of op locatie door heel Nederland.',
+          },
+          {
+            question:
+              'Zit ik vast aan dure licenties of zware onderhoudscontracten?',
+            answer:
+              'Nee. We kiezen nuchter welke bestaande AI-tools of lichte custom webtool het beste past bij jullie werkwijze, zonder wurgcontracten of onnodige maandelijkse retainers.',
+          },
+        ],
       },
     },
     en: {
@@ -717,7 +756,7 @@ export const automateConfig = {
           'Want me to map your workflow? Email anytime — I usually reply the same day.',
         ctaTitle: 'Ready to simplify a rusty workflow?',
         ctaSubtitle:
-          'Share your bottleneck below or email grey.beimers@gmail.com directly.',
+          'Share your bottleneck below or email info@greyson.nl directly.',
       },
       form: {
         eyebrow: 'Get in touch',
@@ -743,22 +782,57 @@ export const automateConfig = {
         submitButton: 'Send message by email',
         submittingButton: 'Sending message...',
         openMailAppFallback: 'Also open in my email app',
-        copyFallbackButton: 'Copy message & email (grey.beimers@gmail.com)',
-        copiedNotice: 'Message and grey.beimers@gmail.com copied to clipboard.',
+        copyFallbackButton: 'Copy message & email (info@greyson.nl)',
+        copiedNotice: 'Message and info@greyson.nl copied to clipboard.',
         directEmailNote:
-          'Prefer emailing directly? Write anytime to grey.beimers@gmail.com.',
+          'Prefer emailing directly? Write anytime to info@greyson.nl.',
         submittedTitle: 'Message sent to Greyson!',
         submittedDescription:
-          'Thanks! Your message has been forwarded directly to grey.beimers@gmail.com. I usually reply within one business day (or use the buttons below to open or copy it in your own email app).',
-        fallbackSubmittedTitle: 'Opening your email app',
+          'Thanks! Your message has been sent directly to info@greyson.nl. I usually reply within one business day.',
+        fallbackSubmittedTitle: 'Direct delivery was temporarily unavailable',
         fallbackSubmittedDescription:
-          'Direct delivery was blocked on this network? Your mail app is opening cleanly, or copy the ready message below.',
+          'No worries — you can copy the ready message below in one click or optionally open it in your own email app.',
+        rateLimitTitle: 'Daily limit reached (max 3 messages per day)',
+        rateLimitDescription:
+          'To prevent abuse, you can send up to 3 messages per day directly through this form. Please try again tomorrow or email info@greyson.nl directly.',
+        honeypotLabel: 'Leave this field empty',
         validationError:
           'Please enter your name, contact details, and a short note before continuing.',
       },
       footer: {
         note: 'Greyson Beimers — Custom 1-day tools & AI workflows for Friesland.',
         aboutLinkLabel: 'About me & contact',
+        faqLinkLabel: 'FAQ',
+        switchLangLabel: 'Nederlandse versie',
+      },
+      faq: {
+        eyebrow: 'Frequently asked questions',
+        title: 'Clear answers before we map your workflow',
+        items: [
+          {
+            question:
+              'Why can custom tools and AI automation often be built in one afternoon or day now?',
+            answer:
+              'Before 2025, building a custom workflow bridge or internal web tool required weeks of manual coding. By pairing modern AI with seasoned full-stack engineering, recognizable bottlenecks can now often ship working in a single afternoon or day.',
+          },
+          {
+            question:
+              'How does working together on a custom tool or AI workflow go?',
+            answer:
+              'In 30 minutes we map your office or shop-floor workflow visually in plain language, pick the biggest time drain, and build a working solution in one afternoon or day—practical and with zero heavy agency retainers or lock-in contracts.',
+          },
+          {
+            question: 'Which region does Greyson Automation serve?',
+            answer:
+              'Greyson actively visits companies across Friesland—including Leeuwarden, Sneek, Heerenveen, Drachten, Harlingen, Franeker, and Dokkum—and works remotely or on-site across the Netherlands.',
+          },
+          {
+            question:
+              'Am I tied to expensive licenses or long-term maintenance retainers?',
+            answer:
+              'No. You get honest, grounded advice on which existing cloud AI tools or lightweight custom web apps fit your situation, with zero lock-in contracts.',
+          },
+        ],
       },
     },
   },

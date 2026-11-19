@@ -194,23 +194,23 @@ check('Accessibility & Styling', 'src/index.css defines :focus-visible, .skip-li
 // ---------------------------------------------------------------------------
 // 6. Automate Friesland Microsite (`automate.greyson.nl`)
 // ---------------------------------------------------------------------------
-check('Automate Copy & Config', 'src/config/automateConfig.ts exists and defines automate.greyson.nl, grey.beimers@gmail.com, Friesland, and NL/EN copy', () => {
+check('Automate Copy & Config', 'src/config/automateConfig.ts exists and defines automate.greyson.nl, info@greyson.nl, Friesland, and NL/EN copy', () => {
   const automateConfigPath = path.join(rootDir, 'src/config/automateConfig.ts');
   assert.ok(fs.existsSync(automateConfigPath), 'Missing src/config/automateConfig.ts');
   const src = fs.readFileSync(automateConfigPath, 'utf8');
   assert.ok(src.includes('automate.greyson.nl'), 'Missing automate.greyson.nl in automateConfig.ts');
-  assert.ok(src.includes('grey.beimers@gmail.com'), 'Missing grey.beimers@gmail.com in automateConfig.ts');
+  assert.ok(src.includes('info@greyson.nl'), 'Missing info@greyson.nl in automateConfig.ts');
   assert.ok(src.includes('Friesland'), 'Missing Friesland in automateConfig.ts');
   assert.ok(src.includes("export type AutomateLocale = 'nl' | 'en'"), 'Missing AutomateLocale type export');
 });
 
-check('Automate Component', 'src/components/AutomatePage.tsx exists, uses encodeURIComponent, enforces maxLength, and links mailto:grey.beimers@gmail.com', () => {
+check('Automate Component', 'src/components/AutomatePage.tsx exists, uses encodeURIComponent, enforces maxLength, and links mailto:info@greyson.nl', () => {
   const automatePagePath = path.join(rootDir, 'src/components/AutomatePage.tsx');
   assert.ok(fs.existsSync(automatePagePath), 'Missing src/components/AutomatePage.tsx');
   const src = fs.readFileSync(automatePagePath, 'utf8');
   assert.ok(src.includes('encodeURIComponent'), 'Missing encodeURIComponent in AutomatePage.tsx');
   assert.ok(src.includes('maxLength'), 'Missing maxLength bounds in AutomatePage.tsx');
-  assert.ok(src.includes('mailto:grey.beimers@gmail.com'), 'Missing mailto:grey.beimers@gmail.com in AutomatePage.tsx');
+  assert.ok(src.includes('mailto:info@greyson.nl'), 'Missing mailto:info@greyson.nl in AutomatePage.tsx');
   assert.ok(!src.includes('dangerouslySetInnerHTML'), 'Unsafe dangerouslySetInnerHTML found in AutomatePage.tsx');
 });
 
@@ -352,7 +352,7 @@ check('Clear Sections & About Me Page', 'AutomatePage uses numbered sections wit
   assert.ok(appSrc.includes("'/over-mij'"), "App.tsx must route '/over-mij'");
 
   assert.ok(aboutMeSrc.includes('id="about-contact"'), 'Missing id="about-contact" in AboutMePage.tsx');
-  assert.ok(aboutMeSrc.includes('mailto:grey.beimers@gmail.com'), 'Missing mailto:grey.beimers@gmail.com in AboutMePage.tsx');
+  assert.ok(aboutMeSrc.includes('mailto:info@greyson.nl'), 'Missing mailto:info@greyson.nl in AboutMePage.tsx');
   assert.ok(aboutMeSrc.includes('rel="noopener noreferrer"'), 'Missing rel="noopener noreferrer" on external links in AboutMePage.tsx');
   assert.ok(aboutMeSrc.includes('encodeURIComponent'), 'Missing encodeURIComponent in AboutMePage.tsx');
   assert.ok(aboutMeSrc.includes('maxLength'), 'Missing maxLength bounds in AboutMePage.tsx');

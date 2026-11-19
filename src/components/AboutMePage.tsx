@@ -6,8 +6,11 @@ import { BrandLogo } from './BrandLogo';
 import {
   buildInquirySubjectAndBody,
   copyInquiryTextToClipboard,
+  DeliveryStatus,
+  HoneypotField,
   INQUIRY_MAX_LENGTHS,
   InquiryFormPayload,
+  InquiryStatusNotice,
   renderDirectEmailNote,
   sanitizeInquiryField,
   sendInquiryEmail,
@@ -37,19 +40,36 @@ export const AboutMePage: React.FC<AboutMePageProps> = ({
   const [interestIndex, setInterestIndex] = useState(0);
   const [interest, setInterest] = useState<string>(t.form.interestOptions[0]);
   const [message, setMessage] = useState('');
+  const [honeypot, setHoneypot] = useState('');
   const [hasError, setHasError] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [sentDirectly, setSentDirectly] = useState(false);
+  const [deliveryStatus, setDeliveryStatus] = useState<DeliveryStatus | null>(
+    null
+  );
   const [submitted, setSubmitted] = useState<InquiryFormPayload | null>(null);
   const [copied, setCopied] = useState(false);
 
-  const isGreysonProd =
+  const usesQueryRouting =
     typeof window !== 'undefined' &&
-    (window.location.hostname.toLowerCase() === 'greyson.nl' ||
-      window.location.hostname.toLowerCase().endsWith('.greyson.nl'));
+    new URLSearchParams(window.location.search).has('site');
 
-  const homeHref = '/';
-  const aboutHref = isGreysonProd ? automateConfig.aboutPath : '?site=about';
+  const homeHref = usesQueryRouting
+    ? `?site=automate${lang === 'en' ? '&lang=en' : ''}`
+    : lang === 'en'
+      ? '/en'
+      : '/';
+  const aboutHref = usesQueryRouting
+    ? '?site=about'
+    : lang === 'en'
+      ? '/en/about'
+      : automateConfig.aboutPath;
+
+  const altLang: AutomateLocale = lang === 'nl' ? 'en' : 'nl';
+  const altLangHref = usesQueryRouting
+    ? `?site=about&lang=${altLang}`
+    : altLang === 'en'
+      ? '/en/about'
+      : automateConfig.aboutPath;
 
   useEffect(() => {
     const previousLang = document.documentElement.lang;
@@ -70,14 +90,34 @@ export const AboutMePage: React.FC<AboutMePageProps> = ({
     const nodes = Array.from(document.querySelectorAll('.automate-reveal'));
     if (nodes.length === 0) return;
 
+    const ua = typeof navigator !== 'undefined' ? navigator.userAgent || '' : '';
+    const isCrawler =
+      /bot|crawl|spider|slurp|lighthouse|pagespeed|headless|bingpreview|oai-searchbot|gptbot|claudebot|perplexitybot|applebot|duckduckbot|yandex/i.test(
+        ua
+      );
+
     const prefersReduced =
       typeof window !== 'undefined' &&
       window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
-    if (prefersReduced || typeof IntersectionObserver === 'undefined') {
+    if (
+      isCrawler ||
+      prefersReduced ||
+      typeof IntersectionObserver === 'undefined'
+    ) {
       nodes.forEach((node) => node.classList.add('is-visible'));
       return;
     }
+
+    document.documentElement.classList.add('automate-motion-ready');
+
+    const viewportH = window.innerHeight || 900;
+    nodes.forEach((node) => {
+      const rect = node.getBoundingClientRect();
+      if (rect.top < viewportH * 0.96) {
+        node.classList.add('is-visible');
+      }
+    });
 
     const observer = new IntersectionObserver(
       (entries) => {
@@ -88,11 +128,18 @@ export const AboutMePage: React.FC<AboutMePageProps> = ({
           }
         });
       },
-      { threshold: 0.12, rootMargin: '0px 0px -30px 0px' }
+      { threshold: 0.08, rootMargin: '0px 0px -20px 0px' }
     );
 
-    nodes.forEach((node) => observer.observe(node));
-    return () => observer.disconnect();
+    nodes.forEach((node) => {
+      if (!node.classList.contains('is-visible')) {
+        observer.observe(node);
+      }
+    });
+    return () => {
+      observer.disconnect();
+      document.documentElement.classList.remove('automate-motion-ready');
+    };
   }, [lang]);
 
   const handleSectionScroll = (
@@ -148,6 +195,40 @@ export const AboutMePage: React.FC<AboutMePageProps> = ({
     if (isNormalLeftClick && callback) {
       e.preventDefault();
       callback();
+    }
+  };
+
+  const handleHomeSectionNav = (
+    e: React.MouseEvent<HTMLAnchorElement>,
+    sectionId: string,
+    targetLabel: string
+  ) => {
+    const isNormalLeftClick =
+      !e.metaKey &&
+      !e.ctrlKey &&
+      !e.shiftKey &&
+      !e.altKey &&
+      e.button === 0;
+
+    if (isNormalLeftClick && onOpenHome) {
+      handleInternalRoute(e, 'home', onOpenHome);
+      trackInteraction('automate_nav_scroll', { target: targetLabel, lang });
+      capturePostHogEvent('automate_nav_scroll', { target: targetLabel, lang });
+      window.setTimeout(() => {
+        const target = document.getElementById(sectionId);
+        if (target) {
+          const prefersReduced = window.matchMedia(
+            '(prefers-reduced-motion: reduce)'
+          ).matches;
+          target.scrollIntoView({
+            behavior: prefersReduced ? 'auto' : 'smooth',
+            block: 'start',
+          });
+        }
+        if (window.history?.pushState) {
+          window.history.pushState(null, '', `#${sectionId}`);
+        }
+      }, 50);
     }
   };
 
@@ -214,26 +295,26 @@ export const AboutMePage: React.FC<AboutMePageProps> = ({
     });
 
     setIsSubmitting(true);
-    const delivered = await sendInquiryEmail({
+    const result = await sendInquiryEmail({
       subject,
       name: cleanName,
       company: cleanCompany,
       contact: cleanContact,
       interest: safeInterest,
       message: cleanMessage,
+      website: honeypot,
     });
     setIsSubmitting(false);
-    setSentDirectly(delivered);
+    setDeliveryStatus(result.status);
     setSubmitted({ subject, body, mailtoUrl });
     setCopied(false);
 
-    if (delivered) {
+    if (result.status === 'delivered') {
       setName('');
       setCompany('');
       setContact('');
       setMessage('');
-    } else {
-      window.location.href = mailtoUrl;
+      setHoneypot('');
     }
   };
 
@@ -251,7 +332,10 @@ export const AboutMePage: React.FC<AboutMePageProps> = ({
     <div className="automate-scroll-root">
       <header className="automate-header">
         <div className="automate-header-inner">
-          <nav className="automate-nav" aria-label="About navigation">
+          <nav
+            className="automate-nav"
+            aria-label={lang === 'nl' ? 'Hoofdmenu' : 'Primary'}
+          >
             <a
               href={homeHref}
               className="automate-brand"
@@ -263,11 +347,35 @@ export const AboutMePage: React.FC<AboutMePageProps> = ({
             <div className="automate-nav-actions">
               <div className="automate-nav-links">
                 <a
-                  href={homeHref}
+                  href={`${homeHref}#diensten`}
                   className="automate-nav-link"
-                  onClick={(e) => handleInternalRoute(e, 'home', onOpenHome)}
+                  onClick={(e) =>
+                    handleHomeSectionNav(e, 'diensten', 'nav_diensten')
+                  }
                 >
-                  {t.nav.homeLabel}
+                  {t.nav.servicesLabel}
+                </a>
+                <a
+                  href={`${homeHref}#automate-usecases`}
+                  className="automate-nav-link"
+                  onClick={(e) =>
+                    handleHomeSectionNav(
+                      e,
+                      'automate-usecases',
+                      'nav_usecases'
+                    )
+                  }
+                >
+                  {t.nav.useCasesLabel}
+                </a>
+                <a
+                  href={`${homeHref}#werkwijze`}
+                  className="automate-nav-link"
+                  onClick={(e) =>
+                    handleHomeSectionNav(e, 'werkwijze', 'nav_werkwijze')
+                  }
+                >
+                  {t.nav.processLabel}
                 </a>
                 <a
                   href={aboutHref}
@@ -313,18 +421,26 @@ export const AboutMePage: React.FC<AboutMePageProps> = ({
               <a
                 href="#about-contact"
                 className="automate-btn automate-btn-primary automate-nav-cta"
-                onClick={(e) =>
-                  handleSectionScroll(e, 'about-contact', 'about_header_contact')
-                }
+                onClick={(e) => {
+                  handleSectionScroll(e, 'about-contact', 'about_header_contact');
+                  trackInteraction('automate_cta_click', {
+                    target: 'header_contact',
+                    lang,
+                  });
+                  capturePostHogEvent('automate_cta_click', {
+                    target: 'header_contact',
+                    lang,
+                  });
+                }}
               >
-                {t.nav.contactLabel}
+                {t.hero.primaryCta}
               </a>
             </div>
           </nav>
         </div>
       </header>
 
-      <main id="main-content">
+      <main id="main" tabIndex={-1}>
         {/* Band 1: Full-Bleed Split About Hero & Clean Profile Panel */}
         <section className="automate-band automate-band--hero">
           <div className="automate-band-inner">
@@ -441,7 +557,7 @@ export const AboutMePage: React.FC<AboutMePageProps> = ({
                       {t.aboutPage.emailLabel}
                     </span>
                     <a
-                      href="mailto:grey.beimers@gmail.com"
+                      href="mailto:info@greyson.nl"
                       className="automate-detail-link"
                       onClick={() => {
                         trackInteraction('automate_direct_email_click', {
@@ -492,9 +608,9 @@ export const AboutMePage: React.FC<AboutMePageProps> = ({
           <div className="automate-band-inner">
             <div className="automate-about-editorial">
               <div className="automate-about-story-col automate-reveal">
-                <span className="automate-eyebrow">
+                <h2 className="automate-eyebrow">
                   {t.aboutPage.introTitle}
-                </span>
+                </h2>
                 <div className="automate-story-paragraphs">
                   {t.aboutPage.introParagraphs.map((paragraph, idx) => (
                     <p key={idx} className="automate-prose">
@@ -584,7 +700,7 @@ export const AboutMePage: React.FC<AboutMePageProps> = ({
                       {t.aboutPage.emailLabel}
                     </span>
                     <a
-                      href="mailto:grey.beimers@gmail.com"
+                      href="mailto:info@greyson.nl"
                       className="automate-detail-link"
                       onClick={() => {
                         trackInteraction('automate_direct_email_click', {
@@ -770,6 +886,12 @@ export const AboutMePage: React.FC<AboutMePageProps> = ({
                     </div>
                   )}
 
+                  <HoneypotField
+                    value={honeypot}
+                    onChange={setHoneypot}
+                    label={t.form.honeypotLabel}
+                  />
+
                   <div className="automate-form-footer">
                     <button
                       type="submit"
@@ -790,44 +912,13 @@ export const AboutMePage: React.FC<AboutMePageProps> = ({
                     </p>
                   </div>
 
-                  {submitted && (
-                    <div className="automate-success-box" role="status">
-                      <strong>
-                        {sentDirectly
-                          ? t.form.submittedTitle
-                          : t.form.fallbackSubmittedTitle}
-                      </strong>
-                      <p>
-                        {sentDirectly
-                          ? t.form.submittedDescription
-                          : t.form.fallbackSubmittedDescription}
-                      </p>
-                      <div className="automate-success-actions">
-                        <a
-                          href={submitted.mailtoUrl}
-                          className={`automate-btn ${
-                            sentDirectly
-                              ? 'automate-btn-secondary'
-                              : 'automate-btn-primary'
-                          }`}
-                        >
-                          {t.form.openMailAppFallback}
-                        </a>
-                        <button
-                          type="button"
-                          className="automate-btn automate-btn-secondary"
-                          onClick={handleCopyFallback}
-                        >
-                          {t.form.copyFallbackButton}
-                        </button>
-                      </div>
-                      {copied && (
-                        <div className="automate-copy-status">
-                          {t.form.copiedNotice}
-                        </div>
-                      )}
-                    </div>
-                  )}
+                  <InquiryStatusNotice
+                    deliveryStatus={deliveryStatus}
+                    submitted={submitted}
+                    copied={copied}
+                    onCopyFallback={handleCopyFallback}
+                    formCopy={t.form}
+                  />
                 </form>
               </div>
             </div>
@@ -841,7 +932,10 @@ export const AboutMePage: React.FC<AboutMePageProps> = ({
             <BrandLogo size="sm" label={t.nav.brand} />
             <p className="automate-footer-note">{t.footer.note}</p>
           </div>
-          <div className="automate-footer-links">
+          <nav
+            className="automate-footer-links"
+            aria-label={lang === 'nl' ? 'Voettekst navigatie' : 'Footer'}
+          >
             <a
               href={homeHref}
               className="automate-nav-link"
@@ -849,7 +943,66 @@ export const AboutMePage: React.FC<AboutMePageProps> = ({
             >
               {t.nav.homeLabel}
             </a>
-          </div>
+            <a
+              href={`${homeHref}#diensten`}
+              className="automate-nav-link"
+              onClick={(e) =>
+                handleHomeSectionNav(e, 'diensten', 'footer_diensten')
+              }
+            >
+              {t.nav.servicesLabel}
+            </a>
+            <a
+              href={`${homeHref}#automate-usecases`}
+              className="automate-nav-link"
+              onClick={(e) =>
+                handleHomeSectionNav(
+                  e,
+                  'automate-usecases',
+                  'footer_usecases'
+                )
+              }
+            >
+              {t.nav.useCasesLabel}
+            </a>
+            <a
+              href={`${homeHref}#werkwijze`}
+              className="automate-nav-link"
+              onClick={(e) =>
+                handleHomeSectionNav(e, 'werkwijze', 'footer_werkwijze')
+              }
+            >
+              {t.nav.processLabel}
+            </a>
+            <a
+              href="#about-contact"
+              className="automate-nav-link"
+              onClick={(e) =>
+                handleSectionScroll(e, 'about-contact', 'about_footer_contact')
+              }
+            >
+              {t.nav.contactLabel}
+            </a>
+            <a
+              href={altLangHref}
+              hrefLang={altLang}
+              className="automate-nav-link"
+              onClick={(e) => {
+                if (
+                  !e.metaKey &&
+                  !e.ctrlKey &&
+                  !e.shiftKey &&
+                  !e.altKey &&
+                  e.button === 0
+                ) {
+                  e.preventDefault();
+                  handleLocaleChange(altLang);
+                }
+              }}
+            >
+              {t.footer.switchLangLabel}
+            </a>
+          </nav>
         </div>
       </footer>
     </div>

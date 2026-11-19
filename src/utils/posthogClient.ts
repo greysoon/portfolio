@@ -12,8 +12,7 @@
  * - Live HogQL analytics queries + local telemetry fallback for immediate `/dashboard` rendering
  */
 
-import posthog from 'posthog-js';
-import 'posthog-js/dist/posthog-recorder';
+import type { PostHog } from 'posthog-js';
 import {
   getTelemetrySnapshot,
   isDoNotTrackEnabled,
@@ -59,7 +58,12 @@ export interface PostHogVisitorContext {
   readonly activeSubdomain: string;
   readonly referrer: string;
   readonly referringDomain: string;
+  readonly initialReferringDomain: string;
   readonly utmSource: string;
+  readonly utmMedium: string;
+  readonly utmCampaign: string;
+  readonly utmTerm: string;
+  readonly initialUtmSource: string;
   readonly language: string;
   readonly timezone: string;
   readonly viewport: string;
@@ -96,22 +100,114 @@ export interface SubdomainBreakdownItem {
   readonly events: number;
 }
 
+export type AcquisitionChannelKey =
+  | 'organic_search'
+  | 'ai_search'
+  | 'social'
+  | 'referral'
+  | 'direct';
+
+export interface AcquisitionChannelItem {
+  readonly channel: AcquisitionChannelKey;
+  readonly visitors: number;
+  readonly pageviews: number;
+  readonly conversions: number;
+  readonly sharePct: number;
+}
+
+export interface ReferrerBreakdownItem {
+  readonly referringDomain: string;
+  readonly channel: AcquisitionChannelKey;
+  readonly utmSource: string;
+  readonly utmMedium: string;
+  readonly visitors: number;
+  readonly pageviews: number;
+  readonly conversions: number;
+}
+
+export interface DailyTrafficPoint {
+  readonly day: string;
+  readonly visitors: number;
+  readonly pageviews: number;
+  readonly conversions: number;
+}
+
+export interface PageBreakdownItem {
+  readonly host: string;
+  readonly pathname: string;
+  readonly visitors: number;
+  readonly pageviews: number;
+  readonly events: number;
+}
+
+export interface LandingPageItem {
+  readonly host: string;
+  readonly pathname: string;
+  readonly visitors: number;
+}
+
+export interface GeoBreakdownItem {
+  readonly country: string;
+  readonly region: string;
+  readonly city: string;
+  readonly label: string;
+  readonly visitors: number;
+  readonly pageviews: number;
+}
+
+export interface DeviceBreakdownItem {
+  readonly deviceType: string;
+  readonly visitors: number;
+  readonly sharePct: number;
+}
+
+export interface LanguageBreakdownItem {
+  readonly lang: string;
+  readonly visitors: number;
+  readonly events: number;
+}
+
+export interface InteractionBreakdownItem {
+  readonly event: string;
+  readonly count: number;
+  readonly visitors: number;
+}
+
+export interface PostHogWebVitalsSummary {
+  readonly sampleCount: number;
+  readonly lcpP75Ms: number | null;
+  readonly fcpP75Ms: number | null;
+  readonly inpP75Ms: number | null;
+  readonly clsP75: number | null;
+}
+
 export interface AnalyticsSummary {
   readonly totalUniqueVisitors: number;
+  readonly totalSessions: number;
   readonly totalPageviews: number;
+  readonly avgSessionDurationSec: number;
+  readonly bounceRatePct: number;
+  readonly pagesPerVisitor: number;
   readonly inquiryClicks: number;
+  readonly formSubmits: number;
+  readonly conversionRatePct: number;
+  readonly searchAndAiVisitors: number;
+  readonly searchAndAiSharePct: number;
   readonly activeSubdomain: string;
   readonly subdomains: SubdomainBreakdownItem[];
 }
 
 export interface PostHogVisitorProfile {
   readonly distinctId: string;
+  readonly sessionId: string;
   readonly city: string;
   readonly region: string;
   readonly country: string;
   readonly locationLabel: string;
   readonly timezone: string;
   readonly referringDomain: string;
+  readonly channel: AcquisitionChannelKey;
+  readonly entryPath: string;
   readonly deviceType: string;
   readonly browser: string;
   readonly os: string;
@@ -126,6 +222,7 @@ export interface PostHogEventRecord {
   readonly timestamp: string;
   readonly host: string;
   readonly pathname: string;
+  readonly sessionId: string;
   readonly properties: Readonly<Record<string, TelemetryPrimitive>>;
 }
 
@@ -136,13 +233,38 @@ export interface PostHogKeyVerificationResult {
   readonly error?: string;
 }
 
+export interface DashboardEnvStatus {
+  readonly posthogEnvConfigured: boolean;
+  readonly posthogProjectId: string;
+  readonly posthogRegion: PostHogRegion;
+  readonly hasPageSpeedKey: boolean;
+}
+
+export interface FetchPostHogOptions extends Partial<PostHogConfig> {
+  readonly days?: 7 | 30 | 90;
+  readonly excludeLocal?: boolean;
+  readonly useServerEnv?: boolean;
+}
+
 export interface PostHogAnalyticsResult {
   readonly ok: boolean;
   readonly source: 'posthog';
   readonly fetchedAt: string;
   readonly region: PostHogRegion;
   readonly projectId: string;
+  readonly days: 7 | 30 | 90;
+  readonly excludeLocal: boolean;
   readonly summary: AnalyticsSummary;
+  readonly dailyTrend: DailyTrafficPoint[];
+  readonly channels: AcquisitionChannelItem[];
+  readonly referrers: ReferrerBreakdownItem[];
+  readonly landingPages: LandingPageItem[];
+  readonly topPages: PageBreakdownItem[];
+  readonly locations: GeoBreakdownItem[];
+  readonly devices: DeviceBreakdownItem[];
+  readonly languages: LanguageBreakdownItem[];
+  readonly topInteractions: InteractionBreakdownItem[];
+  readonly webVitals: PostHogWebVitalsSummary;
   readonly visitors: PostHogVisitorProfile[];
   readonly recentEvents: PostHogEventRecord[];
   readonly error?: string;
@@ -204,14 +326,15 @@ const PERSONAL_KEY_SESSION_KEY = 'greyson_posthog_personal_key_v1';
 const RATE_LIMIT_SESSION_KEY = 'greyson_dashboard_rate_limit_v1';
 const OWNER_AUTH_SESSION_KEY = 'greyson_dashboard_owner_auth_v1';
 const DISTINCT_ID_SESSION_KEY = 'greyson_posthog_distinct_id_v1';
+const INITIAL_REFERRER_SESSION_KEY = 'greyson_posthog_init_ref_v1';
+const INITIAL_UTM_SESSION_KEY = 'greyson_posthog_init_utm_v1';
 
 const PROJECT_ID_REGEX = /^[a-zA-Z0-9_-]{1,32}$/;
 const KNOWN_SUBDOMAINS = [
   'greyson.nl',
+  'www.greyson.nl',
   'automation.greyson.nl',
   'automate.greyson.nl',
-  'about.greyson.nl',
-  'cv.greyson.nl',
 ] as const;
 
 const REGION_ENDPOINTS: Record<PostHogRegion, PostHogEndpoints> = {
@@ -245,6 +368,21 @@ let memoryDistinctId: string | null = null;
 let sessionEventCounter = 0;
 let pageleaveListenerAttached = false;
 let posthogSdkInitialized = false;
+let posthogSdkLoading = false;
+let posthogInstance: PostHog | null = null;
+
+function isCrawlerOrAutomatedAgent(): boolean {
+  if (typeof navigator === 'undefined') return true;
+  const ua = navigator.userAgent || '';
+  if (
+    /bot|crawl|spider|slurp|lighthouse|pagespeed|gtmetrix|headless|bingpreview|oai-searchbot|gptbot|claudebot|perplexitybot|applebot|duckduckbot|yandex/i.test(
+      ua
+    )
+  ) {
+    return true;
+  }
+  return Boolean((navigator as Navigator & { webdriver?: boolean }).webdriver);
+}
 
 function readStorage(storageType: 'local' | 'session', key: string): string | null {
   if (typeof window === 'undefined') return null;
@@ -880,6 +1018,19 @@ function sanitizeReferrerUrl(rawReferrer: string): string {
   }
 }
 
+function isDashboardRouteLocation(): boolean {
+  if (typeof window === 'undefined') return false;
+  if (window.location.pathname.toLowerCase().startsWith('/dashboard')) return true;
+  try {
+    return (
+      new URLSearchParams(window.location.search).get('site')?.toLowerCase() ===
+      'dashboard'
+    );
+  } catch {
+    return false;
+  }
+}
+
 function collectVisitorContext(): PostHogVisitorContext {
   if (typeof window === 'undefined') {
     return {
@@ -888,7 +1039,12 @@ function collectVisitorContext(): PostHogVisitorContext {
       activeSubdomain: 'greyson.nl',
       referrer: '',
       referringDomain: 'direct',
+      initialReferringDomain: 'direct',
       utmSource: '',
+      utmMedium: '',
+      utmCampaign: '',
+      utmTerm: '',
+      initialUtmSource: '',
       language: 'en',
       timezone: 'UTC',
       viewport: '0x0',
@@ -909,13 +1065,29 @@ function collectVisitorContext(): PostHogVisitorContext {
   const referringDomain = extractReferringDomain(rawReferrer);
 
   let utmSource = '';
+  let utmMedium = '';
+  let utmCampaign = '';
+  let utmTerm = '';
   try {
-    utmSource = sanitizeTelemetryString(
-      new URLSearchParams(search).get('utm_source')?.trim() ?? '',
-      64
-    );
+    const params = new URLSearchParams(search);
+    utmSource = sanitizeTelemetryString(params.get('utm_source')?.trim() ?? '', 64);
+    utmMedium = sanitizeTelemetryString(params.get('utm_medium')?.trim() ?? '', 64);
+    utmCampaign = sanitizeTelemetryString(params.get('utm_campaign')?.trim() ?? '', 80);
+    utmTerm = sanitizeTelemetryString(params.get('utm_term')?.trim() ?? '', 80);
   } catch {
     utmSource = '';
+  }
+
+  let initialReferringDomain = readStorage('session', INITIAL_REFERRER_SESSION_KEY) || '';
+  if (!initialReferringDomain) {
+    initialReferringDomain = referringDomain || 'direct';
+    writeStorage('session', INITIAL_REFERRER_SESSION_KEY, initialReferringDomain);
+  }
+
+  let initialUtmSource = readStorage('session', INITIAL_UTM_SESSION_KEY) || '';
+  if (!initialUtmSource && utmSource) {
+    initialUtmSource = utmSource;
+    writeStorage('session', INITIAL_UTM_SESSION_KEY, initialUtmSource);
   }
 
   const language = sanitizeTelemetryString(
@@ -949,7 +1121,12 @@ function collectVisitorContext(): PostHogVisitorContext {
     activeSubdomain,
     referrer,
     referringDomain,
+    initialReferringDomain,
     utmSource,
+    utmMedium,
+    utmCampaign,
+    utmTerm,
+    initialUtmSource,
     language,
     timezone,
     viewport,
@@ -986,68 +1163,82 @@ function getOrCreateSessionStore(): PostHogSessionStore | null {
   return window.__GREYSON_POSTHOG_SESSION__;
 }
 
-function ensurePostHogSdkInitialized(session: PostHogSessionStore): boolean {
-  if (typeof window === 'undefined') return false;
-  if (window.location.pathname.startsWith('/dashboard')) return false;
-  try {
-    if (
-      new URLSearchParams(window.location.search).get('site')?.toLowerCase() ===
-      'dashboard'
-    ) {
-      return false;
-    }
-  } catch {
-    // Ignore malformed query string
-  }
+function scheduleIdleSdkLoad(session: PostHogSessionStore): void {
+  if (typeof window === 'undefined') return;
+  if (posthogSdkInitialized || posthogSdkLoading) return;
+  if (isCrawlerOrAutomatedAgent()) return;
+  if (isDashboardRouteLocation()) return;
 
   const config = getPostHogConfig();
   if (!config.projectApiKey || !config.projectApiKey.startsWith('phc_')) {
-    return false;
+    return;
   }
 
-  if (posthogSdkInitialized) {
-    return true;
-  }
+  const runLoad = () => {
+    if (posthogSdkInitialized || posthogSdkLoading) return;
+    posthogSdkLoading = true;
+    const endpoints = getPostHogEndpoints(config.region);
 
-  const endpoints = getPostHogEndpoints(config.region);
-  try {
-    posthog.init(config.projectApiKey, {
-      api_host: endpoints.ingestUrl,
-      ui_host: endpoints.apiUrl,
-      person_profiles: 'always',
-      persistence: 'sessionStorage',
-      bootstrap: {
-        distinctID: session.distinctId,
-      },
-      autocapture: true,
-      capture_pageview: false,
-      capture_pageleave: false,
-      disable_session_recording: false,
-      session_recording: {
-        maskAllInputs: true,
-      },
-      loaded: (ph) => {
-        ph.register({ distinct_id: session.distinctId });
-        ph.startSessionRecording(true);
-      },
-    });
-    posthog.startSessionRecording(true);
-    posthogSdkInitialized = true;
-    return true;
-  } catch {
-    return false;
+    void Promise.all([
+      import('posthog-js'),
+      import('posthog-js/dist/posthog-recorder'),
+    ])
+      .then(([mod]) => {
+        const client = mod.default;
+        client.init(config.projectApiKey, {
+          api_host: endpoints.ingestUrl,
+          ui_host: endpoints.apiUrl,
+          person_profiles: 'always',
+          persistence: 'sessionStorage',
+          bootstrap: {
+            distinctID: session.distinctId,
+          },
+          autocapture: true,
+          capture_pageview: false,
+          capture_pageleave: false,
+          capture_performance: {
+            web_vitals: true,
+          },
+          disable_session_recording: false,
+          session_recording: {
+            maskAllInputs: true,
+          },
+          loaded: (ph) => {
+            ph.register({ distinct_id: session.distinctId });
+            ph.startSessionRecording(true);
+          },
+        });
+        client.startSessionRecording(true);
+        posthogInstance = client;
+        posthogSdkInitialized = true;
+      })
+      .catch(() => {
+        posthogSdkLoading = false;
+      });
+  };
+
+  const win = window as Window & {
+    requestIdleCallback?: (cb: () => void, opts?: { timeout: number }) => number;
+  };
+  if (typeof win.requestIdleCallback === 'function') {
+    win.requestIdleCallback(runLoad, { timeout: 2500 });
+  } else {
+    window.setTimeout(runLoad, 1500);
   }
 }
 
 /**
  * Initializes the in-memory PostHog visitor session bridge (`window.__GREYSON_POSTHOG_SESSION__`)
- * and boots the PostHog JS SDK with Session Replay enabled.
+ * and defers loading the PostHog JS SDK + Session Replay until browser idle (skipping crawlers).
  * Safe and idempotent to call on application mount.
  */
 export function initPostHogBridge(): PostHogSessionStore | null {
+  if (isDashboardRouteLocation()) {
+    return null;
+  }
   const session = getOrCreateSessionStore();
   if (session) {
-    ensurePostHogSdkInitialized(session);
+    scheduleIdleSdkLoad(session);
   }
   if (
     typeof window !== 'undefined' &&
@@ -1056,7 +1247,9 @@ export function initPostHogBridge(): PostHogSessionStore | null {
   ) {
     pageleaveListenerAttached = true;
     const sendLeave = () => {
-      capturePostHogEvent('$pageleave');
+      if (!isDashboardRouteLocation()) {
+        capturePostHogEvent('$pageleave');
+      }
     };
     window.addEventListener('pagehide', sendLeave);
     document.addEventListener('visibilitychange', () => {
@@ -1071,12 +1264,15 @@ export function initPostHogBridge(): PostHogSessionStore | null {
 /**
  * Records an enriched visitor event in `window.__GREYSON_POSTHOG_SESSION__` and forwards it
  * via the `posthog-js` SDK (with Session Replay correlation) or `fetch()` fallback when a
- * Project API Key (`phc_...`) is configured.
+ * Project API Key (`phc_...`) is configured. Skips `/dashboard` admin views so real visitor
+ * metrics stay clean.
  */
 export function capturePostHogEvent(
   eventName: string,
   properties?: TelemetryMetadata
 ): void {
+  if (isDashboardRouteLocation()) return;
+
   const session = getOrCreateSessionStore();
   if (!session) return;
 
@@ -1086,13 +1282,15 @@ export function capturePostHogEvent(
   const ctx = session.context;
   const cleanCustomProps = sanitizeMetadata(properties) ?? {};
   const timestamp = new Date().toISOString();
+  const isLocal = isLocalDashboardHost(ctx.host);
+  const reportedHost = isLocal ? ctx.host : ctx.activeSubdomain || ctx.host;
 
   sessionEventCounter += 1;
   const eventRecord: PostHogCapturedEvent = {
     id: `ph_${sessionEventCounter}_${Date.now()}`,
     event: cleanEvent,
     timestamp,
-    host: ctx.activeSubdomain || ctx.host,
+    host: reportedHost,
     pathname: ctx.pathname,
     properties: Object.freeze({
       host: ctx.host,
@@ -1100,7 +1298,10 @@ export function capturePostHogEvent(
       pathname: ctx.pathname,
       referrer: ctx.referrer,
       referringDomain: ctx.referringDomain,
+      initialReferringDomain: ctx.initialReferringDomain,
       utmSource: ctx.utmSource,
+      utmMedium: ctx.utmMedium,
+      utmCampaign: ctx.utmCampaign,
       language: ctx.language,
       timezone: ctx.timezone,
       viewport: ctx.viewport,
@@ -1133,15 +1334,21 @@ export function capturePostHogEvent(
   const currentUrl =
     typeof window !== 'undefined'
       ? sanitizeTelemetryString(`${window.location.origin}${window.location.pathname}`, 200)
-      : `https://${ctx.activeSubdomain}${ctx.pathname}`;
+      : `https://${reportedHost}${ctx.pathname}`;
 
   const eventProperties: Record<string, unknown> = {
     $current_url: currentUrl,
-    $host: ctx.activeSubdomain || ctx.host,
+    $host: reportedHost,
     $pathname: ctx.pathname,
     $referrer: ctx.referrer || undefined,
     $referring_domain: ctx.referringDomain,
     utm_source: ctx.utmSource || undefined,
+    utm_medium: ctx.utmMedium || undefined,
+    utm_campaign: ctx.utmCampaign || undefined,
+    utm_term: ctx.utmTerm || undefined,
+    initial_referring_domain: ctx.initialReferringDomain || undefined,
+    initial_utm_source: ctx.initialUtmSource || undefined,
+    environment: isLocal ? 'local' : 'production',
     $browser: ctx.browser,
     $os: ctx.os,
     $device_type: ctx.deviceType,
@@ -1156,19 +1363,28 @@ export function capturePostHogEvent(
       $timezone: ctx.timezone,
       language: ctx.language,
       region_hint: ctx.regionHint,
-      last_subdomain: ctx.activeSubdomain || ctx.host,
+      last_subdomain: reportedHost,
+    },
+    $set_once: {
+      $initial_referring_domain: ctx.initialReferringDomain,
+      initial_utm_source: ctx.initialUtmSource || undefined,
     },
     ...cleanCustomProps,
   };
 
-  const sdkActive = ensurePostHogSdkInitialized(session);
-  if (sdkActive) {
+  if (isCrawlerOrAutomatedAgent()) {
+    return;
+  }
+
+  if (posthogSdkInitialized && posthogInstance) {
     try {
-      posthog.capture(cleanEvent, eventProperties);
+      posthogInstance.capture(cleanEvent, eventProperties);
       return;
     } catch {
       // Fall back to direct HTTP capture if SDK capture fails
     }
+  } else {
+    scheduleIdleSdkLoad(session);
   }
 
   if (typeof fetch !== 'function') {
@@ -1199,30 +1415,71 @@ export function capturePostHogEvent(
   }
 }
 
+export async function fetchDashboardEnvStatus(): Promise<DashboardEnvStatus> {
+  const fallback: DashboardEnvStatus = {
+    posthogEnvConfigured: false,
+    posthogProjectId: '',
+    posthogRegion: 'eu',
+    hasPageSpeedKey: false,
+  };
+  if (typeof fetch !== 'function') return fallback;
+
+  try {
+    const res = await fetch('/__dashboard_api/config-status', {
+      method: 'GET',
+      cache: 'no-store',
+    });
+    if (!res.ok) return fallback;
+    const data = (await res.json()) as Partial<DashboardEnvStatus> & { ok?: boolean };
+    return {
+      posthogEnvConfigured: Boolean(data.posthogEnvConfigured),
+      posthogProjectId: sanitizeProjectId(data.posthogProjectId),
+      posthogRegion: normalizePostHogRegion(data.posthogRegion),
+      hasPageSpeedKey: Boolean(data.hasPageSpeedKey),
+    };
+  } catch {
+    return fallback;
+  }
+}
+
 async function executeHogQLQuery(
   endpoints: PostHogEndpoints,
   projectId: string,
   personalApiKey: string,
   query: string,
-  signal?: AbortSignal
+  signal?: AbortSignal,
+  useServerEnv = false
 ): Promise<HogQLApiResponse> {
-  const response = await fetch(
-    `${endpoints.apiUrl}/api/projects/${encodeURIComponent(projectId)}/query/`,
-    {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${personalApiKey}`,
-      },
-      body: JSON.stringify({
-        query: {
-          kind: 'HogQLQuery',
-          query,
+  const response = useServerEnv
+    ? await fetch('/__dashboard_api/posthog-query', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
         },
-      }),
-      signal,
-    }
-  );
+        body: JSON.stringify({
+          region: endpoints.region,
+          projectId,
+          query,
+        }),
+        signal,
+      })
+    : await fetch(
+        `${endpoints.apiUrl}/api/projects/${encodeURIComponent(projectId)}/query/`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${personalApiKey}`,
+          },
+          body: JSON.stringify({
+            query: {
+              kind: 'HogQLQuery',
+              query,
+            },
+          }),
+          signal,
+        }
+      );
 
   let parsed: HogQLApiResponse = {};
   try {
@@ -1357,14 +1614,99 @@ function toSafeString(value: unknown, fallback = '', maxLength = 120): string {
   return clean || fallback;
 }
 
+export function classifyAcquisitionChannel(
+  referringDomain: string,
+  utmSource = '',
+  utmMedium = ''
+): AcquisitionChannelKey {
+  const domain = referringDomain.trim().toLowerCase();
+  const source = utmSource.trim().toLowerCase();
+  const medium = utmMedium.trim().toLowerCase();
+
+  const candidate = source || domain;
+
+  if (
+    candidate.includes('chatgpt') ||
+    candidate.includes('openai') ||
+    candidate.includes('perplexity') ||
+    candidate.includes('claude.ai') ||
+    candidate.includes('gemini.google') ||
+    candidate.includes('copilot.microsoft') ||
+    candidate.includes('phind') ||
+    candidate.includes('you.com')
+  ) {
+    return 'ai_search';
+  }
+
+  if (
+    medium === 'organic' ||
+    candidate.includes('google.') ||
+    candidate === 'google' ||
+    candidate.includes('bing.') ||
+    candidate === 'bing' ||
+    candidate.includes('duckduckgo') ||
+    candidate.includes('ecosia') ||
+    candidate.includes('startpage') ||
+    candidate.includes('yahoo.') ||
+    candidate.includes('search.brave') ||
+    candidate.includes('qwant') ||
+    candidate.includes('kagi') ||
+    candidate.includes('yandex')
+  ) {
+    return 'organic_search';
+  }
+
+  if (
+    medium === 'social' ||
+    candidate.includes('linkedin') ||
+    candidate.includes('lnkd.in') ||
+    candidate === 't.co' ||
+    candidate.includes('x.com') ||
+    candidate.includes('twitter') ||
+    candidate.includes('facebook') ||
+    candidate.includes('instagram') ||
+    candidate.includes('threads.net') ||
+    candidate.includes('reddit') ||
+    candidate.includes('bsky.app') ||
+    candidate.includes('youtube') ||
+    candidate.includes('youtu.be')
+  ) {
+    return 'social';
+  }
+
+  if (
+    !domain ||
+    domain === 'direct' ||
+    domain === '$direct' ||
+    domain === 'greyson.nl' ||
+    domain.endsWith('.greyson.nl') ||
+    domain === 'localhost' ||
+    domain === '127.0.0.1'
+  ) {
+    return source ? 'referral' : 'direct';
+  }
+
+  return 'referral';
+}
+
+function computePercentile(values: number[], p: number): number | null {
+  if (values.length === 0) return null;
+  const sorted = [...values].sort((a, b) => a - b);
+  const idx = Math.min(sorted.length - 1, Math.max(0, Math.ceil(sorted.length * p) - 1));
+  return sorted[idx];
+}
+
 function mergeSubdomainBreakdown(
   observed: SubdomainBreakdownItem[],
-  activeSubdomain: string
+  activeSubdomain: string,
+  includeEmptyKnown = false
 ): SubdomainBreakdownItem[] {
   const bySubdomain = new Map<string, SubdomainBreakdownItem>();
 
-  for (const domain of KNOWN_SUBDOMAINS) {
-    bySubdomain.set(domain, { subdomain: domain, visitors: 0, pageviews: 0, events: 0 });
+  if (includeEmptyKnown) {
+    for (const domain of KNOWN_SUBDOMAINS) {
+      bySubdomain.set(domain, { subdomain: domain, visitors: 0, pageviews: 0, events: 0 });
+    }
   }
 
   for (const item of observed) {
@@ -1382,7 +1724,7 @@ function mergeSubdomainBreakdown(
     }
   }
 
-  if (activeSubdomain && !bySubdomain.has(activeSubdomain)) {
+  if (includeEmptyKnown && activeSubdomain && !bySubdomain.has(activeSubdomain)) {
     bySubdomain.set(activeSubdomain, {
       subdomain: activeSubdomain,
       visitors: 0,
@@ -1395,11 +1737,11 @@ function mergeSubdomainBreakdown(
 }
 
 /**
- * Fetches live KPIs, subdomain breakdown, visitor profiles, and recent event stream
- * from PostHog Cloud using HogQL (`POST /api/projects/:id/query/`).
+ * Fetches live KPIs, acquisition/findability channels, daily trend, pages, locations,
+ * Web Vitals, visitor profiles, and recent event stream from PostHog Cloud using HogQL.
  */
 export async function fetchPostHogAnalytics(
-  configOverride?: Partial<PostHogConfig>
+  configOverride?: FetchPostHogOptions
 ): Promise<PostHogAnalyticsResult> {
   const baseConfig = getPostHogConfig();
   const region = normalizePostHogRegion(configOverride?.region ?? baseConfig.region);
@@ -1407,42 +1749,66 @@ export async function fetchPostHogAnalytics(
     configOverride?.personalApiKey ?? baseConfig.personalApiKey
   );
   const projectId = sanitizeProjectId(configOverride?.projectId ?? baseConfig.projectId);
+  const useServerEnv = Boolean(configOverride?.useServerEnv);
+  const days: 7 | 30 | 90 =
+    configOverride?.days === 7 ? 7 : configOverride?.days === 90 ? 90 : 30;
+  const excludeLocal = configOverride?.excludeLocal !== false;
   const activeSubdomain = collectVisitorContext().activeSubdomain;
 
   const emptySummary: AnalyticsSummary = {
     totalUniqueVisitors: 0,
+    totalSessions: 0,
     totalPageviews: 0,
+    avgSessionDurationSec: 0,
+    bounceRatePct: 0,
+    pagesPerVisitor: 0,
     inquiryClicks: 0,
+    formSubmits: 0,
+    conversionRatePct: 0,
+    searchAndAiVisitors: 0,
+    searchAndAiSharePct: 0,
     activeSubdomain,
-    subdomains: mergeSubdomainBreakdown([], activeSubdomain),
+    subdomains: [],
   };
 
-  if (!personalApiKey || !personalApiKey.startsWith('phx_')) {
-    return {
-      ok: false,
-      source: 'posthog',
-      fetchedAt: new Date().toISOString(),
-      region,
-      projectId,
-      summary: emptySummary,
-      visitors: [],
-      recentEvents: [],
-      error: 'PostHog Personal API Key (phx_...) is required to query live analytics.',
-    };
+  const emptyVitals: PostHogWebVitalsSummary = {
+    sampleCount: 0,
+    lcpP75Ms: null,
+    fcpP75Ms: null,
+    inpP75Ms: null,
+    clsP75: null,
+  };
+
+  const emptyResult = (error: string): PostHogAnalyticsResult => ({
+    ok: false,
+    source: 'posthog',
+    fetchedAt: new Date().toISOString(),
+    region,
+    projectId,
+    days,
+    excludeLocal,
+    summary: emptySummary,
+    dailyTrend: [],
+    channels: [],
+    referrers: [],
+    landingPages: [],
+    topPages: [],
+    locations: [],
+    devices: [],
+    languages: [],
+    topInteractions: [],
+    webVitals: emptyVitals,
+    visitors: [],
+    recentEvents: [],
+    error,
+  });
+
+  if (!useServerEnv && (!personalApiKey || !personalApiKey.startsWith('phx_'))) {
+    return emptyResult('PostHog Personal API Key (phx_...) is required to query live analytics.');
   }
 
   if (!projectId) {
-    return {
-      ok: false,
-      source: 'posthog',
-      fetchedAt: new Date().toISOString(),
-      region,
-      projectId: '',
-      summary: emptySummary,
-      visitors: [],
-      recentEvents: [],
-      error: 'PostHog Project ID is required to query live analytics.',
-    };
+    return emptyResult('PostHog Project ID is required to query live analytics.');
   }
 
   const endpoints = getPostHogEndpoints(region);
@@ -1450,6 +1816,17 @@ export async function fetchPostHogAnalytics(
   const timeoutId = controller
     ? setTimeout(() => controller.abort(), QUERY_TIMEOUT_MS)
     : undefined;
+
+  const scopeFilter = excludeLocal
+    ? `coalesce(properties.host, '') NOT IN ('localhost', '127.0.0.1', '[::1]')
+       AND coalesce(properties.$host, '') NOT IN ('localhost', '127.0.0.1', '[::1]')
+       AND coalesce(properties.environment, '') != 'local'
+       AND coalesce(properties.view, '') != 'dashboard'
+       AND coalesce(properties.$pathname, '') NOT LIKE '/dashboard%'
+       AND coalesce(properties.$current_url, '') NOT ILIKE '%://localhost%'
+       AND coalesce(properties.$current_url, '') NOT ILIKE '%://127.0.0.1%'
+       AND coalesce(properties.$current_url, '') NOT ILIKE '%://[::1]%'`
+    : '1 = 1';
 
   const kpiQuery = `
     SELECT
@@ -1459,13 +1836,80 @@ export async function fetchPostHogAnalytics(
         event IN (
           'automate_inquiry_submit',
           'automate_direct_email_click',
+          'automate_linkedin_click',
           'contact_click',
           'automate_cta_click',
           'automate_link_click'
         )
-      ) AS inquiry_clicks
+      ) AS inquiry_clicks,
+      countIf(event = 'automate_inquiry_submit') AS form_submits
     FROM events
-    WHERE timestamp >= now() - INTERVAL 30 DAY
+    WHERE timestamp >= now() - INTERVAL ${days} DAY
+      AND ${scopeFilter}
+  `.trim();
+
+  const sessionsQuery = `
+    SELECT
+      count() AS total_sessions,
+      countIf(pv_count <= 1 AND evt_count <= 2) AS single_step_sessions,
+      round(avg(dateDiff('second', first_ts, last_ts)), 1) AS avg_duration_sec
+    FROM (
+      SELECT
+        coalesce(nullIf(properties.$session_id, ''), distinct_id) AS session_key,
+        countIf(event = '$pageview') AS pv_count,
+        count() AS evt_count,
+        min(timestamp) AS first_ts,
+        max(timestamp) AS last_ts
+      FROM events
+      WHERE timestamp >= now() - INTERVAL ${days} DAY
+        AND ${scopeFilter}
+      GROUP BY session_key
+    )
+  `.trim();
+
+  const dailyQuery = `
+    SELECT
+      toString(toDate(timestamp)) AS day,
+      uniqExact(distinct_id) AS visitors,
+      countIf(event = '$pageview') AS pageviews,
+      countIf(
+        event IN (
+          'automate_inquiry_submit',
+          'automate_direct_email_click',
+          'automate_linkedin_click',
+          'contact_click',
+          'automate_cta_click'
+        )
+      ) AS conversions
+    FROM events
+    WHERE timestamp >= now() - INTERVAL ${days} DAY
+      AND ${scopeFilter}
+    GROUP BY day
+    ORDER BY day ASC
+  `.trim();
+
+  const referrersQuery = `
+    SELECT
+      coalesce(nullIf(properties.$referring_domain, ''), 'direct') AS referring_domain,
+      coalesce(nullIf(properties.utm_source, ''), '') AS utm_source,
+      coalesce(nullIf(properties.utm_medium, ''), '') AS utm_medium,
+      uniqExact(distinct_id) AS visitors,
+      countIf(event = '$pageview') AS pageviews,
+      countIf(
+        event IN (
+          'automate_inquiry_submit',
+          'automate_direct_email_click',
+          'automate_linkedin_click',
+          'contact_click',
+          'automate_cta_click'
+        )
+      ) AS conversions
+    FROM events
+    WHERE timestamp >= now() - INTERVAL ${days} DAY
+      AND ${scopeFilter}
+    GROUP BY referring_domain, utm_source, utm_medium
+    ORDER BY visitors DESC, pageviews DESC
+    LIMIT 40
   `.trim();
 
   const subdomainQuery = `
@@ -1475,20 +1919,128 @@ export async function fetchPostHogAnalytics(
       countIf(event = '$pageview') AS pageviews,
       count() AS total_events
     FROM events
-    WHERE timestamp >= now() - INTERVAL 30 DAY
+    WHERE timestamp >= now() - INTERVAL ${days} DAY
+      AND ${scopeFilter}
     GROUP BY host
     ORDER BY total_events DESC
     LIMIT 20
   `.trim();
 
+  const pagesQuery = `
+    SELECT
+      coalesce(nullIf(properties.$host, ''), 'unknown') AS host,
+      coalesce(nullIf(properties.$pathname, ''), '/') AS pathname,
+      uniqExact(distinct_id) AS visitors,
+      countIf(event = '$pageview') AS pageviews,
+      count() AS total_events
+    FROM events
+    WHERE timestamp >= now() - INTERVAL ${days} DAY
+      AND ${scopeFilter}
+    GROUP BY host, pathname
+    ORDER BY pageviews DESC, total_events DESC
+    LIMIT 25
+  `.trim();
+
+  const landingQuery = `
+    SELECT
+      entry_host,
+      entry_path,
+      count() AS visitors
+    FROM (
+      SELECT
+        distinct_id,
+        argMin(coalesce(nullIf(properties.$host, ''), 'greyson.nl'), timestamp) AS entry_host,
+        argMin(coalesce(nullIf(properties.$pathname, ''), '/'), timestamp) AS entry_path
+      FROM events
+      WHERE timestamp >= now() - INTERVAL ${days} DAY
+        AND event = '$pageview'
+        AND ${scopeFilter}
+      GROUP BY distinct_id
+    )
+    GROUP BY entry_host, entry_path
+    ORDER BY visitors DESC
+    LIMIT 15
+  `.trim();
+
+  const geoQuery = `
+    SELECT
+      coalesce(nullIf(properties.$geoip_country_name, ''), '') AS country,
+      coalesce(nullIf(properties.$geoip_subdivision_1_name, ''), '') AS region,
+      coalesce(nullIf(properties.$geoip_city_name, ''), '') AS city,
+      uniqExact(distinct_id) AS visitors,
+      countIf(event = '$pageview') AS pageviews
+    FROM events
+    WHERE timestamp >= now() - INTERVAL ${days} DAY
+      AND ${scopeFilter}
+    GROUP BY country, region, city
+    ORDER BY visitors DESC, pageviews DESC
+    LIMIT 20
+  `.trim();
+
+  const devicesQuery = `
+    SELECT
+      coalesce(nullIf(properties.$device_type, ''), 'Unknown') AS device_type,
+      uniqExact(distinct_id) AS visitors
+    FROM events
+    WHERE timestamp >= now() - INTERVAL ${days} DAY
+      AND ${scopeFilter}
+    GROUP BY device_type
+    ORDER BY visitors DESC
+  `.trim();
+
+  const languagesQuery = `
+    SELECT
+      coalesce(nullIf(properties.lang, ''), '') AS lang,
+      uniqExact(distinct_id) AS visitors,
+      count() AS events
+    FROM events
+    WHERE timestamp >= now() - INTERVAL ${days} DAY
+      AND nullIf(properties.lang, '') IS NOT NULL
+      AND ${scopeFilter}
+    GROUP BY lang
+    ORDER BY events DESC
+    LIMIT 10
+  `.trim();
+
+  const interactionsQuery = `
+    SELECT
+      event,
+      count() AS total_count,
+      uniqExact(distinct_id) AS visitors
+    FROM events
+    WHERE timestamp >= now() - INTERVAL ${days} DAY
+      AND event NOT IN ('$pageview', '$pageleave', '$autocapture', '$web_vitals', '$set')
+      AND ${scopeFilter}
+    GROUP BY event
+    ORDER BY total_count DESC
+    LIMIT 15
+  `.trim();
+
+  const vitalsQuery = `
+    SELECT
+      properties.$web_vitals_LCP_value AS lcp,
+      properties.$web_vitals_FCP_value AS fcp,
+      properties.$web_vitals_INP_value AS inp,
+      properties.$web_vitals_CLS_value AS cls
+    FROM events
+    WHERE timestamp >= now() - INTERVAL ${days} DAY
+      AND event = '$web_vitals'
+      AND ${scopeFilter}
+    ORDER BY timestamp DESC
+    LIMIT 200
+  `.trim();
+
   const visitorsQuery = `
     SELECT
       distinct_id,
+      argMax(properties.$session_id, timestamp) AS session_id,
       argMax(properties.$geoip_city_name, timestamp) AS city,
       argMax(properties.$geoip_subdivision_1_name, timestamp) AS region,
       argMax(properties.$geoip_country_name, timestamp) AS country,
       argMax(properties.$timezone, timestamp) AS timezone,
-      argMax(properties.$referring_domain, timestamp) AS referring_domain,
+      argMin(coalesce(nullIf(properties.$referring_domain, ''), 'direct'), timestamp) AS referring_domain,
+      argMin(coalesce(nullIf(properties.utm_source, ''), ''), timestamp) AS utm_source,
+      argMin(coalesce(nullIf(properties.$pathname, ''), '/'), timestamp) AS entry_path,
       argMax(properties.$device_type, timestamp) AS device_type,
       argMax(properties.$browser, timestamp) AS browser,
       argMax(properties.$os, timestamp) AS os,
@@ -1496,7 +2048,8 @@ export async function fetchPostHogAnalytics(
       max(timestamp) AS last_seen,
       count() AS event_count
     FROM events
-    WHERE timestamp >= now() - INTERVAL 30 DAY
+    WHERE timestamp >= now() - INTERVAL ${days} DAY
+      AND ${scopeFilter}
     GROUP BY distinct_id
     ORDER BY last_seen DESC
     LIMIT 50
@@ -1508,6 +2061,7 @@ export async function fetchPostHogAnalytics(
       timestamp,
       properties.$host AS host,
       properties.$pathname AS pathname,
+      properties.$session_id AS session_id,
       properties.$referring_domain AS referring_domain,
       properties.$device_type AS device_type,
       properties.$browser AS browser,
@@ -1515,19 +2069,49 @@ export async function fetchPostHogAnalytics(
       properties.view AS view,
       properties.interest AS interest,
       properties.lang AS lang,
-      properties.target AS target
+      properties.target AS target,
+      properties.scenarioId AS scenario_id
     FROM events
-    WHERE timestamp >= now() - INTERVAL 30 DAY
+    WHERE timestamp >= now() - INTERVAL ${days} DAY
+      AND ${scopeFilter}
     ORDER BY timestamp DESC
     LIMIT 50
   `.trim();
 
+  const runQ = (q: string) =>
+    executeHogQLQuery(endpoints, projectId, personalApiKey, q, controller?.signal, useServerEnv);
+
   try {
-    const [kpiRes, subdomainRes, visitorsRes, eventsRes] = await Promise.all([
-      executeHogQLQuery(endpoints, projectId, personalApiKey, kpiQuery, controller?.signal),
-      executeHogQLQuery(endpoints, projectId, personalApiKey, subdomainQuery, controller?.signal),
-      executeHogQLQuery(endpoints, projectId, personalApiKey, visitorsQuery, controller?.signal),
-      executeHogQLQuery(endpoints, projectId, personalApiKey, eventsQuery, controller?.signal),
+    const [
+      kpiRes,
+      sessionsRes,
+      dailyRes,
+      referrersRes,
+      subdomainRes,
+      pagesRes,
+      landingRes,
+      geoRes,
+      devicesRes,
+      languagesRes,
+      interactionsRes,
+      vitalsRes,
+      visitorsRes,
+      eventsRes,
+    ] = await Promise.all([
+      runQ(kpiQuery),
+      runQ(sessionsQuery).catch(() => null),
+      runQ(dailyQuery).catch(() => null),
+      runQ(referrersQuery).catch(() => null),
+      runQ(subdomainQuery),
+      runQ(pagesQuery).catch(() => null),
+      runQ(landingQuery).catch(() => null),
+      runQ(geoQuery).catch(() => null),
+      runQ(devicesQuery).catch(() => null),
+      runQ(languagesQuery).catch(() => null),
+      runQ(interactionsQuery).catch(() => null),
+      runQ(vitalsQuery).catch(() => null),
+      runQ(visitorsQuery),
+      runQ(eventsQuery),
     ]);
 
     const kpiRow = kpiRes.results?.[0] ?? [];
@@ -1540,6 +2124,111 @@ export async function fetchPostHogAnalytics(
     const inquiryClicks = toSafeNumber(
       getColumnValue(kpiRow, kpiRes.columns, 'inquiry_clicks', 2)
     );
+    const formSubmits = toSafeNumber(
+      getColumnValue(kpiRow, kpiRes.columns, 'form_submits', 3)
+    );
+
+    const sessionRow = sessionsRes?.results?.[0] ?? [];
+    const totalSessions = toSafeNumber(
+      getColumnValue(sessionRow, sessionsRes?.columns, 'total_sessions', 0)
+    );
+    const singleStepSessions = toSafeNumber(
+      getColumnValue(sessionRow, sessionsRes?.columns, 'single_step_sessions', 1)
+    );
+    const avgSessionDurationSec = toSafeNumber(
+      getColumnValue(sessionRow, sessionsRes?.columns, 'avg_duration_sec', 2)
+    );
+
+    const bounceRatePct =
+      totalSessions > 0 ? Math.round((singleStepSessions / totalSessions) * 100) : 0;
+    const pagesPerVisitor =
+      totalUniqueVisitors > 0
+        ? Math.round((totalPageviews / totalUniqueVisitors) * 10) / 10
+        : 0;
+    const conversionRatePct =
+      totalUniqueVisitors > 0
+        ? Math.round((inquiryClicks / totalUniqueVisitors) * 1000) / 10
+        : 0;
+
+    const dailyTrend: DailyTrafficPoint[] = (dailyRes?.results ?? []).map((row) => ({
+      day: toSafeString(getColumnValue(row, dailyRes?.columns, 'day', 0), '', 20),
+      visitors: toSafeNumber(getColumnValue(row, dailyRes?.columns, 'visitors', 1)),
+      pageviews: toSafeNumber(getColumnValue(row, dailyRes?.columns, 'pageviews', 2)),
+      conversions: toSafeNumber(getColumnValue(row, dailyRes?.columns, 'conversions', 3)),
+    }));
+
+    const referrers: ReferrerBreakdownItem[] = (referrersRes?.results ?? []).map((row) => {
+      const referringDomain = toSafeString(
+        getColumnValue(row, referrersRes?.columns, 'referring_domain', 0),
+        'direct',
+        120
+      );
+      const utmSource = toSafeString(
+        getColumnValue(row, referrersRes?.columns, 'utm_source', 1),
+        '',
+        64
+      );
+      const utmMedium = toSafeString(
+        getColumnValue(row, referrersRes?.columns, 'utm_medium', 2),
+        '',
+        64
+      );
+      return {
+        referringDomain,
+        channel: classifyAcquisitionChannel(referringDomain, utmSource, utmMedium),
+        utmSource,
+        utmMedium,
+        visitors: toSafeNumber(getColumnValue(row, referrersRes?.columns, 'visitors', 3)),
+        pageviews: toSafeNumber(getColumnValue(row, referrersRes?.columns, 'pageviews', 4)),
+        conversions: toSafeNumber(getColumnValue(row, referrersRes?.columns, 'conversions', 5)),
+      };
+    });
+
+    const channelBuckets = new Map<
+      AcquisitionChannelKey,
+      { visitors: number; pageviews: number; conversions: number }
+    >();
+    const channelOrder: AcquisitionChannelKey[] = [
+      'organic_search',
+      'ai_search',
+      'social',
+      'referral',
+      'direct',
+    ];
+    for (const ch of channelOrder) {
+      channelBuckets.set(ch, { visitors: 0, pageviews: 0, conversions: 0 });
+    }
+    for (const ref of referrers) {
+      const bucket = channelBuckets.get(ref.channel);
+      if (bucket) {
+        bucket.visitors += ref.visitors;
+        bucket.pageviews += ref.pageviews;
+        bucket.conversions += ref.conversions;
+      }
+    }
+    const channelVisitorTotal = Array.from(channelBuckets.values()).reduce(
+      (sum, item) => sum + item.visitors,
+      0
+    );
+    const channels: AcquisitionChannelItem[] = channelOrder.map((ch) => {
+      const b = channelBuckets.get(ch)!;
+      return {
+        channel: ch,
+        visitors: b.visitors,
+        pageviews: b.pageviews,
+        conversions: b.conversions,
+        sharePct:
+          channelVisitorTotal > 0 ? Math.round((b.visitors / channelVisitorTotal) * 100) : 0,
+      };
+    });
+
+    const searchAndAiVisitors =
+      (channelBuckets.get('organic_search')?.visitors ?? 0) +
+      (channelBuckets.get('ai_search')?.visitors ?? 0);
+    const searchAndAiSharePct =
+      channelVisitorTotal > 0
+        ? Math.round((searchAndAiVisitors / channelVisitorTotal) * 100)
+        : 0;
 
     const observedSubdomains: SubdomainBreakdownItem[] = (subdomainRes.results ?? []).map((row) => ({
       subdomain: toSafeString(getColumnValue(row, subdomainRes.columns, 'host', 0), 'unknown', 80),
@@ -1548,14 +2237,108 @@ export async function fetchPostHogAnalytics(
       events: toSafeNumber(getColumnValue(row, subdomainRes.columns, 'total_events', 3)),
     }));
 
+    const topPages: PageBreakdownItem[] = (pagesRes?.results ?? []).map((row) => ({
+      host: toSafeString(getColumnValue(row, pagesRes?.columns, 'host', 0), 'unknown', 80),
+      pathname: toSafeString(getColumnValue(row, pagesRes?.columns, 'pathname', 1), '/', 120),
+      visitors: toSafeNumber(getColumnValue(row, pagesRes?.columns, 'visitors', 2)),
+      pageviews: toSafeNumber(getColumnValue(row, pagesRes?.columns, 'pageviews', 3)),
+      events: toSafeNumber(getColumnValue(row, pagesRes?.columns, 'total_events', 4)),
+    }));
+
+    const landingPages: LandingPageItem[] = (landingRes?.results ?? []).map((row) => ({
+      host: toSafeString(getColumnValue(row, landingRes?.columns, 'entry_host', 0), 'greyson.nl', 80),
+      pathname: toSafeString(getColumnValue(row, landingRes?.columns, 'entry_path', 1), '/', 120),
+      visitors: toSafeNumber(getColumnValue(row, landingRes?.columns, 'visitors', 2)),
+    }));
+
+    const locations: GeoBreakdownItem[] = (geoRes?.results ?? []).map((row) => {
+      const country = toSafeString(getColumnValue(row, geoRes?.columns, 'country', 0), '', 64);
+      const reg = toSafeString(getColumnValue(row, geoRes?.columns, 'region', 1), '', 64);
+      const city = toSafeString(getColumnValue(row, geoRes?.columns, 'city', 2), '', 64);
+      const parts = [city, reg, country].filter(Boolean);
+      return {
+        country,
+        region: reg,
+        city,
+        label: parts.length > 0 ? parts.join(', ') : 'Onbekende locatie',
+        visitors: toSafeNumber(getColumnValue(row, geoRes?.columns, 'visitors', 3)),
+        pageviews: toSafeNumber(getColumnValue(row, geoRes?.columns, 'pageviews', 4)),
+      };
+    });
+
+    const rawDevices = (devicesRes?.results ?? []).map((row) => ({
+      deviceType: toSafeString(
+        getColumnValue(row, devicesRes?.columns, 'device_type', 0),
+        'Unknown',
+        32
+      ),
+      visitors: toSafeNumber(getColumnValue(row, devicesRes?.columns, 'visitors', 1)),
+    }));
+    const deviceTotal = rawDevices.reduce((sum, d) => sum + d.visitors, 0);
+    const devices: DeviceBreakdownItem[] = rawDevices.map((d) => ({
+      ...d,
+      sharePct: deviceTotal > 0 ? Math.round((d.visitors / deviceTotal) * 100) : 0,
+    }));
+
+    const languages: LanguageBreakdownItem[] = (languagesRes?.results ?? []).map((row) => ({
+      lang: toSafeString(getColumnValue(row, languagesRes?.columns, 'lang', 0), 'unknown', 16),
+      visitors: toSafeNumber(getColumnValue(row, languagesRes?.columns, 'visitors', 1)),
+      events: toSafeNumber(getColumnValue(row, languagesRes?.columns, 'events', 2)),
+    }));
+
+    const topInteractions: InteractionBreakdownItem[] = (interactionsRes?.results ?? []).map(
+      (row) => ({
+        event: toSafeString(getColumnValue(row, interactionsRes?.columns, 'event', 0), 'unknown', 80),
+        count: toSafeNumber(getColumnValue(row, interactionsRes?.columns, 'total_count', 1)),
+        visitors: toSafeNumber(getColumnValue(row, interactionsRes?.columns, 'visitors', 2)),
+      })
+    );
+
+    const lcpSamples: number[] = [];
+    const fcpSamples: number[] = [];
+    const inpSamples: number[] = [];
+    const clsSamples: number[] = [];
+    const vitalsRows = vitalsRes?.results ?? [];
+    for (const row of vitalsRows) {
+      const lcp = getColumnValue(row, vitalsRes?.columns, 'lcp', 0);
+      const fcp = getColumnValue(row, vitalsRes?.columns, 'fcp', 1);
+      const inp = getColumnValue(row, vitalsRes?.columns, 'inp', 2);
+      const cls = getColumnValue(row, vitalsRes?.columns, 'cls', 3);
+      if (typeof lcp === 'number' && Number.isFinite(lcp) && lcp >= 0) lcpSamples.push(lcp);
+      if (typeof fcp === 'number' && Number.isFinite(fcp) && fcp >= 0) fcpSamples.push(fcp);
+      if (typeof inp === 'number' && Number.isFinite(inp) && inp >= 0) inpSamples.push(inp);
+      if (typeof cls === 'number' && Number.isFinite(cls) && cls >= 0) clsSamples.push(cls);
+    }
+
+    const webVitals: PostHogWebVitalsSummary = {
+      sampleCount: vitalsRows.length,
+      lcpP75Ms: computePercentile(lcpSamples, 0.75),
+      fcpP75Ms: computePercentile(fcpSamples, 0.75),
+      inpP75Ms: computePercentile(inpSamples, 0.75),
+      clsP75:
+        clsSamples.length > 0
+          ? Number((computePercentile(clsSamples, 0.75) ?? 0).toFixed(3))
+          : null,
+    };
+
     const visitors: PostHogVisitorProfile[] = (visitorsRes.results ?? []).map((row) => {
-      const city = toSafeString(getColumnValue(row, visitorsRes.columns, 'city', 1), '', 64);
-      const subRegion = toSafeString(getColumnValue(row, visitorsRes.columns, 'region', 2), '', 64);
-      const country = toSafeString(getColumnValue(row, visitorsRes.columns, 'country', 3), '', 64);
+      const city = toSafeString(getColumnValue(row, visitorsRes.columns, 'city', 2), '', 64);
+      const subRegion = toSafeString(getColumnValue(row, visitorsRes.columns, 'region', 3), '', 64);
+      const country = toSafeString(getColumnValue(row, visitorsRes.columns, 'country', 4), '', 64);
       const locationParts = [city, subRegion, country].filter(Boolean);
       const timezone = toSafeString(
-        getColumnValue(row, visitorsRes.columns, 'timezone', 4),
+        getColumnValue(row, visitorsRes.columns, 'timezone', 5),
         'UTC',
+        64
+      );
+      const referringDomain = toSafeString(
+        getColumnValue(row, visitorsRes.columns, 'referring_domain', 6),
+        'direct',
+        100
+      );
+      const utmSource = toSafeString(
+        getColumnValue(row, visitorsRes.columns, 'utm_source', 7),
+        '',
         64
       );
 
@@ -1565,34 +2348,41 @@ export async function fetchPostHogAnalytics(
           'anonymous',
           80
         ),
+        sessionId: toSafeString(
+          getColumnValue(row, visitorsRes.columns, 'session_id', 1),
+          '',
+          80
+        ),
         city,
         region: subRegion,
         country,
         locationLabel: locationParts.length > 0 ? locationParts.join(', ') : timezone,
         timezone,
-        referringDomain: toSafeString(
-          getColumnValue(row, visitorsRes.columns, 'referring_domain', 5),
-          'direct',
-          100
+        referringDomain,
+        channel: classifyAcquisitionChannel(referringDomain, utmSource),
+        entryPath: toSafeString(
+          getColumnValue(row, visitorsRes.columns, 'entry_path', 8),
+          '/',
+          120
         ),
         deviceType: toSafeString(
-          getColumnValue(row, visitorsRes.columns, 'device_type', 6),
+          getColumnValue(row, visitorsRes.columns, 'device_type', 9),
           'Unknown',
           32
         ),
         browser: toSafeString(
-          getColumnValue(row, visitorsRes.columns, 'browser', 7),
+          getColumnValue(row, visitorsRes.columns, 'browser', 10),
           'Unknown',
           40
         ),
-        os: toSafeString(getColumnValue(row, visitorsRes.columns, 'os', 8), 'Unknown', 40),
+        os: toSafeString(getColumnValue(row, visitorsRes.columns, 'os', 11), 'Unknown', 40),
         subdomain: toSafeString(
-          getColumnValue(row, visitorsRes.columns, 'host', 9),
+          getColumnValue(row, visitorsRes.columns, 'host', 12),
           'greyson.nl',
           80
         ),
-        lastSeen: toSafeString(getColumnValue(row, visitorsRes.columns, 'last_seen', 10), '', 40),
-        eventCount: toSafeNumber(getColumnValue(row, visitorsRes.columns, 'event_count', 11)),
+        lastSeen: toSafeString(getColumnValue(row, visitorsRes.columns, 'last_seen', 13), '', 40),
+        eventCount: toSafeNumber(getColumnValue(row, visitorsRes.columns, 'event_count', 14)),
       };
     });
 
@@ -1613,24 +2403,34 @@ export async function fetchPostHogAnalytics(
         80
       );
       const pathname = toSafeString(getColumnValue(row, eventsRes.columns, 'pathname', 3), '/', 120);
+      const sessionId = toSafeString(
+        getColumnValue(row, eventsRes.columns, 'session_id', 4),
+        '',
+        80
+      );
 
       const rawProps: TelemetryMetadata = {};
       const referringDomain = toSafeString(
-        getColumnValue(row, eventsRes.columns, 'referring_domain', 4),
+        getColumnValue(row, eventsRes.columns, 'referring_domain', 5),
         '',
         100
       );
       const deviceType = toSafeString(
-        getColumnValue(row, eventsRes.columns, 'device_type', 5),
+        getColumnValue(row, eventsRes.columns, 'device_type', 6),
         '',
         32
       );
-      const browser = toSafeString(getColumnValue(row, eventsRes.columns, 'browser', 6), '', 40);
-      const os = toSafeString(getColumnValue(row, eventsRes.columns, 'os', 7), '', 40);
-      const view = toSafeString(getColumnValue(row, eventsRes.columns, 'view', 8), '', 32);
-      const interest = toSafeString(getColumnValue(row, eventsRes.columns, 'interest', 9), '', 120);
-      const lang = toSafeString(getColumnValue(row, eventsRes.columns, 'lang', 10), '', 16);
-      const target = toSafeString(getColumnValue(row, eventsRes.columns, 'target', 11), '', 64);
+      const browser = toSafeString(getColumnValue(row, eventsRes.columns, 'browser', 7), '', 40);
+      const os = toSafeString(getColumnValue(row, eventsRes.columns, 'os', 8), '', 40);
+      const view = toSafeString(getColumnValue(row, eventsRes.columns, 'view', 9), '', 32);
+      const interest = toSafeString(getColumnValue(row, eventsRes.columns, 'interest', 10), '', 120);
+      const lang = toSafeString(getColumnValue(row, eventsRes.columns, 'lang', 11), '', 16);
+      const target = toSafeString(getColumnValue(row, eventsRes.columns, 'target', 12), '', 64);
+      const scenarioId = toSafeString(
+        getColumnValue(row, eventsRes.columns, 'scenario_id', 13),
+        '',
+        40
+      );
 
       if (referringDomain) rawProps.referringDomain = referringDomain;
       if (deviceType) rawProps.deviceType = deviceType;
@@ -1640,6 +2440,7 @@ export async function fetchPostHogAnalytics(
       if (interest) rawProps.interest = interest;
       if (lang) rawProps.lang = lang;
       if (target) rawProps.target = target;
+      if (scenarioId) rawProps.scenarioId = scenarioId;
 
       return {
         id: `ph_live_${idx}_${timestamp || 'evt'}`,
@@ -1647,6 +2448,7 @@ export async function fetchPostHogAnalytics(
         timestamp,
         host,
         pathname,
+        sessionId,
         properties: sanitizeMetadata(rawProps) ?? Object.freeze({}),
       };
     });
@@ -1657,13 +2459,33 @@ export async function fetchPostHogAnalytics(
       fetchedAt: new Date().toISOString(),
       region,
       projectId,
+      days,
+      excludeLocal,
       summary: {
         totalUniqueVisitors,
+        totalSessions: totalSessions || totalUniqueVisitors,
         totalPageviews,
+        avgSessionDurationSec,
+        bounceRatePct,
+        pagesPerVisitor,
         inquiryClicks,
-        activeSubdomain,
-        subdomains: mergeSubdomainBreakdown(observedSubdomains, activeSubdomain),
+        formSubmits,
+        conversionRatePct,
+        searchAndAiVisitors,
+        searchAndAiSharePct,
+        activeSubdomain: observedSubdomains[0]?.subdomain || activeSubdomain,
+        subdomains: mergeSubdomainBreakdown(observedSubdomains, activeSubdomain, false),
       },
+      dailyTrend,
+      channels,
+      referrers,
+      landingPages,
+      topPages,
+      locations,
+      devices,
+      languages,
+      topInteractions,
+      webVitals,
       visitors,
       recentEvents,
     };
@@ -1675,17 +2497,7 @@ export async function fetchPostHogAnalytics(
           ? err.message
           : 'Failed to fetch PostHog analytics.';
 
-    return {
-      ok: false,
-      source: 'posthog',
-      fetchedAt: new Date().toISOString(),
-      region,
-      projectId,
-      summary: emptySummary,
-      visitors: [],
-      recentEvents: [],
-      error: sanitizeTelemetryString(message, 200),
-    };
+    return emptyResult(sanitizeTelemetryString(message, 200));
   } finally {
     if (timeoutId !== undefined) {
       clearTimeout(timeoutId);
@@ -1698,6 +2510,7 @@ function isInquiryEventName(name: string): boolean {
   return (
     lower === 'automate_inquiry_submit' ||
     lower === 'automate_direct_email_click' ||
+    lower === 'automate_linkedin_click' ||
     lower === 'contact_click' ||
     lower === 'automate_cta_click' ||
     lower === 'automate_link_click' ||
@@ -1707,9 +2520,9 @@ function isInquiryEventName(name: string): boolean {
 }
 
 /**
- * Combines `getTelemetrySnapshot()` (`./telemetry`) with live in-memory visitor session
- * context (`window.__GREYSON_POSTHOG_SESSION__`) so `/dashboard` immediately renders
- * live visitor/session metrics, Web Vitals, and recorded interactions before PostHog Cloud is queried.
+ * Retained for backward compatibility; the `/dashboard` view no longer displays
+ * synthetic local session telemetry and strictly relies on live PostHog Cloud
+ * and external audit tools.
  */
 export function getLocalVisitorAnalytics(): LocalVisitorAnalytics {
   const telemetry = getTelemetrySnapshot();
@@ -1722,6 +2535,7 @@ export function getLocalVisitorAnalytics(): LocalVisitorAnalytics {
     timestamp: evt.timestamp,
     host: evt.host,
     pathname: evt.pathname,
+    sessionId: '',
     properties: evt.properties,
   }));
 
@@ -1732,6 +2546,7 @@ export function getLocalVisitorAnalytics(): LocalVisitorAnalytics {
     timestamp: new Date(telemetryBaseMs + evt.timestamp).toISOString(),
     host: context.activeSubdomain,
     pathname: context.pathname,
+    sessionId: '',
     properties: Object.freeze({
       type: evt.type,
       ...(evt.value !== undefined ? { value: evt.value } : {}),
@@ -1789,12 +2604,15 @@ export function getLocalVisitorAnalytics(): LocalVisitorAnalytics {
 
   const localVisitor: PostHogVisitorProfile = {
     distinctId: session?.distinctId ?? getOrCreateDistinctId(),
+    sessionId: '',
     city: '',
     region: '',
     country: '',
     locationLabel: context.regionHint,
     timezone: context.timezone,
     referringDomain: context.referringDomain,
+    channel: classifyAcquisitionChannel(context.referringDomain, context.utmSource),
+    entryPath: context.pathname,
     deviceType: context.deviceType,
     browser: context.browser,
     os: context.os,
@@ -1813,10 +2631,18 @@ export function getLocalVisitorAnalytics(): LocalVisitorAnalytics {
     vitals: { ...(telemetry?.vitals ?? {}) },
     summary: {
       totalUniqueVisitors: 1,
+      totalSessions: 1,
       totalPageviews,
+      avgSessionDurationSec: 0,
+      bounceRatePct: 0,
+      pagesPerVisitor: totalPageviews,
       inquiryClicks,
+      formSubmits: 0,
+      conversionRatePct: inquiryClicks > 0 ? 100 : 0,
+      searchAndAiVisitors: 0,
+      searchAndAiSharePct: 0,
       activeSubdomain: context.activeSubdomain,
-      subdomains: mergeSubdomainBreakdown(observedSubdomains, context.activeSubdomain),
+      subdomains: mergeSubdomainBreakdown(observedSubdomains, context.activeSubdomain, true),
     },
     visitors: [localVisitor],
     recentEvents: recentEvents.slice(0, MAX_SESSION_EVENTS),

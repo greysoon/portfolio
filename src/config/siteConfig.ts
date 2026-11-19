@@ -19,7 +19,7 @@ export const siteConfig = {
   ],
   birthDate: '2000-05-29T00:00:00',
   role: 'software engineer',
-  email: 'grey.beimers@gmail.com',
+  email: 'info@greyson.nl',
   linkedinUrl: 'https://www.linkedin.com/in/greyson-beimers-68749b1a1/',
   location: {
     label: '52.37°N, 4.90°E',

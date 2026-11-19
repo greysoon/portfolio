@@ -82,9 +82,63 @@ export async function copyInquiryTextToClipboard(
   return false;
 }
 
+export type DeliveryStatus = 'delivered' | 'rate_limited' | 'failed';
+
+export interface InquirySubmissionResult {
+  status: DeliveryStatus;
+  remainingToday?: number;
+}
+
+const DAILY_LIMIT_STORAGE_KEY = 'greyson_contact_daily_limit_v1';
+
+function getTodayDateKey(): string {
+  return new Date().toISOString().slice(0, 10);
+}
+
+function readDailySubmissionCount(): number {
+  if (typeof window === 'undefined') return 0;
+  try {
+    const raw = window.localStorage.getItem(DAILY_LIMIT_STORAGE_KEY);
+    if (!raw) return 0;
+    const parsed = JSON.parse(raw) as { date?: unknown; count?: unknown };
+    if (parsed.date !== getTodayDateKey()) return 0;
+    const count = Number(parsed.count);
+    if (!Number.isFinite(count) || count < 0) return 0;
+    return Math.min(Math.floor(count), automateConfig.dailySubmissionLimit);
+  } catch {
+    return 0;
+  }
+}
+
+function writeDailySubmissionCount(count: number): void {
+  if (typeof window === 'undefined') return;
+  try {
+    const bounded = Math.max(
+      0,
+      Math.min(Math.floor(count), automateConfig.dailySubmissionLimit)
+    );
+    window.localStorage.setItem(
+      DAILY_LIMIT_STORAGE_KEY,
+      JSON.stringify({ date: getTodayDateKey(), count: bounded })
+    );
+  } catch {
+    // Ignore storage access errors gracefully
+  }
+}
+
 /**
- * Delivers an inquiry email directly via FormSubmit AJAX without leaving the page.
- * Returns true on confirmed acceptance or false so callers can fall back to mailto:.
+ * Returns how many direct contact submissions remain today for this browser.
+ */
+export function getRemainingDailySubmissions(): number {
+  return Math.max(
+    0,
+    automateConfig.dailySubmissionLimit - readDailySubmissionCount()
+  );
+}
+
+/**
+ * Delivers an inquiry email via the configured Resend Worker (or FormSubmit fallback)
+ * while enforcing a 3-per-day per-user cap without opening the visitor's mail app.
  */
 export async function sendInquiryEmail(params: {
   subject: string;
@@ -93,7 +147,59 @@ export async function sendInquiryEmail(params: {
   contact: string;
   interest: string;
   message: string;
-}): Promise<boolean> {
+  website?: string;
+}): Promise<InquirySubmissionResult> {
+  const currentCount = readDailySubmissionCount();
+  if (currentCount >= automateConfig.dailySubmissionLimit) {
+    return { status: 'rate_limited', remainingToday: 0 };
+  }
+
+  const endpoint = automateConfig.contactApiUrl;
+  if (endpoint) {
+    try {
+      const response = await fetch(endpoint, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Accept: 'application/json',
+        },
+        body: JSON.stringify({
+          name: params.name,
+          company: params.company,
+          contact: params.contact,
+          interest: params.interest,
+          message: params.message,
+          website: params.website ?? '',
+        }),
+      });
+
+      if (response.status === 429) {
+        writeDailySubmissionCount(automateConfig.dailySubmissionLimit);
+        return { status: 'rate_limited', remainingToday: 0 };
+      }
+
+      if (!response.ok) return { status: 'failed' };
+
+      const data = (await response.json()) as {
+        ok?: boolean;
+        remainingToday?: number;
+      };
+      if (data.ok === true) {
+        const nextCount = currentCount + 1;
+        writeDailySubmissionCount(nextCount);
+        const remaining =
+          typeof data.remainingToday === 'number' &&
+          Number.isFinite(data.remainingToday)
+            ? Math.max(0, data.remainingToday)
+            : Math.max(0, automateConfig.dailySubmissionLimit - nextCount);
+        return { status: 'delivered', remainingToday: remaining };
+      }
+      return { status: 'failed' };
+    } catch {
+      return { status: 'failed' };
+    }
+  }
+
   try {
     const response = await fetch(
       `https://formsubmit.co/ajax/${automateConfig.email}`,
@@ -107,6 +213,7 @@ export async function sendInquiryEmail(params: {
           _subject: params.subject,
           _template: 'table',
           _captcha: 'false',
+          _honey: params.website ?? '',
           Naam: params.name,
           Bedrijf: params.company || '-',
           Contactgegevens: params.contact,
@@ -115,13 +222,114 @@ export async function sendInquiryEmail(params: {
         }),
       }
     );
-    if (!response.ok) return false;
+    if (!response.ok) return { status: 'failed' };
     const data = (await response.json()) as { success?: string | boolean };
-    return data.success === true || data.success === 'true';
+    if (data.success === true || data.success === 'true') {
+      const nextCount = currentCount + 1;
+      writeDailySubmissionCount(nextCount);
+      return {
+        status: 'delivered',
+        remainingToday: Math.max(
+          0,
+          automateConfig.dailySubmissionLimit - nextCount
+        ),
+      };
+    }
+    return { status: 'failed' };
   } catch {
-    return false;
+    return { status: 'failed' };
   }
 }
+
+/**
+ * Hidden anti-spam honeypot field shared by contact forms.
+ */
+export const HoneypotField: React.FC<{
+  value: string;
+  onChange: (value: string) => void;
+  label: string;
+}> = ({ value, onChange, label }) => (
+  <div
+    aria-hidden="true"
+    style={{
+      position: 'absolute',
+      left: '-9999px',
+      width: '1px',
+      height: '1px',
+      overflow: 'hidden',
+      opacity: 0,
+      pointerEvents: 'none',
+    }}
+  >
+    <label>
+      {label}
+      <input
+        type="text"
+        name="website"
+        tabIndex={-1}
+        autoComplete="off"
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+      />
+    </label>
+  </div>
+);
+
+/**
+ * Shared delivery status / rate-limit / fallback banner for contact forms.
+ */
+export const InquiryStatusNotice: React.FC<{
+  deliveryStatus: DeliveryStatus | null;
+  submitted: InquiryFormPayload | null;
+  copied: boolean;
+  onCopyFallback: () => void;
+  formCopy: (typeof automateConfig.copy)['nl']['form'] | (typeof automateConfig.copy)['en']['form'];
+}> = ({ deliveryStatus, submitted, copied, onCopyFallback, formCopy }) => {
+  if (!submitted || !deliveryStatus) return null;
+
+  const isDelivered = deliveryStatus === 'delivered';
+  const isRateLimited = deliveryStatus === 'rate_limited';
+  const title = isDelivered
+    ? formCopy.submittedTitle
+    : isRateLimited
+      ? formCopy.rateLimitTitle
+      : formCopy.fallbackSubmittedTitle;
+  const description = isDelivered
+    ? formCopy.submittedDescription
+    : isRateLimited
+      ? formCopy.rateLimitDescription
+      : formCopy.fallbackSubmittedDescription;
+
+  return (
+    <div
+      className="automate-success-box"
+      role={isDelivered ? 'status' : 'alert'}
+    >
+      <strong>{title}</strong>
+      <p>{description}</p>
+      {!isDelivered && (
+        <div className="automate-success-actions">
+          <button
+            type="button"
+            className="automate-btn automate-btn-primary"
+            onClick={onCopyFallback}
+          >
+            {formCopy.copyFallbackButton}
+          </button>
+          <a
+            href={submitted.mailtoUrl}
+            className="automate-btn automate-btn-secondary"
+          >
+            {formCopy.openMailAppFallback}
+          </a>
+        </div>
+      )}
+      {copied && (
+        <div className="automate-copy-status">{formCopy.copiedNotice}</div>
+      )}
+    </div>
+  );
+};
 
 /**
  * Renders the copywriter's direct-email note with an interactive mailto: link.
@@ -137,7 +345,7 @@ export function renderDirectEmailNote(
       <>
         {note}{' '}
         <a
-          href="mailto:grey.beimers@gmail.com"
+          href="mailto:info@greyson.nl"
           className="automate-inline-link"
           onClick={onDirectClick}
         >
@@ -151,7 +359,7 @@ export function renderDirectEmailNote(
     <>
       {parts[0]}
       <a
-        href="mailto:grey.beimers@gmail.com"
+        href="mailto:info@greyson.nl"
         className="automate-inline-link"
         onClick={onDirectClick}
       >
@@ -364,9 +572,12 @@ export const AutomatePage: React.FC<AutomatePageProps> = ({
   const [interestIndex, setInterestIndex] = useState(0);
   const [interest, setInterest] = useState<string>(t.form.interestOptions[0]);
   const [message, setMessage] = useState('');
+  const [honeypot, setHoneypot] = useState('');
   const [hasError, setHasError] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [sentDirectly, setSentDirectly] = useState(false);
+  const [deliveryStatus, setDeliveryStatus] = useState<DeliveryStatus | null>(
+    null
+  );
   const [submitted, setSubmitted] = useState<InquiryFormPayload | null>(null);
   const [copied, setCopied] = useState(false);
 
@@ -374,12 +585,22 @@ export const AutomatePage: React.FC<AutomatePageProps> = ({
     t.heroShowcase.scenarios.find((s) => s.id === selectedScenarioId) ??
     t.heroShowcase.scenarios[0];
 
-  const isGreysonProd =
+  const usesQueryRouting =
     typeof window !== 'undefined' &&
-    (window.location.hostname.toLowerCase() === 'greyson.nl' ||
-      window.location.hostname.toLowerCase().endsWith('.greyson.nl'));
+    new URLSearchParams(window.location.search).has('site');
 
-  const aboutHref = isGreysonProd ? automateConfig.aboutPath : '?site=about';
+  const aboutHref = usesQueryRouting
+    ? '?site=about'
+    : lang === 'en'
+      ? '/en/about'
+      : automateConfig.aboutPath;
+
+  const altLang: AutomateLocale = lang === 'nl' ? 'en' : 'nl';
+  const altLangHref = usesQueryRouting
+    ? `?site=automate&lang=${altLang}`
+    : altLang === 'en'
+      ? '/en'
+      : '/';
 
   useEffect(() => {
     const previousLang = document.documentElement.lang;
@@ -400,14 +621,34 @@ export const AutomatePage: React.FC<AutomatePageProps> = ({
     const nodes = Array.from(document.querySelectorAll('.automate-reveal'));
     if (nodes.length === 0) return;
 
+    const ua = typeof navigator !== 'undefined' ? navigator.userAgent || '' : '';
+    const isCrawler =
+      /bot|crawl|spider|slurp|lighthouse|pagespeed|headless|bingpreview|oai-searchbot|gptbot|claudebot|perplexitybot|applebot|duckduckbot|yandex/i.test(
+        ua
+      );
+
     const prefersReduced =
       typeof window !== 'undefined' &&
       window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
-    if (prefersReduced || typeof IntersectionObserver === 'undefined') {
+    if (
+      isCrawler ||
+      prefersReduced ||
+      typeof IntersectionObserver === 'undefined'
+    ) {
       nodes.forEach((node) => node.classList.add('is-visible'));
       return;
     }
+
+    document.documentElement.classList.add('automate-motion-ready');
+
+    const viewportH = window.innerHeight || 900;
+    nodes.forEach((node) => {
+      const rect = node.getBoundingClientRect();
+      if (rect.top < viewportH * 0.96) {
+        node.classList.add('is-visible');
+      }
+    });
 
     const observer = new IntersectionObserver(
       (entries) => {
@@ -418,11 +659,18 @@ export const AutomatePage: React.FC<AutomatePageProps> = ({
           }
         });
       },
-      { threshold: 0.12, rootMargin: '0px 0px -30px 0px' }
+      { threshold: 0.08, rootMargin: '0px 0px -20px 0px' }
     );
 
-    nodes.forEach((node) => observer.observe(node));
-    return () => observer.disconnect();
+    nodes.forEach((node) => {
+      if (!node.classList.contains('is-visible')) {
+        observer.observe(node);
+      }
+    });
+    return () => {
+      observer.disconnect();
+      document.documentElement.classList.remove('automate-motion-ready');
+    };
   }, [lang]);
 
   const handleSectionScroll = (
@@ -550,26 +798,26 @@ export const AutomatePage: React.FC<AutomatePageProps> = ({
     });
 
     setIsSubmitting(true);
-    const delivered = await sendInquiryEmail({
+    const result = await sendInquiryEmail({
       subject,
       name: cleanName,
       company: cleanCompany,
       contact: cleanContact,
       interest: safeInterest,
       message: cleanMessage,
+      website: honeypot,
     });
     setIsSubmitting(false);
-    setSentDirectly(delivered);
+    setDeliveryStatus(result.status);
     setSubmitted({ subject, body, mailtoUrl });
     setCopied(false);
 
-    if (delivered) {
+    if (result.status === 'delivered') {
       setName('');
       setCompany('');
       setContact('');
       setMessage('');
-    } else {
-      window.location.href = mailtoUrl;
+      setHoneypot('');
     }
   };
 
@@ -587,7 +835,10 @@ export const AutomatePage: React.FC<AutomatePageProps> = ({
     <div className="automate-scroll-root">
       <header className="automate-header">
         <div className="automate-header-inner">
-          <nav className="automate-nav" aria-label="Primary navigation">
+          <nav
+            className="automate-nav"
+            aria-label={lang === 'nl' ? 'Hoofdmenu' : 'Primary'}
+          >
             <a
               href="#overzicht"
               className="automate-brand"
@@ -684,7 +935,7 @@ export const AutomatePage: React.FC<AutomatePageProps> = ({
         </div>
       </header>
 
-      <main id="main-content">
+      <main id="main" tabIndex={-1}>
         {/* Band 1: Visual-First Split Hero + < 2025 vs 2026 Interactive Flow Diagram */}
         <section id="overzicht" className="automate-band automate-band--hero">
           <div className="automate-band-inner">
@@ -1246,6 +1497,42 @@ export const AutomatePage: React.FC<AutomatePageProps> = ({
           </div>
         </section>
 
+        {/* Band 5.5: Frequently Asked Questions (Matches FAQPage Schema.org) */}
+        <section
+          id="veelgestelde-vragen"
+          className="automate-band automate-band--stone automate-band--faq"
+          aria-labelledby="faq-heading"
+        >
+          <div className="automate-band-inner">
+            <div className="automate-band-header automate-reveal">
+              <span className="automate-eyebrow">{t.faq.eyebrow}</span>
+              <h2 id="faq-heading" className="automate-h2">
+                {t.faq.title}
+              </h2>
+            </div>
+
+            <div className="automate-faq-list automate-reveal">
+              {t.faq.items.map((item) => (
+                <details
+                  key={item.question}
+                  name="automate-faq"
+                  className="automate-faq-item"
+                >
+                  <summary className="automate-faq-summary">
+                    <span className="automate-faq-q">{item.question}</span>
+                    <span className="automate-faq-icon" aria-hidden="true">
+                      +
+                    </span>
+                  </summary>
+                  <div className="automate-faq-answer">
+                    <p className="automate-prose">{item.answer}</p>
+                  </div>
+                </details>
+              ))}
+            </div>
+          </div>
+        </section>
+
         {/* Band 6: Full-Bleed White Asymmetric Direct Contact + Interactive Inquiry Form */}
         <section
           id="automate-contact"
@@ -1264,7 +1551,7 @@ export const AutomatePage: React.FC<AutomatePageProps> = ({
                       {t.aboutPage.emailLabel}
                     </span>
                     <a
-                      href="mailto:grey.beimers@gmail.com"
+                      href="mailto:info@greyson.nl"
                       className="automate-detail-link"
                       onClick={() => {
                         trackInteraction('automate_direct_email_click', {
@@ -1459,6 +1746,12 @@ export const AutomatePage: React.FC<AutomatePageProps> = ({
                     </div>
                   )}
 
+                  <HoneypotField
+                    value={honeypot}
+                    onChange={setHoneypot}
+                    label={t.form.honeypotLabel}
+                  />
+
                   <div className="automate-form-footer">
                     <button
                       type="submit"
@@ -1479,44 +1772,13 @@ export const AutomatePage: React.FC<AutomatePageProps> = ({
                     </p>
                   </div>
 
-                  {submitted && (
-                    <div className="automate-success-box" role="status">
-                      <strong>
-                        {sentDirectly
-                          ? t.form.submittedTitle
-                          : t.form.fallbackSubmittedTitle}
-                      </strong>
-                      <p>
-                        {sentDirectly
-                          ? t.form.submittedDescription
-                          : t.form.fallbackSubmittedDescription}
-                      </p>
-                      <div className="automate-success-actions">
-                        <a
-                          href={submitted.mailtoUrl}
-                          className={`automate-btn ${
-                            sentDirectly
-                              ? 'automate-btn-secondary'
-                              : 'automate-btn-primary'
-                          }`}
-                        >
-                          {t.form.openMailAppFallback}
-                        </a>
-                        <button
-                          type="button"
-                          className="automate-btn automate-btn-secondary"
-                          onClick={handleCopyFallback}
-                        >
-                          {t.form.copyFallbackButton}
-                        </button>
-                      </div>
-                      {copied && (
-                        <div className="automate-copy-status">
-                          {t.form.copiedNotice}
-                        </div>
-                      )}
-                    </div>
-                  )}
+                  <InquiryStatusNotice
+                    deliveryStatus={deliveryStatus}
+                    submitted={submitted}
+                    copied={copied}
+                    onCopyFallback={handleCopyFallback}
+                    formCopy={t.form}
+                  />
                 </form>
               </div>
             </div>
@@ -1530,7 +1792,44 @@ export const AutomatePage: React.FC<AutomatePageProps> = ({
             <BrandLogo size="sm" label={t.nav.brand} />
             <p className="automate-footer-note">{t.footer.note}</p>
           </div>
-          <div className="automate-footer-links">
+          <nav
+            className="automate-footer-links"
+            aria-label={lang === 'nl' ? 'Voettekst navigatie' : 'Footer'}
+          >
+            <a
+              href="#diensten"
+              className="automate-nav-link"
+              onClick={(e) => handleSectionScroll(e, 'diensten', 'footer_diensten')}
+            >
+              {t.nav.servicesLabel}
+            </a>
+            <a
+              href="#automate-usecases"
+              className="automate-nav-link"
+              onClick={(e) =>
+                handleSectionScroll(e, 'automate-usecases', 'footer_usecases')
+              }
+            >
+              {t.nav.useCasesLabel}
+            </a>
+            <a
+              href="#werkwijze"
+              className="automate-nav-link"
+              onClick={(e) =>
+                handleSectionScroll(e, 'werkwijze', 'footer_werkwijze')
+              }
+            >
+              {t.nav.processLabel}
+            </a>
+            <a
+              href="#veelgestelde-vragen"
+              className="automate-nav-link"
+              onClick={(e) =>
+                handleSectionScroll(e, 'veelgestelde-vragen', 'footer_faq')
+              }
+            >
+              {t.footer.faqLinkLabel}
+            </a>
             <a
               href={aboutHref}
               className="automate-nav-link"
@@ -1538,7 +1837,35 @@ export const AutomatePage: React.FC<AutomatePageProps> = ({
             >
               {t.footer.aboutLinkLabel}
             </a>
-          </div>
+            <a
+              href="#automate-contact"
+              className="automate-nav-link"
+              onClick={(e) =>
+                handleSectionScroll(e, 'automate-contact', 'footer_contact')
+              }
+            >
+              {t.nav.contactLabel}
+            </a>
+            <a
+              href={altLangHref}
+              hrefLang={altLang}
+              className="automate-nav-link"
+              onClick={(e) => {
+                if (
+                  !e.metaKey &&
+                  !e.ctrlKey &&
+                  !e.shiftKey &&
+                  !e.altKey &&
+                  e.button === 0
+                ) {
+                  e.preventDefault();
+                  handleLocaleChange(altLang);
+                }
+              }}
+            >
+              {t.footer.switchLangLabel}
+            </a>
+          </nav>
         </div>
       </footer>
     </div>

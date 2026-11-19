@@ -11,10 +11,13 @@ Greyson Beimers works alongside a full-time company role with business owners ac
 
 ## Services & Approach
 
-- [Homepage — De omslag (< 2025 vs. Nu)](https://greyson.nl/): Interactive before/after workflow scenarios, 3-step visual blueprint, and direct inquiry form.
+- [Homepage — De omslag (< 2025 vs. Nu)](https://greyson.nl/): Interactive before/after workflow scenarios, 3-step visual blueprint, FAQ, and direct inquiry form.
+- [English Version — AI & Custom Tools](https://greyson.nl/en): Full English landing page for international & English-speaking teams.
 - [Automation Subdomain — Automate Friesland](https://automate.greyson.nl/): Dedicated AI & automation portal for regional companies in Friesland.
-- [Over mij & Contact](https://greyson.nl/over-mij): Personal mission story, visual working principles (mapped in plain language first, built in 1 day, practical & no lock-in contracts), and direct contact.
+- [Over mij & Contact (NL)](https://greyson.nl/over-mij): Personal mission story, visual working principles (mapped in plain language first, built in 1 day, practical & no lock-in contracts), and direct contact.
+- [About Me & Contact (EN)](https://greyson.nl/en/about): English About page and direct inquiry channel.
 - [Extended LLM Documentation](https://greyson.nl/llms-full.txt): Full bilingual Dutch and English breakdown of use cases, approach, and contact channels.
+- [Agentic Resource Discovery](https://greyson.nl/.well-known/ard.json): Machine-readable ARD manifest.
 
 ## Typical 1-Day Solutions
 
@@ -31,6 +34,6 @@ Greyson Beimers works alongside a full-time company role with business owners ac
 ## Direct Contact
 
 - **Founder**: Greyson Beimers
-- **Email**: grey.beimers@gmail.com
+- **Email**: info@greyson.nl
 - **LinkedIn**: https://www.linkedin.com/in/greyson-beimers-68749b1a1/
 - **Service Region**: Leeuwarden, Sneek, Heerenveen, Drachten, Harlingen, Franeker, Dokkum (Friesland, NL) & Amsterdam

@@ -2,12 +2,27 @@
 User-agent: *
 Allow: /
 Disallow: /dashboard
+Disallow: /*?site=dashboard*
 
 User-agent: Googlebot
 Allow: /
+Disallow: /dashboard
 
 User-agent: Bingbot
 Allow: /
+Disallow: /dashboard
+
+User-agent: DuckDuckBot
+Allow: /
+Disallow: /dashboard
+
+User-agent: Applebot
+Allow: /
+Disallow: /dashboard
+
+User-agent: Yandex
+Allow: /
+Disallow: /dashboard
 
 User-agent: OAI-SearchBot
 Allow: /
@@ -27,10 +42,8 @@ Allow: /
 User-agent: Google-Extended
 Allow: /
 
-User-agent: Applebot
-Allow: /
-
-# XML Sitemap & LLM Context Discovery
+# XML Sitemap & Machine-Readable Discovery
 Sitemap: https://greyson.nl/sitemap.xml
 # LLMs Context: https://greyson.nl/llms.txt
 # LLMs Full Reference: https://greyson.nl/llms-full.txt
+# ARD Manifest: https://greyson.nl/.well-known/ard.json

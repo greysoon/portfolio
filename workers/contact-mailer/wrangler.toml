@@ -1,0 +1,22 @@
+name = "greyson-contact-mailer"
+main = "src/index.ts"
+compatibility_date = "2026-11-01"
+
+[vars]
+RESEND_FROM_EMAIL = "Greyson Website <noreply@greyson.nl>"
+RESEND_TO_EMAIL = "info@greyson.nl"
+MAILER_ALLOWED_ORIGINS = "https://greyson.nl,https://www.greyson.nl,https://automate.greyson.nl,https://automation.greyson.nl"
+ALLOW_LOCALHOST = "false"
+RATE_LIMIT_PER_DAY = "3"
+GLOBAL_LIMIT_PER_DAY = "80"
+
+# Maak eerst een KV namespace aan met:
+#   npx wrangler kv namespace create RATE_LIMIT_KV
+# en vul het verkregen ID hieronder in (of koppel in het Cloudflare Dashboard):
+# [[kv_namespaces]]
+# binding = "RATE_LIMIT_KV"
+# id = "VERVANG_MET_KV_NAMESPACE_ID"
+
+# Zet de Resend API-key als encrypted secret (nooit in git!):
+#   npx wrangler secret put RESEND_API_KEY
+#   npx wrangler secret put RATE_LIMIT_SALT
