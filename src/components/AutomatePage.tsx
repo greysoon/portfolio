@@ -1521,7 +1521,21 @@ export const AutomatePage: React.FC<AutomatePageProps> = ({
                   <summary className="automate-faq-summary">
                     <span className="automate-faq-q">{item.question}</span>
                     <span className="automate-faq-icon" aria-hidden="true">
-                      +
+                      <svg
+                        className="automate-faq-icon-svg"
+                        viewBox="0 0 14 14"
+                        width="14"
+                        height="14"
+                        fill="none"
+                        focusable="false"
+                      >
+                        <path
+                          d="M7 2.5V11.5M2.5 7H11.5"
+                          stroke="currentColor"
+                          strokeWidth="2"
+                          strokeLinecap="round"
+                        />
+                      </svg>
                     </span>
                   </summary>
                   <div className="automate-faq-answer">

@@ -3329,10 +3329,11 @@ a.automate-brand:hover .automate-logo-mark,
   display: flex;
   flex-direction: column;
   gap: 14px;
-  max-width: 920px;
+  width: 100%;
 }
 
 .automate-faq-item {
+  width: 100%;
   background-color: #ffffff;
   border: 1px solid rgba(24, 25, 28, 0.12);
   border-radius: 14px;
@@ -3373,10 +3374,12 @@ a.automate-brand:hover .automate-logo-mark,
   border-radius: 50%;
   background-color: #fdf2f1;
   color: var(--red-accessible);
-  font-size: 1.2rem;
-  font-weight: 700;
-  line-height: 1;
+  transform-origin: center center;
   transition: transform 0.2s ease, background-color 0.2s ease, color 0.2s ease;
+}
+
+.automate-faq-icon-svg {
+  display: block;
 }
 
 .automate-faq-item[open] .automate-faq-icon {
@@ -3386,9 +3389,13 @@ a.automate-brand:hover .automate-logo-mark,
 }
 
 .automate-faq-answer {
-  padding: 0 22px 20px;
+  padding: 14px 22px 20px;
   border-top: 1px solid rgba(24, 25, 28, 0.07);
-  padding-top: 14px;
+}
+
+.automate-faq-answer .automate-prose {
+  max-width: 100%;
+  margin: 0;
 }
 
 .automate-reveal {
