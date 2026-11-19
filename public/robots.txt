@@ -16,6 +16,10 @@ User-agent: DuckDuckBot
 Allow: /
 Disallow: /dashboard
 
+User-agent: Slurp
+Allow: /
+Disallow: /dashboard
+
 User-agent: Applebot
 Allow: /
 Disallow: /dashboard
@@ -23,24 +27,31 @@ Disallow: /dashboard
 User-agent: Yandex
 Allow: /
 Disallow: /dashboard
+Clean-param: site&lang&utm_source&utm_medium&utm_campaign /
 
 User-agent: OAI-SearchBot
 Allow: /
+Disallow: /dashboard
 
 User-agent: ChatGPT-User
 Allow: /
+Disallow: /dashboard
 
 User-agent: GPTBot
 Allow: /
+Disallow: /dashboard
 
 User-agent: ClaudeBot
 Allow: /
+Disallow: /dashboard
 
 User-agent: PerplexityBot
 Allow: /
+Disallow: /dashboard
 
 User-agent: Google-Extended
 Allow: /
+Disallow: /dashboard
 
 # XML Sitemap & Machine-Readable Discovery
 Sitemap: https://greyson.nl/sitemap.xml

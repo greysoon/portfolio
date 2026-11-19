@@ -1,4 +1,6 @@
 import dns from 'node:dns/promises';
+import fs from 'node:fs';
+import path from 'node:path';
 import tls from 'node:tls';
 
 const LOOPBACK_IPS = new Set(['127.0.0.1', '::1', '::ffff:127.0.0.1']);
@@ -866,12 +868,84 @@ async function runPageSpeedAudit(body, env) {
   }
 }
 
-function attachMiddleware(middlewares, env) {
-  const posthogPersonalKey = String(env.POSTHOG_PERSONAL_API_KEY || '').trim();
-  const posthogProjectId = String(env.POSTHOG_PROJECT_ID || '').trim();
-  const posthogRegion = normalizeRegion(env.POSTHOG_REGION || env.VITE_POSTHOG_HOST || 'eu');
-  const hasPageSpeedKey = Boolean(String(env.GOOGLE_PAGESPEED_API_KEY || '').trim());
+function readFreshLocalEnv(baseEnv = {}) {
+  const merged = { ...baseEnv };
+  const cwd = process.cwd();
+  for (const filename of ['.env', '.env.local']) {
+    const filePath = path.join(cwd, filename);
+    try {
+      if (!fs.existsSync(filePath)) continue;
+      const raw = fs.readFileSync(filePath, 'utf8');
+      for (const line of raw.split(/\r?\n/)) {
+        const trimmed = line.trim();
+        if (!trimmed || trimmed.startsWith('#')) continue;
+        const eqIdx = trimmed.indexOf('=');
+        if (eqIdx <= 0) continue;
+        const key = trimmed.slice(0, eqIdx).trim();
+        let val = trimmed.slice(eqIdx + 1).trim();
+        if (
+          (val.startsWith('"') && val.endsWith('"')) ||
+          (val.startsWith("'") && val.endsWith("'"))
+        ) {
+          val = val.slice(1, -1);
+        }
+        if (key) {
+          merged[key] = val;
+        }
+      }
+    } catch {
+      // Ignore unreadable env files
+    }
+  }
+  return merged;
+}
 
+const resolvedProjectCache = new Map();
+
+async function resolvePostHogProjectId(personalKey, region, explicitProjectId, projectToken) {
+  const cleanExplicit = String(explicitProjectId || '').trim();
+  if (/^[a-zA-Z0-9_-]{1,32}$/.test(cleanExplicit)) {
+    return cleanExplicit;
+  }
+  if (!personalKey || !personalKey.startsWith('phx_')) {
+    return '';
+  }
+
+  const cacheKey = `${region}:${personalKey.slice(0, 12)}:${projectToken}`;
+  const cached = resolvedProjectCache.get(cacheKey);
+  if (cached) {
+    return cached;
+  }
+
+  const apiUrl = region === 'us' ? 'https://us.posthog.com' : 'https://eu.posthog.com';
+  try {
+    const res = await fetch(`${apiUrl}/api/projects/`, {
+      method: 'GET',
+      headers: {
+        Authorization: `Bearer ${personalKey}`,
+        Accept: 'application/json',
+      },
+      signal: AbortSignal.timeout(8000),
+    });
+    if (!res.ok) return '';
+    const data = await res.json();
+    const list = Array.isArray(data?.results) ? data.results : Array.isArray(data) ? data : [];
+    const byToken = projectToken
+      ? list.find((p) => p && String(p.api_token || '').trim() === projectToken)
+      : null;
+    const picked = byToken || (list.length === 1 ? list[0] : null);
+    const idStr = picked && picked.id !== undefined ? String(picked.id).trim() : '';
+    if (/^[a-zA-Z0-9_-]{1,32}$/.test(idStr)) {
+      resolvedProjectCache.set(cacheKey, idStr);
+      return idStr;
+    }
+  } catch {
+    // Ignore auto-resolve failure
+  }
+  return '';
+}
+
+function attachMiddleware(middlewares, baseEnv) {
   middlewares.use(async (req, res, next) => {
     const reqUrl = req.url || '';
     if (!reqUrl.startsWith('/__dashboard_api/')) {
@@ -884,16 +958,30 @@ function attachMiddleware(middlewares, env) {
       return;
     }
 
+    const env = readFreshLocalEnv(baseEnv);
+    const posthogPersonalKey = String(env.POSTHOG_PERSONAL_API_KEY || '').trim();
+    const posthogProjectToken = String(env.VITE_POSTHOG_PROJECT_TOKEN || '').trim();
+    const explicitProjectId = String(env.POSTHOG_PROJECT_ID || '').trim();
+    const posthogRegion = normalizeRegion(env.POSTHOG_REGION || env.VITE_POSTHOG_HOST || 'eu');
+    const hasPageSpeedKey = Boolean(String(env.GOOGLE_PAGESPEED_API_KEY || '').trim());
+
     const pathname = reqUrl.split('?')[0];
 
     try {
       if (pathname === '/__dashboard_api/config-status' && req.method === 'GET') {
+        const resolvedId = await resolvePostHogProjectId(
+          posthogPersonalKey,
+          posthogRegion,
+          explicitProjectId,
+          posthogProjectToken
+        );
         sendJson(res, 200, {
           ok: true,
           posthogEnvConfigured: Boolean(
-            posthogPersonalKey.startsWith('phx_') && /^[a-zA-Z0-9_-]{1,32}$/.test(posthogProjectId)
+            posthogPersonalKey.startsWith('phx_') && /^[a-zA-Z0-9_-]{1,32}$/.test(resolvedId)
           ),
-          posthogProjectId: /^[a-zA-Z0-9_-]{1,32}$/.test(posthogProjectId) ? posthogProjectId : '',
+          posthogKeyPresent: posthogPersonalKey.startsWith('phx_'),
+          posthogProjectId: resolvedId,
           posthogRegion,
           hasPageSpeedKey,
         });
@@ -929,11 +1017,19 @@ function attachMiddleware(middlewares, env) {
         }
         const body = await readJsonBody(req, 65_536);
         const query = typeof body?.query === 'string' ? body.query.trim() : '';
-        const targetProjectId =
+        const targetRegion = normalizeRegion(body?.region || posthogRegion);
+        const requestedProjectId =
           typeof body?.projectId === 'string' && /^[a-zA-Z0-9_-]{1,32}$/.test(body.projectId.trim())
             ? body.projectId.trim()
-            : posthogProjectId;
-        const targetRegion = normalizeRegion(body?.region || posthogRegion);
+            : '';
+        const targetProjectId =
+          requestedProjectId ||
+          (await resolvePostHogProjectId(
+            posthogPersonalKey,
+            targetRegion,
+            explicitProjectId,
+            posthogProjectToken
+          ));
 
         if (!query || !targetProjectId) {
           sendJson(res, 400, { ok: false, error: 'Missing query or Project ID.' });

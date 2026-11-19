@@ -249,8 +249,8 @@ check('Automate Styling & Routing', 'src/styles/automate.css, App.tsx routing, C
 
   const distSitemap = fs.readFileSync(path.join(distDir, 'sitemap.xml'), 'utf8');
   assert.ok(
-    distSitemap.includes('https://automate.greyson.nl/'),
-    'dist/sitemap.xml must include https://automate.greyson.nl/'
+    distSitemap.includes('https://greyson.nl/'),
+    'dist/sitemap.xml must include https://greyson.nl/'
   );
 });
 
@@ -311,13 +311,22 @@ check('Subdomain Routing & CV', 'App.tsx routes greyson.nl/automation to automat
   const distSitemap = fs.readFileSync(path.join(distDir, 'sitemap.xml'), 'utf8');
   for (const url of [
     'https://greyson.nl/',
+    'https://greyson.nl/en',
     'https://greyson.nl/over-mij',
+    'https://greyson.nl/en/about',
+  ]) {
+    assert.ok(distSitemap.includes(url), `Missing ${url} in dist/sitemap.xml`);
+  }
+  for (const brokenSubdomain of [
     'https://automation.greyson.nl/',
     'https://automate.greyson.nl/',
     'https://about.greyson.nl/',
     'https://cv.greyson.nl/',
   ]) {
-    assert.ok(distSitemap.includes(url), `Missing ${url} in dist/sitemap.xml`);
+    assert.ok(
+      !distSitemap.includes(brokenSubdomain),
+      `dist/sitemap.xml must stay same-host canonical and exclude ${brokenSubdomain}`
+    );
   }
 });
 
@@ -486,10 +495,11 @@ check('SEO & Prerendering', 'Prerendered HTML routes exist with route-specific c
   assert.ok(distHomeHtml.includes('<link rel="alternate" hreflang="x-default" href="https://greyson.nl/" />'), 'Missing x-default hreflang');
 });
 
-check('SEO Assets & ARD', 'Raster PNG OG/icon assets and valid /.well-known/ard.json exist in dist/', () => {
+check('SEO Assets & ARD', 'Optimized OG JPEGs (<300 kB), favicon.ico, PNG icons, geo meta & valid /.well-known/ard.json exist in dist/', () => {
   for (const asset of [
-    'og-image.png',
-    'og-image-en.png',
+    'og-image.jpg',
+    'og-image-en.jpg',
+    'favicon.ico',
     'apple-touch-icon.png',
     'icon-192.png',
     'icon-512.png',
@@ -500,6 +510,14 @@ check('SEO Assets & ARD', 'Raster PNG OG/icon assets and valid /.well-known/ard.
     assert.ok(fs.existsSync(fullPath), `Missing build asset: dist/${asset}`);
     assert.ok(fs.statSync(fullPath).size > 0, `Empty build asset: dist/${asset}`);
   }
+
+  for (const ogFile of ['og-image.jpg', 'og-image-en.jpg']) {
+    const size = fs.statSync(path.join(distDir, ogFile)).size;
+    assert.ok(size < 300_000, `dist/${ogFile} must be under 300 kB for WhatsApp/social preview compatibility (got ${size})`);
+  }
+
+  assert.ok(indexHtml.includes('name="geo.region" content="NL-FR"'), 'index.html missing geo.region NL-FR');
+  assert.ok(indexHtml.includes('href="/favicon.ico"'), 'index.html missing /favicon.ico link');
 
   const ardJson = JSON.parse(fs.readFileSync(path.join(distDir, '.well-known/ard.json'), 'utf8'));
   assert.ok(Array.isArray(ardJson.entries) && ardJson.entries.length >= 1, 'ard.json must contain entries array');

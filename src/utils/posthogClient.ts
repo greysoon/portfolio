@@ -235,6 +235,7 @@ export interface PostHogKeyVerificationResult {
 
 export interface DashboardEnvStatus {
   readonly posthogEnvConfigured: boolean;
+  readonly posthogKeyPresent: boolean;
   readonly posthogProjectId: string;
   readonly posthogRegion: PostHogRegion;
   readonly hasPageSpeedKey: boolean;
@@ -1418,6 +1419,7 @@ export function capturePostHogEvent(
 export async function fetchDashboardEnvStatus(): Promise<DashboardEnvStatus> {
   const fallback: DashboardEnvStatus = {
     posthogEnvConfigured: false,
+    posthogKeyPresent: false,
     posthogProjectId: '',
     posthogRegion: 'eu',
     hasPageSpeedKey: false,
@@ -1433,12 +1435,42 @@ export async function fetchDashboardEnvStatus(): Promise<DashboardEnvStatus> {
     const data = (await res.json()) as Partial<DashboardEnvStatus> & { ok?: boolean };
     return {
       posthogEnvConfigured: Boolean(data.posthogEnvConfigured),
+      posthogKeyPresent: Boolean(data.posthogKeyPresent),
       posthogProjectId: sanitizeProjectId(data.posthogProjectId),
       posthogRegion: normalizePostHogRegion(data.posthogRegion),
       hasPageSpeedKey: Boolean(data.hasPageSpeedKey),
     };
   } catch {
     return fallback;
+  }
+}
+
+async function resolvePostHogProjectIdClient(
+  endpoints: PostHogEndpoints,
+  personalApiKey: string,
+  projectToken: string
+): Promise<string> {
+  if (!personalApiKey.startsWith('phx_') || typeof fetch !== 'function') return '';
+  try {
+    const res = await fetch(`${endpoints.apiUrl}/api/projects/`, {
+      method: 'GET',
+      headers: {
+        Authorization: `Bearer ${personalApiKey}`,
+        Accept: 'application/json',
+      },
+    });
+    if (!res.ok) return '';
+    const data = (await res.json()) as {
+      results?: Array<{ id?: number | string; api_token?: string }>;
+    };
+    const list = Array.isArray(data?.results) ? data.results : Array.isArray(data) ? (data as Array<{ id?: number | string; api_token?: string }>) : [];
+    const byToken = projectToken
+      ? list.find((p) => p && String(p.api_token || '').trim() === projectToken)
+      : null;
+    const picked = byToken || (list.length === 1 ? list[0] : null);
+    return sanitizeProjectId(picked?.id !== undefined ? String(picked.id) : '');
+  } catch {
+    return '';
   }
 }
 
@@ -1520,7 +1552,7 @@ export async function verifyPostHogPersonalKey(
 ): Promise<PostHogKeyVerificationResult> {
   const safeRegion = normalizePostHogRegion(region);
   const cleanKey = sanitizeConfigToken(personalApiKey);
-  const cleanProjectId = sanitizeProjectId(projectId);
+  let cleanProjectId = sanitizeProjectId(projectId);
 
   if (!cleanKey || !cleanKey.startsWith('phx_')) {
     return {
@@ -1529,6 +1561,14 @@ export async function verifyPostHogPersonalKey(
       projectId: cleanProjectId,
       error: 'Enter a valid PostHog Personal API Key starting with phx_.',
     };
+  }
+
+  if (!cleanProjectId) {
+    cleanProjectId = await resolvePostHogProjectIdClient(
+      getPostHogEndpoints(safeRegion),
+      cleanKey,
+      getPostHogConfig().projectApiKey
+    );
   }
 
   if (!cleanProjectId) {
@@ -1748,7 +1788,10 @@ export async function fetchPostHogAnalytics(
   const personalApiKey = sanitizeConfigToken(
     configOverride?.personalApiKey ?? baseConfig.personalApiKey
   );
-  const projectId = sanitizeProjectId(configOverride?.projectId ?? baseConfig.projectId);
+  let projectId = sanitizeProjectId(configOverride?.projectId ?? baseConfig.projectId);
+  const projectApiKey = sanitizeConfigToken(
+    configOverride?.projectApiKey ?? baseConfig.projectApiKey
+  );
   const useServerEnv = Boolean(configOverride?.useServerEnv);
   const days: 7 | 30 | 90 =
     configOverride?.days === 7 ? 7 : configOverride?.days === 90 ? 90 : 30;
@@ -1805,6 +1848,14 @@ export async function fetchPostHogAnalytics(
 
   if (!useServerEnv && (!personalApiKey || !personalApiKey.startsWith('phx_'))) {
     return emptyResult('PostHog Personal API Key (phx_...) is required to query live analytics.');
+  }
+
+  if (!projectId && !useServerEnv && personalApiKey.startsWith('phx_')) {
+    projectId = await resolvePostHogProjectIdClient(
+      getPostHogEndpoints(region),
+      personalApiKey,
+      projectApiKey
+    );
   }
 
   if (!projectId) {

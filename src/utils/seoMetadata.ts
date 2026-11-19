@@ -45,7 +45,7 @@ function buildPersonNode(locale: AutomateLocale): Record<string, unknown> {
         ? 'Greyson Beimers helpt bedrijven in Friesland en Nederland door vastgeroeste bedrijfsprocessen visueel in kaart te brengen en binnen een middag of dag op te lossen met custom AI-tools.'
         : 'Greyson Beimers helps businesses in Friesland and the Netherlands map rusty workflows visually and ship custom AI tools in a single afternoon or day.',
     url: `${ORIGIN}/`,
-    image: `${ORIGIN}/og-image.png`,
+    image: `${ORIGIN}/og-image.jpg`,
     email: `mailto:${automateConfig.email}`,
     sameAs: [automateConfig.linkedinUrl],
     knowsAbout: [
@@ -102,7 +102,7 @@ function buildServiceNode(locale: AutomateLocale): Record<string, unknown> {
     '@id': `${ORIGIN}/#service`,
     name: 'Greyson Automation — AI & Custom Tools Friesland',
     url: `${ORIGIN}/`,
-    image: isNl ? `${ORIGIN}/og-image.png` : `${ORIGIN}/og-image-en.png`,
+    image: isNl ? `${ORIGIN}/og-image.jpg` : `${ORIGIN}/og-image-en.jpg`,
     logo: `${ORIGIN}/logo.svg`,
     email: `mailto:${automateConfig.email}`,
     priceRange: '€€',
@@ -188,7 +188,7 @@ export function getSeoMetadata(params: {
       ogLocale: 'en_US',
       ogLocaleAlternate: 'nl_NL',
       ogSiteName: 'Greyson Automation',
-      ogImage: `${ORIGIN}/og-image-en.png`,
+      ogImage: `${ORIGIN}/og-image-en.jpg`,
       ogImageAlt: 'Greyson Automation',
       twitterTitle: 'Analytics Dashboard — Greyson Automation',
       twitterDescription: 'Internal analytics console.',
@@ -222,7 +222,7 @@ export function getSeoMetadata(params: {
       ogLocale: 'en_US',
       ogLocaleAlternate: 'nl_NL',
       ogSiteName: 'Greyson Beimers',
-      ogImage: `${ORIGIN}/og-image-en.png`,
+      ogImage: `${ORIGIN}/og-image-en.jpg`,
       ogImageAlt: 'Greyson Beimers — Software Engineer & AI Automation Specialist',
       twitterTitle: title,
       twitterDescription: description,
@@ -274,7 +274,7 @@ export function getSeoMetadata(params: {
       ogLocale: isNl ? 'nl_NL' : 'en_US',
       ogLocaleAlternate: isNl ? 'en_US' : 'nl_NL',
       ogSiteName: 'Greyson Automation',
-      ogImage: isNl ? `${ORIGIN}/og-image.png` : `${ORIGIN}/og-image-en.png`,
+      ogImage: isNl ? `${ORIGIN}/og-image.jpg` : `${ORIGIN}/og-image-en.jpg`,
       ogImageAlt: isNl
         ? 'Greyson Beimers — AI & Custom Tools in 1 dag voor Friesland'
         : 'Greyson Beimers — AI & Custom Tools in 1 day for the Netherlands',
@@ -351,7 +351,7 @@ export function getSeoMetadata(params: {
     ogLocale: isNl ? 'nl_NL' : 'en_US',
     ogLocaleAlternate: isNl ? 'en_US' : 'nl_NL',
     ogSiteName: 'Greyson Automation',
-    ogImage: isNl ? `${ORIGIN}/og-image.png` : `${ORIGIN}/og-image-en.png`,
+    ogImage: isNl ? `${ORIGIN}/og-image.jpg` : `${ORIGIN}/og-image-en.jpg`,
     ogImageAlt: isNl
       ? 'Greyson — AI & Custom Tools in 1 middag of dag voor Friesland'
       : 'Greyson — AI & Custom Tools in 1 afternoon or day',
@@ -377,7 +377,7 @@ export function getSeoMetadata(params: {
           about: { '@id': `${ORIGIN}/#service` },
           primaryImageOfPage: {
             '@type': 'ImageObject',
-            url: isNl ? `${ORIGIN}/og-image.png` : `${ORIGIN}/og-image-en.png`,
+            url: isNl ? `${ORIGIN}/og-image.jpg` : `${ORIGIN}/og-image-en.jpg`,
             width: 1200,
             height: 630,
           },
@@ -468,6 +468,7 @@ export function applyDocumentSeoMetadata(params: {
   upsertMetaTag('property', 'og:locale', meta.ogLocale);
   upsertMetaTag('property', 'og:locale:alternate', meta.ogLocaleAlternate);
   upsertMetaTag('property', 'og:image', meta.ogImage);
+  upsertMetaTag('property', 'og:image:secure_url', meta.ogImage);
   upsertMetaTag('property', 'og:image:alt', meta.ogImageAlt);
 
   upsertMetaTag('name', 'twitter:title', meta.twitterTitle);

@@ -49,10 +49,8 @@ Alongside a regular company role where he sees firsthand how fast businesses can
 
 - Main Site (NL): https://greyson.nl/
 - English Main Site (EN): https://greyson.nl/en
-- Automation Portal: https://automate.greyson.nl/
 - About & Direct Contact Page (NL): https://greyson.nl/over-mij
 - About & Direct Contact Page (EN): https://greyson.nl/en/about
-- Portfolio / CV Mirror: https://cv.greyson.nl/ & https://about.greyson.nl/
 - ARD Discovery Manifest: https://greyson.nl/.well-known/ard.json
 - Direct Email: info@greyson.nl
 - LinkedIn: https://www.linkedin.com/in/greyson-beimers-68749b1a1/

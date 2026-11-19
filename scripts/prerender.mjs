@@ -145,6 +145,13 @@ function buildHeadAdjustedHtml(templateHtml, route, renderedHtml, seo, canonical
 
   html = replaceOrThrow(
     html,
+    /<meta property="og:image:secure_url" content="[^"]*" \/>/,
+    `<meta property="og:image:secure_url" content="${escapeHtmlAttr(seo.ogImage)}" />`,
+    'og:image:secure_url'
+  );
+
+  html = replaceOrThrow(
+    html,
     /<meta\s+property="og:image:alt"\s+content="[^"]*"\s*\/>/,
     `<meta property="og:image:alt" content="${escapeHtmlAttr(seo.ogImageAlt)}" />`,
     'og:image:alt'

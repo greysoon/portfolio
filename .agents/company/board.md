@@ -345,3 +345,22 @@
   - `node tests/verify-site.mjs`: `21 / 21 checks PASS`.
   - `node tests/security/red-team-audit.mjs`: `8 / 8 checks PASS` (`SEC-01`–`SEC-08`).
   - Live Browser & Network Check (`http://localhost:5173/`, `/?site=about`, `/dashboard`): Verified `0` public dashboard links, live `POST https://eu.i.posthog.com/capture/` (`200 OK`), and auto-unlocked local console with local `.env` PostHog token.
+
+---
+
+### Sprint 10 — Multi-Search-Engine SEO, Build-Time Static Prerendering, Core Web Vitals & Agentic Discovery
+
+- **Static Prerendering & Route Canonicalization (`src/entry-server.tsx`, `scripts/prerender.mjs`, `src/utils/seoMetadata.ts`, `src/main.tsx`, `src/App.tsx`, `package.json`)**:
+  - Added build-time Vite SSR prerendering (`npm run build` runs `tsc -b && vite build && node scripts/prerender.mjs`) producing complete semantic HTML in `dist/index.html`, `dist/over-mij/index.html`, `dist/about/index.html`, `dist/en/index.html`, and `dist/en/about/index.html` with matching smart `hydrateRoot` / `createRoot` mounting in `src/main.tsx`.
+  - Added dedicated `/en` and `/en/about` routes in `src/App.tsx` with true bilingual `hreflang` (`nl`, `en`, `x-default`), per-route `<link rel="canonical">`, OpenGraph, Twitter `summary_large_image`, and tailored Schema.org `@graph` JSON-LD (`Person`, `WebSite`, `ProfessionalService` + `OfferCatalog` + `PostalAddress` + `GeoCoordinates` + `priceRange`, `WebPage`/`AboutPage`/`ProfilePage`, `FAQPage`, `BreadcrumbList`).
+  - Added visible native `<details>`/`<summary>` FAQ section (`#veelgestelde-vragen`) in `src/components/AutomatePage.tsx` synced 1:1 with `FAQPage` JSON-LD, crawlable footer `<nav>` links across pages/languages, `#main` skip-link target across all views, and progressive `.automate-reveal` (`html.automate-motion-ready`) so crawlers never see `opacity: 0` below-the-fold copy.
+- **Social Images, PNG Icons, Sitemap & Agentic Discovery (`public/`, `index.html`)**:
+  - Generated crisp PNG assets: `public/og-image.png`, `public/og-image-en.png` (1200×630), `public/icon-512.png`, `public/icon-192.png`, `public/apple-touch-icon.png` (180×180), and `public/favicon-32x32.png`, wired into `index.html`, `src/utils/seoMetadata.ts`, and `public/manifest.webmanifest`.
+  - Added valid `public/.well-known/ard.json` (`<link rel="ard" href="/.well-known/ard.json" />`), `xhtml:link` `hreflang` entries in `public/sitemap.xml`, expanded bot directives in `public/robots.txt` (`Googlebot`, `Bingbot`, `DuckDuckBot`, `Applebot`, `Yandex`, `OAI-SearchBot`, `GPTBot`, `ClaudeBot`, `PerplexityBot`, `Google-Extended`), and updated `llms.txt` / `llms-full.txt` / `humans.txt`.
+- **Bundle & Core Web Vitals Optimization (`vite.config.ts`, `src/components/PortfolioView.tsx`, `src/utils/posthogClient.ts`)**:
+  - Lazy-loaded `PortfolioView` (isolating `antd`, `dayjs`, `three`, and `Inconsolata` font) and `AnalyticsDashboard` via `React.lazy`, deferred `posthog-js` + `posthog-recorder` loading to browser idle (and skipped for crawler UAs), and updated `vite.config.ts` (`target: 'es2022'` and functional `manualChunks`), removing `three`, `antd`, `posthog`, and `recorder` from the critical `greyson.nl` preload chain.
+- **Verification**:
+  - `npm run build` (`tsc -b && vite build && node scripts/prerender.mjs`): `PASS`.
+  - `node tests/verify-site.mjs`: `23 / 23 checks PASS`.
+  - `node tests/security/red-team-audit.mjs`: `8 / 8 checks PASS` (`SEC-01`–`SEC-08`).
+  - Chrome DevTools Lighthouse & Performance Trace (`vite preview`): `100 / 100` Accessibility, `100 / 100` Best Practices, `100 / 100` SEO, `100 / 100` Agentic Browsing across `/`, `/over-mij`, `/en`, and `/en/about` (`0` console warnings/errors; LCP `206 ms`, CLS `0.00`).

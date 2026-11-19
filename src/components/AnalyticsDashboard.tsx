@@ -40,7 +40,6 @@ interface AnalyticsDashboardProps {
   ) => void;
 }
 
-type DashboardTabId = 'bezoek' | 'vindbaarheid' | 'pagespeed' | 'stream';
 type TimeWindowDays = 7 | 30 | 90;
 
 const INPUT_BOUNDS = {
@@ -50,144 +49,117 @@ const INPUT_BOUNDS = {
   projectId: 32,
 } as const;
 
-const DASHBOARD_TABS: readonly {
-  id: DashboardTabId;
-  nl: string;
-  en: string;
-}[] = [
-  { id: 'bezoek', nl: 'Overzicht & Bezoek', en: 'Traffic & Performance' },
-  { id: 'vindbaarheid', nl: 'Vindbaarheid & SEO-Audit', en: 'Findability & Crawl Audit' },
-  { id: 'pagespeed', nl: 'PageSpeed & CrUX', en: 'PageSpeed & CrUX' },
-  { id: 'stream', nl: 'Bezoekers & Live Events', en: 'Visitors & Live Stream' },
-];
-
 const COPY = {
   nl: {
     brandLabel: 'GREYSON ANALYTICS',
-    homeLink: '← Home (greyson.nl)',
+    pageTitle: 'Website Overzicht — Bezoek & Vindbaarheid',
+    homeLink: '← Terug naar site',
     aboutLink: 'Over mij',
-    refreshAll: 'Vernieuw actuele data',
-    refreshing: 'Gegevens ophalen...',
+    refreshAll: 'Vernieuwen',
+    refreshing: 'Laden...',
+    settingsBtn: 'Koppelingen (.env)',
     signOut: 'Uitloggen',
-    settingsToggle: 'Koppelingen & API-sleutels',
     periodLabel: 'Periode',
-    daysUnit: 'dagen',
-    excludeLocalLabel: 'Filter localhost & /dashboard uit (alleen echte bezoekers)',
-    livePosthogBadge: (region: string, days: number) =>
+    daysUnit: 'd',
+    excludeLocalLabel: 'Alleen echte bezoekers (filter localhost)',
+    posthogConnected: (region: string, days: number) =>
       `PostHog Live (${region.toUpperCase()} · ${days}d)`,
-    posthogPendingBadge: 'PostHog nog niet gekoppeld',
-    scopeProdBadge: 'Alleen productiebezoek',
-    scopeAllBadge: 'Inclusief lokaal testverkeer',
-    siteAuditBadge: (okCount: number, total: number) =>
-      `Live site-check: ${okCount}/${total} indexeerbaar`,
-    connectHeading: 'Koppel PostHog Cloud voor actuele bezoekersdata',
-    connectBody:
-      'Dit dashboard toont uitsluitend echte metingen — geen lokale sessie-fallback of testdata. Vul je Project ID en sessiegebonden Personal API Key (phx_...) in, of voeg POSTHOG_PROJECT_ID en POSTHOG_PERSONAL_API_KEY lokaal toe aan .env.',
-    openSettingsBtn: 'Open PostHog-koppeling',
-    envActiveNote:
-      'Server-side .env PostHog-sleutel actief op localhost (sleutel verlaat Node niet).',
-    fetchPostHogBtn: 'PostHog verversen',
-    saveConfigBtn: 'Instellingen opslaan',
-    disconnectBtn: 'Sessie-sleutels wissen',
+    posthogMissing: 'PostHog: vul sleutel in .env in',
+    siteCheckBadge: (okCount: number, total: number) =>
+      `Vindbaarheid: ${okCount}/${total} URL’s OK`,
+    psiBadgeOk: (seo: number | null, perf: number | null) =>
+      `PageSpeed: ${seo ?? '—'} SEO · ${perf ?? '—'} Perf`,
+    psiBadgePending: 'PageSpeed: wachtend / quota',
+    connectBannerPrefix:
+      'PostHog bezoekcijfers zijn nog niet gekoppeld. Vul',
+    connectBannerSuffix:
+      'in .env in (Project ID wordt automatisch herkend) en klik op Vernieuwen, of',
+    connectBannerBtn: 'Sleutel tijdelijk invoeren',
     kpiVisitors: 'Unieke bezoekers',
-    kpiPageviews: 'Paginaweergaves',
-    kpiSessions: 'Sessies & Gem. duur',
-    kpiBounce: 'Bouncepercentage',
-    kpiConversions: 'Leads & Contactacties',
+    kpiLeads: 'Leads & Contactacties',
     kpiSearchAi: 'Gevonden via Zoek / AI',
-    trendHeading: 'Dagelijks bezoek & paginaweergaves (PostHog)',
-    trendSub: 'Alleen echte gemeten dagen binnen de gekozen periode.',
-    topPagesHeading: 'Meest bezochte pagina’s',
-    subdomainsHeading: 'Subdomeinen',
-    interactionsHeading: 'Interacties & taalvoorkeur',
-    webVitalsHeading: 'Echte Web Vitals uit PostHog ($web_vitals)',
-    webVitalsEmpty:
-      'Nog geen $web_vitals-metingen ontvangen in PostHog voor deze periode. De live website stuurt nu automatisch LCP, FCP, INP en CLS mee bij echte bezoeken.',
-    geoDevicesHeading: 'Locaties & apparaten',
-    channelsHeading: 'Hoe mensen de website vinden (PostHog kanalen)',
-    referrersHeading: 'Verwijzende domeinen & UTM-bronnen',
-    landingHeading: 'Landingspagina’s (eerste pagina bij binnenkomst)',
-    siteAuditHeading: 'Live Indexeerbaarheid & Bereikbaarheid (greyson.nl)',
-    siteAuditSub:
-      'Rechtstreekse HTTP-, TLS-certificaat- en HTML-metacheck vanaf localhost naar de live productie-URL’s.',
-    crawlersHeading: 'Zoekmachines & AI-crawlers (robots.txt, sitemap.xml & llms.txt)',
-    dnsRdapHeading: 'DNS-records, SIDN RDAP & Wayback Machine',
-    pageSpeedHeading: 'Google PageSpeed Insights & Chrome UX Report (CrUX)',
-    pageSpeedRun: 'Live PageSpeed meting uitvoeren',
-    pageSpeedRunning: 'Lighthouse analyse draait (~15s)...',
-    visitorsHeading: 'Bezoekersprofielen (PostHog)',
-    eventsHeading: 'Recente events (PostHog Live Stream)',
-    noData: 'Geen metingen in deze periode.',
+    kpiReachable: 'Live Bereikbaarheid',
+    kpiPageSpeed: 'Google SEO & Snelheid',
+    sectionTrafficTitle: '1. Hoe presteert de website qua bezoek?',
+    sectionTrafficSub: 'Rechtstreekse cijfers uit PostHog Cloud voor de gekozen periode.',
+    sectionFindabilityTitle: '2. Kunnen mensen de website vinden?',
+    sectionFindabilitySub:
+      'Herkomst van bezoekers (PostHog) gecombineerd met live HTTP-, TLS-, SEO- en DNS-controles.',
+    trendTitle: 'Bezoekers & paginaweergaves per dag',
+    topPagesTitle: 'Populairste pagina’s',
+    vitalsTitle: 'Snelheid echte bezoekers ($web_vitals)',
+    vitalsEmpty:
+      'Nog geen $web_vitals events in PostHog binnen deze periode.',
+    behaviorTitle: 'Interacties, apparaten & taal',
+    channelsTitle: 'Waar komen bezoekers vandaan?',
+    referrersTitle: 'Top bronnen & landingspagina’s',
+    liveUrlsTitle: 'Live controle per URL (greyson.nl)',
+    crawlersTitle: 'Zoekmachines, AI-bots & Domein',
+    visitorsHeading: 'Recente bezoekers (PostHog)',
+    eventsHeading: 'Recente acties (Live stream)',
+    noPosthogData: 'Koppel PostHog om actuele bezoekersdata te zien.',
+    noMeasurements: 'Nog geen metingen in deze periode.',
     channels: {
-      organic_search: 'Organisch zoeken (Google / Bing / DDG)',
-      ai_search: 'AI-zoekmachines (ChatGPT / Perplexity / Claude)',
+      organic_search: 'Google / Bing / Zoekmachines',
+      ai_search: 'AI-zoekmachines (ChatGPT / Perplexity)',
       social: 'Social media (LinkedIn / X)',
-      referral: 'Verwijzingen & overige links',
-      direct: 'Direct / ingetypt / onbekend',
+      referral: 'Verwijzende websites',
+      direct: 'Direct / ingetypt',
     } as Record<AcquisitionChannelKey, string>,
   },
   en: {
     brandLabel: 'GREYSON ANALYTICS',
-    homeLink: '← Home (greyson.nl)',
+    pageTitle: 'Website Overview — Traffic & Findability',
+    homeLink: '← Back to site',
     aboutLink: 'About me',
-    refreshAll: 'Refresh live data',
-    refreshing: 'Fetching live data...',
+    refreshAll: 'Refresh',
+    refreshing: 'Loading...',
+    settingsBtn: 'Connections (.env)',
     signOut: 'Sign Out',
-    settingsToggle: 'Connections & API Keys',
     periodLabel: 'Range',
-    daysUnit: 'days',
-    excludeLocalLabel: 'Exclude localhost & /dashboard (production visitors only)',
-    livePosthogBadge: (region: string, days: number) =>
+    daysUnit: 'd',
+    excludeLocalLabel: 'Production visitors only (exclude localhost)',
+    posthogConnected: (region: string, days: number) =>
       `PostHog Live (${region.toUpperCase()} · ${days}d)`,
-    posthogPendingBadge: 'PostHog not connected',
-    scopeProdBadge: 'Production traffic only',
-    scopeAllBadge: 'Including localhost traffic',
-    siteAuditBadge: (okCount: number, total: number) =>
-      `Live site audit: ${okCount}/${total} indexable`,
-    connectHeading: 'Connect PostHog Cloud for live visitor analytics',
-    connectBody:
-      'This dashboard uses strictly live data — zero local session fallback or mock metrics. Enter your Project ID and session-scoped Personal API Key (phx_...), or add POSTHOG_PROJECT_ID and POSTHOG_PERSONAL_API_KEY to .env locally.',
-    openSettingsBtn: 'Configure PostHog',
-    envActiveNote:
-      'Server-side .env PostHog credentials active on localhost (secret stays in Node).',
-    fetchPostHogBtn: 'Refresh PostHog',
-    saveConfigBtn: 'Save Config',
-    disconnectBtn: 'Clear session keys',
+    posthogMissing: 'PostHog: add key to .env',
+    siteCheckBadge: (okCount: number, total: number) =>
+      `Findability: ${okCount}/${total} URLs OK`,
+    psiBadgeOk: (seo: number | null, perf: number | null) =>
+      `PageSpeed: ${seo ?? '—'} SEO · ${perf ?? '—'} Perf`,
+    psiBadgePending: 'PageSpeed: pending / quota',
+    connectBannerPrefix: 'PostHog visitor metrics are not connected yet. Add',
+    connectBannerSuffix:
+      'to .env (Project ID auto-resolves) and click Refresh, or',
+    connectBannerBtn: 'Enter session key',
     kpiVisitors: 'Unique Visitors',
-    kpiPageviews: 'Pageviews',
-    kpiSessions: 'Sessions & Avg Duration',
-    kpiBounce: 'Bounce Rate',
-    kpiConversions: 'Leads & Contact Clicks',
+    kpiLeads: 'Leads & Contact Clicks',
     kpiSearchAi: 'Found via Search / AI',
-    trendHeading: 'Daily Visitors & Pageviews (PostHog)',
-    trendSub: 'Actual measured daily counts for the selected time window.',
-    topPagesHeading: 'Top Pages',
-    subdomainsHeading: 'Subdomain Traffic Breakdown',
-    interactionsHeading: 'Interactions & Languages',
-    webVitalsHeading: 'Real-User Web Vitals from PostHog ($web_vitals)',
-    webVitalsEmpty:
-      'No $web_vitals events recorded in PostHog for this period yet. Live visits now emit LCP, FCP, INP, and CLS automatically.',
-    geoDevicesHeading: 'Locations & Devices',
-    channelsHeading: 'How Visitors Find the Website (PostHog Channels)',
-    referrersHeading: 'Referring Domains & UTM Sources',
-    landingHeading: 'Landing Pages (Entry URLs)',
-    siteAuditHeading: 'Live Indexability & Reachability (greyson.nl)',
-    siteAuditSub:
-      'Direct HTTP status, TLS certificate, and HTML SEO metadata probe against live production URLs.',
-    crawlersHeading: 'Search & AI Crawlers (robots.txt, sitemap.xml & llms.txt)',
-    dnsRdapHeading: 'DNS Records, SIDN RDAP & Wayback Machine',
-    pageSpeedHeading: 'Google PageSpeed Insights & Chrome UX Report (CrUX)',
-    pageSpeedRun: 'Run Live PageSpeed Audit',
-    pageSpeedRunning: 'Running Lighthouse (~15s)...',
+    kpiReachable: 'Live Reachability',
+    kpiPageSpeed: 'Google SEO & Speed',
+    sectionTrafficTitle: '1. How does the website perform on visits?',
+    sectionTrafficSub: 'Live measurements directly from PostHog Cloud.',
+    sectionFindabilityTitle: '2. Can people find the website?',
+    sectionFindabilitySub:
+      'Visitor acquisition sources (PostHog) combined with live HTTP, TLS, SEO, and DNS audits.',
+    trendTitle: 'Daily visitors & pageviews',
+    topPagesTitle: 'Top pages',
+    vitalsTitle: 'Real-user Web Vitals ($web_vitals)',
+    vitalsEmpty: 'No $web_vitals events recorded in PostHog in this window yet.',
+    behaviorTitle: 'Interactions, devices & language',
+    channelsTitle: 'Where do visitors come from?',
+    referrersTitle: 'Top sources & landing pages',
+    liveUrlsTitle: 'Live check per URL (greyson.nl)',
+    crawlersTitle: 'Search engines, AI bots & Domain',
     visitorsHeading: 'Who Is Visiting',
     eventsHeading: 'What They Do (Live Stream)',
-    noData: 'No recorded measurements in this window.',
+    noPosthogData: 'Connect PostHog to view live visitor metrics.',
+    noMeasurements: 'No recorded measurements in this window.',
     channels: {
-      organic_search: 'Organic Search (Google / Bing / DDG)',
-      ai_search: 'AI Search (ChatGPT / Perplexity / Claude)',
+      organic_search: 'Organic Search (Google / Bing)',
+      ai_search: 'AI Search (ChatGPT / Perplexity)',
       social: 'Social Media (LinkedIn / X)',
       referral: 'Referral Links',
-      direct: 'Direct / Typed / Unknown',
+      direct: 'Direct / Typed',
     } as Record<AcquisitionChannelKey, string>,
   },
 } as const;
@@ -211,7 +183,7 @@ function formatCls(value: number | null | undefined): string {
 }
 
 function rateVitalStatus(
-  metric: 'LCP' | 'FCP' | 'INP' | 'CLS' | 'TTFB',
+  metric: 'LCP' | 'FCP' | 'INP' | 'CLS',
   value: number | null | undefined
 ): 'good' | 'warn' | 'poor' | 'none' {
   if (typeof value !== 'number' || !Number.isFinite(value)) return 'none';
@@ -224,8 +196,6 @@ function rateVitalStatus(
       return value <= 200 ? 'good' : value <= 500 ? 'warn' : 'poor';
     case 'CLS':
       return value <= 0.1 ? 'good' : value <= 0.25 ? 'warn' : 'poor';
-    case 'TTFB':
-      return value <= 800 ? 'good' : value <= 1800 ? 'warn' : 'poor';
   }
 }
 
@@ -273,14 +243,14 @@ function formatEventProperties(
       entries.push(`${key}=${String(props[key])}`);
       seen.add(key);
     }
-    if (entries.length >= 4) break;
+    if (entries.length >= 3) break;
   }
 
-  if (entries.length < 4) {
+  if (entries.length < 3) {
     for (const [key, val] of Object.entries(props)) {
       if (seen.has(key) || val === '') continue;
       entries.push(`${key}=${String(val)}`);
-      if (entries.length >= 4) break;
+      if (entries.length >= 3) break;
     }
   }
 
@@ -314,7 +284,7 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({
     'passphrase'
   );
 
-  // Owner passphrase login state
+  // Owner login state (non-local only)
   const [ownerEmail, setOwnerEmail] = useState<string>(OWNER_EMAIL);
   const [passphrase, setPassphrase] = useState<string>('');
   const [lockedUntil, setLockedUntil] = useState<number | null>(
@@ -324,7 +294,7 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({
   const [authError, setAuthError] = useState<string>('');
   const [authBusy, setAuthBusy] = useState<boolean>(false);
 
-  // PostHog Cloud & Google PageSpeed credentials state (no local fallback!)
+  // PostHog Cloud & Google PageSpeed credentials state
   const [region, setRegion] = useState<PostHogRegion>(initialConfig.region);
   const [projectApiKey, setProjectApiKey] = useState<string>(
     initialConfig.projectApiKey
@@ -341,14 +311,13 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({
 
   const [envStatus, setEnvStatus] = useState<DashboardEnvStatus>({
     posthogEnvConfigured: false,
+    posthogKeyPresent: false,
     posthogProjectId: '',
     posthogRegion: 'eu',
     hasPageSpeedKey: false,
   });
-  const [settingsOpen, setSettingsOpen] = useState<boolean>(false);
 
-  // Query filter & tab state
-  const [activeTab, setActiveTab] = useState<DashboardTabId>('bezoek');
+  // Query filter state
   const [daysWindow, setDaysWindow] = useState<TimeWindowDays>(30);
   const [excludeLocal, setExcludeLocal] = useState<boolean>(true);
 
@@ -356,8 +325,8 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({
   const [liveAnalytics, setLiveAnalytics] =
     useState<PostHogAnalyticsResult | null>(null);
   const [posthogBusy, setPosthogBusy] = useState<boolean>(false);
-  const [posthogStatusMsg, setPosthogStatusMsg] = useState<string>('');
   const [posthogError, setPosthogError] = useState<string>('');
+  const [settingsFeedback, setSettingsFeedback] = useState<string>('');
 
   // Live external tools state
   const [siteAudit, setSiteAudit] = useState<SiteAuditResult | null>(null);
@@ -375,14 +344,9 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({
     useState<PageSpeedResult | null>(null);
   const [pageSpeedBusy, setPageSpeedBusy] = useState<boolean>(false);
 
-  const tabRefs = useRef<Record<DashboardTabId, HTMLButtonElement | null>>({
-    bezoek: null,
-    vindbaarheid: null,
-    pagespeed: null,
-    stream: null,
-  });
-  const initialExternalBooted = useRef(false);
-  const initialPsiBooted = useRef(false);
+  const settingsDialogRef = useRef<HTMLDialogElement | null>(null);
+  const pointerDownOutsideDialog = useRef(false);
+  const initialBootRan = useRef(false);
   const uid = useId().replace(/:/g, '');
 
   const isGreysonProd =
@@ -414,6 +378,31 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({
     return () => window.clearInterval(timer);
   }, [lockedUntil]);
 
+  const openSettingsDialog = () => {
+    setSettingsFeedback('');
+    const dialog = settingsDialogRef.current;
+    if (dialog && !dialog.open) {
+      dialog.showModal();
+    }
+  };
+
+  const closeSettingsDialog = () => {
+    const dialog = settingsDialogRef.current;
+    if (dialog && dialog.open) {
+      dialog.close('');
+    }
+  };
+
+  useEffect(() => {
+    const dialog = settingsDialogRef.current;
+    if (!dialog) return;
+    const handleClose = () => {
+      dialog.returnValue = '';
+    };
+    dialog.addEventListener('close', handleClose);
+    return () => dialog.removeEventListener('close', handleClose);
+  }, [unlocked]);
+
   const runPostHogFetch = useCallback(
     async (opts?: {
       region?: PostHogRegion;
@@ -423,24 +412,26 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({
       days?: TimeWindowDays;
       excludeLocal?: boolean;
       useServerEnv?: boolean;
+      freshStatus?: DashboardEnvStatus;
     }) => {
-      const useServer = Boolean(opts?.useServerEnv ?? envStatus.posthogEnvConfigured);
-      const targetRegion = opts?.region ?? (useServer && !projectId ? envStatus.posthogRegion : region);
+      const status = opts?.freshStatus ?? envStatus;
+      const useServer = Boolean(opts?.useServerEnv ?? status.posthogEnvConfigured);
+      const targetRegion =
+        opts?.region ?? (useServer && !projectId ? status.posthogRegion : region);
       const targetProjectId =
-        opts?.projectId ?? (projectId || envStatus.posthogProjectId);
+        opts?.projectId ?? (projectId || status.posthogProjectId);
       const targetPersonalKey = opts?.personalApiKey ?? personalApiKey;
       const targetDays = opts?.days ?? daysWindow;
       const targetExcludeLocal = opts?.excludeLocal ?? excludeLocal;
 
-      const hasSessionCreds =
-        Boolean(targetPersonalKey && targetPersonalKey.startsWith('phx_')) &&
-        Boolean(targetProjectId);
+      const hasSessionKey = Boolean(
+        targetPersonalKey && targetPersonalKey.startsWith('phx_')
+      );
       const canUseServer = useServer && Boolean(targetProjectId);
 
-      if (!hasSessionCreds && !canUseServer) {
+      if (!hasSessionKey && !canUseServer) {
         setLiveAnalytics(null);
-        setSettingsOpen(true);
-        return;
+        return false;
       }
 
       const nextCfg = savePostHogConfig({
@@ -452,41 +443,36 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({
 
       setPosthogBusy(true);
       setPosthogError('');
-      setPosthogStatusMsg('');
 
       const result = await fetchPostHogAnalytics({
         ...nextCfg,
         days: targetDays,
         excludeLocal: targetExcludeLocal,
-        useServerEnv: canUseServer && !hasSessionCreds,
+        useServerEnv: canUseServer && !hasSessionKey,
       });
 
       setPosthogBusy(false);
 
       if (result.ok) {
         setLiveAnalytics(result);
-        setPosthogStatusMsg(
-          lang === 'nl'
-            ? `Actuele PostHog Cloud data geladen (${result.region.toUpperCase()} project ${result.projectId}, laatste ${result.days} dagen).`
-            : `Synced live PostHog Cloud data (${result.region.toUpperCase()} project ${result.projectId}, last ${result.days}d).`
-        );
-      } else {
-        setPosthogError(
-          result.error || 'Unable to fetch live PostHog analytics.'
-        );
+        if (!projectId && result.projectId) {
+          setProjectId(result.projectId);
+        }
+        return true;
       }
+      setPosthogError(
+        result.error || 'Unable to fetch live PostHog analytics.'
+      );
+      return false;
     },
     [
-      envStatus.posthogEnvConfigured,
-      envStatus.posthogProjectId,
-      envStatus.posthogRegion,
+      envStatus,
       region,
       projectId,
       personalApiKey,
       projectApiKey,
       daysWindow,
       excludeLocal,
-      lang,
     ]
   );
 
@@ -521,15 +507,13 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({
     [psiTargetUrl, psiStrategy, pageSpeedApiKey]
   );
 
-  // Boot live probes + PostHog auto-fetch on dashboard unlock
+  // Boot all live data sources immediately in parallel on dashboard load
   useEffect(() => {
-    if (!unlocked) return;
-
-    let cancelled = false;
+    if (!unlocked || initialBootRan.current) return;
+    initialBootRan.current = true;
 
     const boot = async () => {
       const status = await fetchDashboardEnvStatus();
-      if (cancelled) return;
       setEnvStatus(status);
 
       const resolvedProjectId = projectId || status.posthogProjectId;
@@ -539,50 +523,55 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({
         setRegion(status.posthogRegion);
       }
 
-      const hasSessionKey = Boolean(personalApiKey && personalApiKey.startsWith('phx_'));
-      if (hasSessionKey && resolvedProjectId) {
+      const hasSessionKey = Boolean(
+        personalApiKey && personalApiKey.startsWith('phx_')
+      );
+      if (hasSessionKey) {
         void runPostHogFetch({
           region: resolvedRegion,
           projectId: resolvedProjectId,
           personalApiKey,
           useServerEnv: false,
+          freshStatus: status,
         });
-      } else if (status.posthogEnvConfigured && resolvedProjectId) {
+      } else if (status.posthogEnvConfigured) {
         void runPostHogFetch({
           region: status.posthogRegion,
           projectId: resolvedProjectId,
           useServerEnv: true,
+          freshStatus: status,
         });
-      } else {
-        setSettingsOpen(true);
       }
 
-      if (!initialExternalBooted.current) {
-        initialExternalBooted.current = true;
-        void runExternalProbes();
-      }
+      void runExternalProbes();
+      void runPageSpeedProbe(psiTargetUrl, psiStrategy);
     };
 
     void boot();
-    return () => {
-      cancelled = true;
-    };
-    // Run once when unlocked transitions to true
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [unlocked]);
-
-  // Auto-run PageSpeed once when opening the PageSpeed tab
-  useEffect(() => {
-    if (!unlocked || activeTab !== 'pagespeed' || initialPsiBooted.current) return;
-    initialPsiBooted.current = true;
-    void runPageSpeedProbe(psiTargetUrl, psiStrategy);
-  }, [unlocked, activeTab, psiTargetUrl, psiStrategy, runPageSpeedProbe]);
+  }, [
+    unlocked,
+    projectId,
+    region,
+    personalApiKey,
+    psiTargetUrl,
+    psiStrategy,
+    runPostHogFetch,
+    runExternalProbes,
+    runPageSpeedProbe,
+  ]);
 
   const handleRefreshAll = async () => {
+    const status = await fetchDashboardEnvStatus();
+    setEnvStatus(status);
+    if (!projectId && status.posthogProjectId) {
+      setProjectId(status.posthogProjectId);
+      setRegion(status.posthogRegion);
+    }
+
     await Promise.all([
-      runPostHogFetch(),
+      runPostHogFetch({ freshStatus: status }),
       runExternalProbes(),
-      activeTab === 'pagespeed' ? runPageSpeedProbe() : Promise.resolve(),
+      runPageSpeedProbe(psiTargetUrl, psiStrategy),
     ]);
   };
 
@@ -643,6 +632,7 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({
         projectId: result.projectId,
         projectApiKey,
       });
+      setProjectId(result.projectId);
       setAuthMethod('posthog_key');
       setUnlocked(true);
       trackInteraction('dashboard_auth', { method: 'posthog_key', ok: true });
@@ -665,6 +655,7 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({
     e: React.FormEvent<HTMLFormElement>
   ) => {
     e.preventDefault();
+    setSettingsFeedback('');
     const saved = savePostHogConfig({
       region,
       projectApiKey,
@@ -677,12 +668,30 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({
     setPersonalApiKey(saved.personalApiKey);
     setProjectId(saved.projectId);
     setPageSpeedApiKey(savedPsi);
-    await runPostHogFetch({
+
+    const status = await fetchDashboardEnvStatus();
+    setEnvStatus(status);
+    const ok = await runPostHogFetch({
       region: saved.region,
       projectApiKey: saved.projectApiKey,
       personalApiKey: saved.personalApiKey,
-      projectId: saved.projectId,
+      projectId: saved.projectId || status.posthogProjectId,
+      freshStatus: status,
     });
+
+    if (savedPsi || status.hasPageSpeedKey) {
+      void runPageSpeedProbe(psiTargetUrl, psiStrategy, savedPsi);
+    }
+
+    if (ok) {
+      closeSettingsDialog();
+    } else {
+      setSettingsFeedback(
+        lang === 'nl'
+          ? 'Instellingen opgeslagen in deze tab-sessie.'
+          : 'Settings saved for this tab session.'
+      );
+    }
   };
 
   const handleClearSessionKeys = () => {
@@ -699,10 +708,10 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({
     if (!envStatus.posthogEnvConfigured) {
       setLiveAnalytics(null);
     }
-    setPosthogStatusMsg(
+    setSettingsFeedback(
       lang === 'nl'
-        ? 'Sessiegebonden API-sleutels gewist uit sessionStorage.'
-        : 'Session API keys cleared from sessionStorage.'
+        ? 'Sessiegebonden sleutels gewist uit sessionStorage.'
+        : 'Session keys cleared from sessionStorage.'
     );
   };
 
@@ -714,7 +723,6 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({
     setPersonalApiKey('');
     setPageSpeedApiKey('');
     setLiveAnalytics(null);
-    setPosthogStatusMsg('');
     setPosthogError('');
     setAuthError('');
     trackInteraction('dashboard_sign_out');
@@ -734,36 +742,6 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({
     ) {
       e.preventDefault();
       onNavigate(view);
-    }
-  };
-
-  const selectTab = (nextId: DashboardTabId) => {
-    setActiveTab(nextId);
-    const el = tabRefs.current[nextId];
-    if (el && typeof el.scrollIntoView === 'function') {
-      el.scrollIntoView({ block: 'nearest', inline: 'nearest' });
-    }
-  };
-
-  const handleTabKeyDown = (
-    e: React.KeyboardEvent<HTMLButtonElement>,
-    index: number
-  ) => {
-    let nextIdx = -1;
-    if (e.key === 'ArrowRight') {
-      nextIdx = (index + 1) % DASHBOARD_TABS.length;
-    } else if (e.key === 'ArrowLeft') {
-      nextIdx = (index - 1 + DASHBOARD_TABS.length) % DASHBOARD_TABS.length;
-    } else if (e.key === 'Home') {
-      nextIdx = 0;
-    } else if (e.key === 'End') {
-      nextIdx = DASHBOARD_TABS.length - 1;
-    }
-    if (nextIdx !== -1) {
-      e.preventDefault();
-      const targetTab = DASHBOARD_TABS[nextIdx];
-      selectTab(targetTab.id);
-      tabRefs.current[targetTab.id]?.focus();
     }
   };
 
@@ -888,7 +866,9 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({
                   </div>
 
                   <div className="automate-field">
-                    <label htmlFor="dash-login-project-id">Project ID</label>
+                    <label htmlFor="dash-login-project-id">
+                      Project ID (optional)
+                    </label>
                     <input
                       id="dash-login-project-id"
                       name="projectId"
@@ -901,7 +881,7 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({
                       maxLength={INPUT_BOUNDS.projectId}
                       value={projectId}
                       onChange={(e) => setProjectId(e.target.value)}
-                      placeholder="e.g. 12345"
+                      placeholder="Auto-detected from phx_"
                     />
                   </div>
                 </div>
@@ -978,489 +958,343 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({
       )
     : 1;
 
+  const maxTopPageViews = phLive
+    ? Math.max(1, ...phLive.topPages.map((p) => p.pageviews))
+    : 1;
+
+  const allowedBotsCount =
+    siteAudit?.ok && siteAudit.robots
+      ? siteAudit.robots.botAccess.filter((b) => b.allowed).length
+      : 0;
+  const totalBotsCount =
+    siteAudit?.ok && siteAudit.robots ? siteAudit.robots.botAccess.length : 0;
+
   return (
     <div className="dashboard-root">
       <div className="dashboard-container">
-        {/* Header */}
-        <header className="dashboard-header">
-          <div>
-            <span className="automate-brand">
-              <BrandLogo label={t.brandLabel} />
-            </span>
-            <h1 className="dashboard-page-title">
-              {lang === 'nl'
-                ? 'Live Bezoek- & Vindbaarheidsdashboard'
-                : 'Live Traffic & Findability Dashboard'}
-            </h1>
-            <div className="dashboard-badge-row">
-              <span
-                className={`dashboard-badge ${
-                  phLive ? 'dashboard-badge-live' : 'dashboard-badge-warn'
-                }`}
-              >
-                {phLive
-                  ? t.livePosthogBadge(phLive.region, phLive.days)
-                  : t.posthogPendingBadge}
+        {/* Compact Header + Global Filter Controls */}
+        <header className="dashboard-header dashboard-header--compact">
+          <div className="dashboard-header-top">
+            <div className="dashboard-brand-block">
+              <span className="automate-brand">
+                <BrandLogo label={t.brandLabel} />
               </span>
-              <span className="dashboard-badge">
-                {excludeLocal ? t.scopeProdBadge : t.scopeAllBadge}
-              </span>
-              {siteAudit?.ok && (
+              <h1 className="dashboard-page-title">{t.pageTitle}</h1>
+              <div className="dashboard-badge-row">
                 <span
                   className={`dashboard-badge ${
-                    siteIndexableCount === siteTotalCount
-                      ? 'dashboard-badge-live'
-                      : 'dashboard-badge-warn'
+                    phLive ? 'dashboard-badge-live' : 'dashboard-badge-warn'
                   }`}
                 >
-                  {t.siteAuditBadge(siteIndexableCount, siteTotalCount)}
+                  {phLive
+                    ? t.posthogConnected(phLive.region, phLive.days)
+                    : t.posthogMissing}
                 </span>
-              )}
+                {siteAudit?.ok && (
+                  <span
+                    className={`dashboard-badge ${
+                      siteIndexableCount === siteTotalCount
+                        ? 'dashboard-badge-live'
+                        : 'dashboard-badge-warn'
+                    }`}
+                  >
+                    {t.siteCheckBadge(siteIndexableCount, siteTotalCount)}
+                  </span>
+                )}
+                <span
+                  className={`dashboard-badge ${
+                    pageSpeedResult?.ok ? 'dashboard-badge-live' : ''
+                  }`}
+                >
+                  {pageSpeedResult?.ok && pageSpeedResult.scores
+                    ? t.psiBadgeOk(
+                        pageSpeedResult.scores.seo,
+                        pageSpeedResult.scores.performance
+                      )
+                    : t.psiBadgePending}
+                </span>
+                {!isLocalOnly && (
+                  <span className="dashboard-badge">
+                    {authMethod === 'posthog_key' ? 'PostHog Key' : OWNER_EMAIL}
+                  </span>
+                )}
+              </div>
+            </div>
+
+            <div className="dashboard-header-actions">
+              <a
+                href={mainSiteHref}
+                className="automate-back-link"
+                onClick={(e) => handleNavClick(e, 'automate')}
+              >
+                {t.homeLink}
+              </a>
+              <a
+                href={aboutHref}
+                className="automate-back-link"
+                onClick={(e) => handleNavClick(e, 'about')}
+              >
+                {t.aboutLink}
+              </a>
+
+              <div
+                className="automate-lang-switch"
+                role="group"
+                aria-label="Dashboard language"
+              >
+                <button
+                  type="button"
+                  className={`automate-lang-btn ${lang === 'nl' ? 'is-active' : ''}`}
+                  aria-pressed={lang === 'nl'}
+                  onClick={() => setLang('nl')}
+                >
+                  NL
+                </button>
+                <button
+                  type="button"
+                  className={`automate-lang-btn ${lang === 'en' ? 'is-active' : ''}`}
+                  aria-pressed={lang === 'en'}
+                  onClick={() => setLang('en')}
+                >
+                  EN
+                </button>
+              </div>
+
+              <button
+                type="button"
+                className="automate-btn-secondary"
+                onClick={openSettingsDialog}
+              >
+                {t.settingsBtn}
+              </button>
+
+              <button
+                type="button"
+                className="automate-btn-primary"
+                disabled={posthogBusy || siteAuditBusy || discoveryBusy}
+                onClick={() => void handleRefreshAll()}
+              >
+                {posthogBusy || siteAuditBusy || discoveryBusy
+                  ? t.refreshing
+                  : t.refreshAll}
+              </button>
+
               {!isLocalOnly && (
-                <span className="dashboard-badge">
-                  Auth:{' '}
-                  {authMethod === 'posthog_key' ? 'PostHog Key' : OWNER_EMAIL}
-                </span>
+                <button
+                  type="button"
+                  className="automate-btn-secondary"
+                  onClick={handleSignOut}
+                >
+                  {t.signOut}
+                </button>
               )}
             </div>
           </div>
 
-          <div className="dashboard-header-actions">
-            <a
-              href={mainSiteHref}
-              className="automate-back-link"
-              onClick={(e) => handleNavClick(e, 'automate')}
-            >
-              {t.homeLink}
-            </a>
-            <a
-              href={aboutHref}
-              className="automate-back-link"
-              onClick={(e) => handleNavClick(e, 'about')}
-            >
-              {t.aboutLink}
-            </a>
-
+          <div className="dashboard-subbar">
             <div
-              className="automate-lang-switch"
+              className="dashboard-period-group"
               role="group"
-              aria-label="Dashboard language"
+              aria-label={t.periodLabel}
             >
-              <button
-                type="button"
-                className={`automate-lang-btn ${lang === 'nl' ? 'is-active' : ''}`}
-                aria-pressed={lang === 'nl'}
-                onClick={() => setLang('nl')}
-              >
-                NL
-              </button>
-              <button
-                type="button"
-                className={`automate-lang-btn ${lang === 'en' ? 'is-active' : ''}`}
-                aria-pressed={lang === 'en'}
-                onClick={() => setLang('en')}
-              >
-                EN
-              </button>
+              <span className="dashboard-control-label">{t.periodLabel}:</span>
+              {([7, 30, 90] as const).map((d) => (
+                <button
+                  key={d}
+                  type="button"
+                  className={`dashboard-pill-btn ${
+                    daysWindow === d ? 'is-active' : ''
+                  }`}
+                  aria-pressed={daysWindow === d}
+                  onClick={() => handleTimeWindowChange(d)}
+                >
+                  {d}
+                  {t.daysUnit}
+                </button>
+              ))}
             </div>
 
-            <button
-              type="button"
-              className="automate-btn-primary"
-              disabled={posthogBusy || siteAuditBusy || discoveryBusy}
-              onClick={() => void handleRefreshAll()}
+            <label
+              className="dashboard-checkbox-label"
+              htmlFor={`excl-local-${uid}`}
             >
-              {posthogBusy || siteAuditBusy || discoveryBusy
-                ? t.refreshing
-                : t.refreshAll}
-            </button>
-
-            {!isLocalOnly && (
-              <button
-                type="button"
-                className="automate-btn-secondary"
-                onClick={handleSignOut}
-              >
-                {t.signOut}
-              </button>
-            )}
+              <input
+                id={`excl-local-${uid}`}
+                type="checkbox"
+                checked={excludeLocal}
+                onChange={(e) => handleExcludeLocalToggle(e.target.checked)}
+              />
+              <span>{t.excludeLocalLabel}</span>
+            </label>
           </div>
         </header>
 
-        <main id="main" tabIndex={-1}>
-          {/* Live Controls & Connections Toolbar */}
-          <section
-            className="dashboard-toolbar"
-            aria-label={t.periodLabel}
-          >
-            <div className="dashboard-toolbar-controls">
-              <div className="dashboard-period-group" role="group" aria-label={t.periodLabel}>
-                <span className="dashboard-control-label">{t.periodLabel}:</span>
-                {([7, 30, 90] as const).map((d) => (
-                  <button
-                    key={d}
-                    type="button"
-                    className={`dashboard-pill-btn ${
-                      daysWindow === d ? 'is-active' : ''
-                    }`}
-                    aria-pressed={daysWindow === d}
-                    onClick={() => handleTimeWindowChange(d)}
-                  >
-                    {d} {t.daysUnit}
-                  </button>
-                ))}
-              </div>
-
-              <label className="dashboard-checkbox-label" htmlFor={`excl-local-${uid}`}>
-                <input
-                  id={`excl-local-${uid}`}
-                  type="checkbox"
-                  checked={excludeLocal}
-                  onChange={(e) => handleExcludeLocalToggle(e.target.checked)}
-                />
-                <span>{t.excludeLocalLabel}</span>
-              </label>
-
-              <button
-                type="button"
-                className="automate-btn-secondary"
-                aria-expanded={settingsOpen}
-                onClick={() => setSettingsOpen((prev) => !prev)}
-              >
-                {t.settingsToggle}
-              </button>
+        <main id="main" tabIndex={-1} className="dashboard-main-stack">
+          {/* Compact 1-Line PostHog Connection Strip (never pushes dashboard off-screen) */}
+          {!phLive && (
+            <div className="dashboard-compact-notice" role="status">
+              <span>
+                {t.connectBannerPrefix}{' '}
+                <code>POSTHOG_PERSONAL_API_KEY</code> {t.connectBannerSuffix}{' '}
+                <button
+                  type="button"
+                  className="dashboard-inline-action"
+                  onClick={openSettingsDialog}
+                >
+                  {t.connectBannerBtn}
+                </button>
+                .
+              </span>
+              {posthogError && (
+                <span className="dashboard-inline-err">{posthogError}</span>
+              )}
             </div>
+          )}
+          {phLive && posthogError && (
+            <div className="automate-form-error" role="alert">
+              {posthogError}
+            </div>
+          )}
 
-            {posthogStatusMsg && (
-              <div className="automate-form-status" role="status" aria-live="polite">
-                <span>{posthogStatusMsg}</span>
-              </div>
-            )}
-            {posthogError && (
-              <div className="automate-form-error" role="alert">
-                {posthogError}
-              </div>
-            )}
-
-            {settingsOpen && (
-              <form
-                className="dashboard-posthog-config"
-                onSubmit={handleSaveAndFetchConfig}
-                noValidate
-              >
-                <div className="dashboard-config-head">
-                  <h2>{t.settingsToggle}</h2>
-                  {envStatus.posthogEnvConfigured && (
-                    <span className="dashboard-badge dashboard-badge-live">
-                      {t.envActiveNote}
-                    </span>
-                  )}
-                </div>
-                <p id={`ph-cfg-help-${uid}`} className="automate-form-note" style={{ marginTop: 0 }}>
-                  {t.connectBody}
-                </p>
-
-                <div className="dashboard-config-grid">
-                  <div className="automate-field">
-                    <label htmlFor={`ph-region-${uid}`}>PostHog Region</label>
-                    <select
-                      id={`ph-region-${uid}`}
-                      name="region"
-                      className="automate-select"
-                      value={region}
-                      onChange={(e) =>
-                        setRegion(normalizePostHogRegion(e.target.value))
-                      }
-                    >
-                      <option value="eu">EU (eu.posthog.com)</option>
-                      <option value="us">US (us.posthog.com)</option>
-                    </select>
-                  </div>
-
-                  <div className="automate-field">
-                    <label htmlFor={`ph-project-id-${uid}`}>PostHog Project ID</label>
-                    <input
-                      id={`ph-project-id-${uid}`}
-                      name="projectId"
-                      type="text"
-                      className="automate-input"
-                      autoComplete="off"
-                      autoCorrect="off"
-                      autoCapitalize="none"
-                      spellCheck={false}
-                      aria-describedby={`ph-cfg-help-${uid}`}
-                      maxLength={INPUT_BOUNDS.projectId}
-                      value={projectId}
-                      onChange={(e) => setProjectId(e.target.value)}
-                      placeholder="e.g. 67890"
-                    />
-                  </div>
-
-                  <div className="automate-field">
-                    <label htmlFor={`ph-personal-key-${uid}`}>
-                      Personal API Key (phx_...)
-                    </label>
-                    <div className="dashboard-input-with-toggle">
-                      <input
-                        id={`ph-personal-key-${uid}`}
-                        name="personalApiKey"
-                        type={showPersonalKey ? 'text' : 'password'}
-                        className="automate-input"
-                        autoComplete="off"
-                        autoCorrect="off"
-                        autoCapitalize="none"
-                        spellCheck={false}
-                        maxLength={INPUT_BOUNDS.apiKey}
-                        value={personalApiKey}
-                        onChange={(e) => setPersonalApiKey(e.target.value)}
-                        placeholder={
-                          envStatus.posthogEnvConfigured
-                            ? '(.env actief — optioneel overschrijven)'
-                            : 'phx_...'
-                        }
-                      />
-                      <button
-                        type="button"
-                        className="dashboard-reveal-btn"
-                        aria-pressed={showPersonalKey}
-                        aria-label={
-                          showPersonalKey
-                            ? 'Hide Personal API Key'
-                            : 'Show Personal API Key'
-                        }
-                        onClick={() => setShowPersonalKey((prev) => !prev)}
-                      >
-                        {showPersonalKey ? 'Hide' : 'Show'}
-                      </button>
-                    </div>
-                  </div>
-
-                  <div className="automate-field">
-                    <label htmlFor={`ph-project-key-${uid}`}>
-                      Project Token (phc_...)
-                    </label>
-                    <input
-                      id={`ph-project-key-${uid}`}
-                      name="projectApiKey"
-                      type="text"
-                      className="automate-input"
-                      autoComplete="off"
-                      autoCorrect="off"
-                      autoCapitalize="none"
-                      spellCheck={false}
-                      maxLength={INPUT_BOUNDS.apiKey}
-                      value={projectApiKey}
-                      onChange={(e) => setProjectApiKey(e.target.value)}
-                      placeholder="phc_..."
-                    />
-                  </div>
-
-                  <div className="automate-field">
-                    <label htmlFor={`psi-api-key-${uid}`}>
-                      Google PageSpeed Key (optioneel)
-                    </label>
-                    <div className="dashboard-input-with-toggle">
-                      <input
-                        id={`psi-api-key-${uid}`}
-                        name="pageSpeedApiKey"
-                        type={showPsiKey ? 'text' : 'password'}
-                        className="automate-input"
-                        autoComplete="off"
-                        autoCorrect="off"
-                        autoCapitalize="none"
-                        spellCheck={false}
-                        maxLength={INPUT_BOUNDS.apiKey}
-                        value={pageSpeedApiKey}
-                        onChange={(e) => setPageSpeedApiKey(e.target.value)}
-                        placeholder={
-                          envStatus.hasPageSpeedKey
-                            ? '(.env actief)'
-                            : 'AIza... (alleen bij HTTP 429)'
-                        }
-                      />
-                      <button
-                        type="button"
-                        className="dashboard-reveal-btn"
-                        aria-pressed={showPsiKey}
-                        aria-label={
-                          showPsiKey
-                            ? 'Hide PageSpeed API Key'
-                            : 'Show PageSpeed API Key'
-                        }
-                        onClick={() => setShowPsiKey((prev) => !prev)}
-                      >
-                        {showPsiKey ? 'Hide' : 'Show'}
-                      </button>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="automate-form-actions">
-                  <button
-                    type="submit"
-                    className="automate-btn-primary"
-                    disabled={posthogBusy}
-                  >
-                    {posthogBusy ? t.refreshing : t.fetchPostHogBtn}
-                  </button>
-                  <button
-                    type="button"
-                    className="automate-btn-secondary"
-                    onClick={handleClearSessionKeys}
-                  >
-                    {t.disconnectBtn}
-                  </button>
-                </div>
-              </form>
-            )}
-          </section>
-
-          {/* Single-Row Accessible Tabs */}
-          <div
-            role="tablist"
-            aria-label="Dashboard secties"
-            className="dashboard-tablist"
+          {/* BAND 1: 5 Hoofdcijfers in 1 oogopslag */}
+          <section
+            className="dashboard-kpi-grid dashboard-kpi-grid--5"
+            aria-label="Website overview KPIs"
           >
-            {DASHBOARD_TABS.map((tab, idx) => (
-              <button
-                key={tab.id}
-                ref={(el) => {
-                  tabRefs.current[tab.id] = el;
-                }}
-                type="button"
-                role="tab"
-                id={`tab-${tab.id}-${uid}`}
-                aria-selected={activeTab === tab.id}
-                tabIndex={activeTab === tab.id ? 0 : -1}
-                className="dashboard-tab"
-                onClick={() => selectTab(tab.id)}
-                onKeyDown={(e) => handleTabKeyDown(e, idx)}
-              >
-                {lang === 'nl' ? tab.nl : tab.en}
-              </button>
-            ))}
-          </div>
+            <article className="dashboard-kpi-card">
+              <span className="dashboard-kpi-label">{t.kpiVisitors}</span>
+              <span className="dashboard-kpi-value">
+                {phLive ? phLive.summary.totalUniqueVisitors : '—'}
+              </span>
+              <span className="dashboard-kpi-sub">
+                {phLive
+                  ? `${phLive.summary.totalPageviews} views · ${formatDuration(
+                      phLive.summary.avgSessionDurationSec
+                    )} gem.`
+                  : 'Wacht op PostHog (.env)'}
+              </span>
+            </article>
 
-          {/* TAB 1: OVERZICHT & BEZOEK (POSTHOG LIVE) */}
-          <div
-            role="tabpanel"
-            id={`panel-bezoek-${uid}`}
-            aria-labelledby={`tab-bezoek-${uid}`}
-            hidden={activeTab !== 'bezoek'}
-          >
-            <div className="dashboard-tabpanel-inner">
-              {!phLive ? (
-                <section className="dashboard-panel dashboard-connect-prompt">
-                  <h2>{t.connectHeading}</h2>
-                  <p>{t.connectBody}</p>
-                  <div className="automate-form-actions">
-                    <button
-                      type="button"
-                      className="automate-btn-primary"
-                      onClick={() => setSettingsOpen(true)}
-                    >
-                      {t.openSettingsBtn}
-                    </button>
-                    <button
-                      type="button"
-                      className="automate-btn-secondary"
-                      onClick={() => selectTab('vindbaarheid')}
-                    >
-                      {lang === 'nl'
-                        ? 'Bekijk nu live Vindbaarheid & SEO-Audit →'
-                        : 'View Live Findability & SEO Audit →'}
-                    </button>
-                  </div>
-                </section>
+            <article className="dashboard-kpi-card">
+              <span className="dashboard-kpi-label">{t.kpiLeads}</span>
+              <span className="dashboard-kpi-value">
+                {phLive ? phLive.summary.inquiryClicks : '—'}
+              </span>
+              <span className="dashboard-kpi-sub">
+                {phLive
+                  ? `${phLive.summary.formSubmits} formulier · ${phLive.summary.conversionRatePct}% conv.`
+                  : 'Wacht op PostHog (.env)'}
+              </span>
+            </article>
+
+            <article className="dashboard-kpi-card">
+              <span className="dashboard-kpi-label">{t.kpiSearchAi}</span>
+              <span className="dashboard-kpi-value">
+                {phLive ? `${phLive.summary.searchAndAiSharePct}%` : '—'}
+              </span>
+              <span className="dashboard-kpi-sub">
+                {phLive
+                  ? `${phLive.summary.searchAndAiVisitors} bezoekers via Google / AI`
+                  : 'Wacht op PostHog (.env)'}
+              </span>
+            </article>
+
+            <article className="dashboard-kpi-card">
+              <span className="dashboard-kpi-label">{t.kpiReachable}</span>
+              <span
+                className={`dashboard-kpi-value ${
+                  siteAudit?.ok
+                    ? siteIndexableCount === siteTotalCount
+                      ? 'is-good'
+                      : 'is-poor'
+                    : ''
+                }`}
+              >
+                {siteAudit?.ok
+                  ? `${siteIndexableCount}/${siteTotalCount}`
+                  : siteAuditBusy
+                    ? '...'
+                    : '—'}
+              </span>
+              <span className="dashboard-kpi-sub">
+                {siteAudit?.ok
+                  ? siteBlockers.length > 0
+                    ? `${siteBlockers.length} blokkade(s) gevonden`
+                    : 'Alle gecontroleerde URL’s OK'
+                  : 'Live crawl wordt uitgevoerd...'}
+              </span>
+            </article>
+
+            <article className="dashboard-kpi-card">
+              <span className="dashboard-kpi-label">{t.kpiPageSpeed}</span>
+              {pageSpeedResult?.ok && pageSpeedResult.scores ? (
+                <>
+                  <span
+                    className={`dashboard-kpi-value ${scoreToneClass(
+                      pageSpeedResult.scores.seo
+                    )}`}
+                  >
+                    {pageSpeedResult.scores.seo ?? '—'}
+                    <span className="dashboard-kpi-slash"> / 100</span>
+                  </span>
+                  <span className="dashboard-kpi-sub">
+                    SEO {pageSpeedResult.scores.seo ?? '—'} · Perf{' '}
+                    {pageSpeedResult.scores.performance ?? '—'} (
+                    {pageSpeedResult.strategy})
+                  </span>
+                </>
               ) : (
                 <>
-                  {/* 6 Real-Data KPI Cards */}
-                  <section
-                    className="dashboard-kpi-grid"
-                    aria-label="PostHog live KPI summary"
+                  <span className="dashboard-kpi-value is-warn">
+                    {pageSpeedBusy ? '...' : pageSpeedResult?.status === 429 ? '429' : '—'}
+                  </span>
+                  <span className="dashboard-kpi-sub">
+                    {pageSpeedBusy
+                      ? 'Lighthouse analyseert...'
+                      : pageSpeedResult?.status === 429
+                        ? 'Google API-key in .env nodig'
+                        : pageSpeedResult?.error || 'Klik op meten'}
+                  </span>
+                </>
+              )}
+            </article>
+          </section>
+
+          {/* BAND 2: Twee kolommen naast elkaar — Links Bezoek, Rechts Vindbaarheid */}
+          <div className="dashboard-grid-2 dashboard-main-columns">
+            {/* LINKER KOLOM: BEZOEK & PRESTATIES */}
+            <section
+              className="dashboard-panel dashboard-column-panel"
+              aria-labelledby={`traffic-col-heading-${uid}`}
+            >
+              <div className="dashboard-section-head">
+                <h2 id={`traffic-col-heading-${uid}`}>
+                  {t.sectionTrafficTitle}
+                </h2>
+                <p className="dashboard-panel-sub">{t.sectionTrafficSub}</p>
+              </div>
+
+              {!phLive ? (
+                <div className="dashboard-empty">
+                  {t.noPosthogData}{' '}
+                  <button
+                    type="button"
+                    className="dashboard-inline-action"
+                    onClick={openSettingsDialog}
                   >
-                    <article className="dashboard-kpi-card">
-                      <span className="dashboard-kpi-label">{t.kpiVisitors}</span>
-                      <span className="dashboard-kpi-value">
-                        {phLive.summary.totalUniqueVisitors}
-                      </span>
-                      <span className="dashboard-kpi-sub">
-                        {phLive.days} {t.daysUnit} · PostHog Cloud
-                      </span>
-                    </article>
-
-                    <article className="dashboard-kpi-card">
-                      <span className="dashboard-kpi-label">{t.kpiPageviews}</span>
-                      <span className="dashboard-kpi-value">
-                        {phLive.summary.totalPageviews}
-                      </span>
-                      <span className="dashboard-kpi-sub">
-                        {phLive.summary.pagesPerVisitor} /{' '}
-                        {lang === 'nl' ? 'bezoeker' : 'visitor'}
-                      </span>
-                    </article>
-
-                    <article className="dashboard-kpi-card">
-                      <span className="dashboard-kpi-label">{t.kpiSessions}</span>
-                      <span className="dashboard-kpi-value">
-                        {phLive.summary.totalSessions}
-                      </span>
-                      <span className="dashboard-kpi-sub">
-                        {lang === 'nl' ? 'Gem.' : 'Avg'}{' '}
-                        {formatDuration(phLive.summary.avgSessionDurationSec)}
-                      </span>
-                    </article>
-
-                    <article className="dashboard-kpi-card">
-                      <span className="dashboard-kpi-label">{t.kpiBounce}</span>
-                      <span className="dashboard-kpi-value">
-                        {phLive.summary.bounceRatePct}%
-                      </span>
-                      <span className="dashboard-kpi-sub">
-                        {lang === 'nl'
-                          ? 'Enkele pagina / ≤2 events'
-                          : 'Single page / ≤2 events'}
-                      </span>
-                    </article>
-
-                    <article className="dashboard-kpi-card">
-                      <span className="dashboard-kpi-label">{t.kpiConversions}</span>
-                      <span className="dashboard-kpi-value">
-                        {phLive.summary.inquiryClicks}
-                      </span>
-                      <span className="dashboard-kpi-sub">
-                        {phLive.summary.formSubmits}{' '}
-                        {lang === 'nl' ? 'formulier(en)' : 'submit(s)'} ·{' '}
-                        {phLive.summary.conversionRatePct}%
-                      </span>
-                    </article>
-
-                    <article className="dashboard-kpi-card">
-                      <span className="dashboard-kpi-label">{t.kpiSearchAi}</span>
-                      <span className="dashboard-kpi-value">
-                        {phLive.summary.searchAndAiVisitors}
-                      </span>
-                      <span className="dashboard-kpi-sub">
-                        {phLive.summary.searchAndAiSharePct}%{' '}
-                        {lang === 'nl' ? 'van bekende bronnen' : 'of attributed'}
-                      </span>
-                    </article>
-                  </section>
-
-                  {/* Daily Trend SVG Chart + Accessible Data Table */}
-                  <section
-                    className="dashboard-panel"
-                    aria-labelledby={`trend-heading-${uid}`}
-                  >
+                    {t.connectBannerBtn}
+                  </button>
+                </div>
+              ) : (
+                <>
+                  {/* Dagelijkse grafiek */}
+                  <div className="dashboard-subblock">
                     <div className="dashboard-panel-head">
-                      <div>
-                        <h2 id={`trend-heading-${uid}`}>{t.trendHeading}</h2>
-                        <p className="dashboard-panel-sub">{t.trendSub}</p>
-                      </div>
+                      <h3>{t.trendTitle}</h3>
                       <span className="dashboard-legend">
                         <span className="dashboard-legend-item">
                           <span className="dashboard-dot is-pv" aria-hidden="true" />
-                          {lang === 'nl' ? 'Paginaweergaves' : 'Pageviews'}
+                          Views
                         </span>
                         <span className="dashboard-legend-item">
                           <span className="dashboard-dot is-vis" aria-hidden="true" />
@@ -1470,41 +1304,42 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({
                     </div>
 
                     {phLive.dailyTrend.length === 0 ? (
-                      <p className="dashboard-empty">{t.noData}</p>
+                      <p className="dashboard-empty">{t.noMeasurements}</p>
                     ) : (
                       <>
                         <div className="dashboard-chart-wrap">
                           <svg
                             className="dashboard-bar-svg"
-                            viewBox={`0 0 ${Math.max(420, phLive.dailyTrend.length * 28)} 150`}
+                            viewBox={`0 0 ${Math.max(400, phLive.dailyTrend.length * 26)} 136`}
                             role="img"
-                            aria-label={`${t.trendHeading}: ${phLive.dailyTrend
-                              .map((d) => `${d.day}: ${d.visitors} visitors, ${d.pageviews} pageviews`)
+                            aria-label={`${t.trendTitle}: ${phLive.dailyTrend
+                              .map(
+                                (d) =>
+                                  `${d.day}: ${d.visitors} visitors, ${d.pageviews} pageviews`
+                              )
                               .join('; ')}`}
                           >
                             {phLive.dailyTrend.map((point, i) => {
+                              const svgW = Math.max(400, phLive.dailyTrend.length * 26);
                               const slotW = Math.max(
-                                18,
-                                Math.floor(
-                                  Math.max(420, phLive.dailyTrend.length * 28) /
-                                    phLive.dailyTrend.length
-                                )
+                                16,
+                                Math.floor(svgW / phLive.dailyTrend.length)
                               );
-                              const x = i * slotW + 4;
+                              const x = i * slotW + 3;
                               const pvH = Math.max(
                                 point.pageviews > 0 ? 4 : 0,
-                                Math.round((point.pageviews / maxDailyValue) * 108)
+                                Math.round((point.pageviews / maxDailyValue) * 96)
                               );
                               const visH = Math.max(
                                 point.visitors > 0 ? 4 : 0,
-                                Math.round((point.visitors / maxDailyValue) * 108)
+                                Math.round((point.visitors / maxDailyValue) * 96)
                               );
-                              const barW = Math.max(5, Math.floor((slotW - 10) / 2));
+                              const barW = Math.max(4, Math.floor((slotW - 8) / 2));
                               return (
                                 <g key={point.day}>
                                   <rect
                                     x={x}
-                                    y={120 - pvH}
+                                    y={108 - pvH}
                                     width={barW}
                                     height={pvH}
                                     rx="2"
@@ -1514,7 +1349,7 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({
                                   </rect>
                                   <rect
                                     x={x + barW + 2}
-                                    y={120 - visH}
+                                    y={108 - visH}
                                     width={barW}
                                     height={visH}
                                     rx="2"
@@ -1524,10 +1359,11 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({
                                   </rect>
                                   {(i === 0 ||
                                     i === phLive.dailyTrend.length - 1 ||
-                                    i % Math.max(1, Math.ceil(phLive.dailyTrend.length / 6)) === 0) && (
+                                    i % Math.max(1, Math.ceil(phLive.dailyTrend.length / 5)) ===
+                                      0) && (
                                     <text
                                       x={x + barW}
-                                      y="140"
+                                      y="128"
                                       textAnchor="middle"
                                       fontSize="9.5"
                                       fill="#5c606b"
@@ -1544,36 +1380,32 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({
                         <details className="dashboard-details">
                           <summary>
                             {lang === 'nl'
-                              ? `Bekijk dagelijkse tabel (${phLive.dailyTrend.length} dagen)`
-                              : `View daily data table (${phLive.dailyTrend.length} days)`}
+                              ? `Dagelijkse cijfers als tabel (${phLive.dailyTrend.length} dagen)`
+                              : `Daily table (${phLive.dailyTrend.length} days)`}
                           </summary>
                           <div
                             tabIndex={0}
                             role="region"
-                            aria-labelledby={`trend-table-cap-${uid}`}
+                            aria-label={t.trendTitle}
                             className="dashboard-table-wrap"
                           >
                             <table className="dashboard-table dashboard-responsive-table">
-                              <caption id={`trend-table-cap-${uid}`} className="sr-only">
-                                {t.trendHeading}
-                              </caption>
+                              <caption className="sr-only">{t.trendTitle}</caption>
                               <thead>
                                 <tr>
-                                  <th scope="col">{lang === 'nl' ? 'Datum' : 'Date'}</th>
-                                  <th scope="col">{t.kpiVisitors}</th>
-                                  <th scope="col">{t.kpiPageviews}</th>
-                                  <th scope="col">{lang === 'nl' ? 'Conversies' : 'Conversions'}</th>
+                                  <th scope="col">Datum</th>
+                                  <th scope="col">Bezoekers</th>
+                                  <th scope="col">Views</th>
+                                  <th scope="col">Conv.</th>
                                 </tr>
                               </thead>
                               <tbody>
                                 {phLive.dailyTrend.map((d) => (
                                   <tr key={d.day}>
                                     <th scope="row">{d.day}</th>
-                                    <td data-label={t.kpiVisitors}>{d.visitors}</td>
-                                    <td data-label={t.kpiPageviews}>{d.pageviews}</td>
-                                    <td data-label={lang === 'nl' ? 'Conversies' : 'Conversions'}>
-                                      {d.conversions}
-                                    </td>
+                                    <td data-label="Bezoekers">{d.visitors}</td>
+                                    <td data-label="Views">{d.pageviews}</td>
+                                    <td data-label="Conv.">{d.conversions}</td>
                                   </tr>
                                 ))}
                               </tbody>
@@ -1582,244 +1414,148 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({
                         </details>
                       </>
                     )}
-                  </section>
-
-                  {/* Top Pages + Subdomains */}
-                  <div className="dashboard-grid-2">
-                    <section
-                      className="dashboard-panel"
-                      aria-labelledby={`top-pages-heading-${uid}`}
-                    >
-                      <h2 id={`top-pages-heading-${uid}`}>{t.topPagesHeading}</h2>
-                      {phLive.topPages.length === 0 ? (
-                        <p className="dashboard-empty">{t.noData}</p>
-                      ) : (
-                        <div
-                          tabIndex={0}
-                          role="region"
-                          aria-labelledby={`top-pages-heading-${uid}`}
-                          className="dashboard-table-wrap"
-                        >
-                          <table className="dashboard-table dashboard-responsive-table">
-                            <caption className="sr-only">{t.topPagesHeading}</caption>
-                            <thead>
-                              <tr>
-                                <th scope="col">URL</th>
-                                <th scope="col">{t.kpiVisitors}</th>
-                                <th scope="col">{t.kpiPageviews}</th>
-                                <th scope="col">Events</th>
-                              </tr>
-                            </thead>
-                            <tbody>
-                              {phLive.topPages.map((p) => (
-                                <tr key={`${p.host}${p.pathname}`}>
-                                  <th scope="row">
-                                    <span className="dashboard-code-pill">
-                                      {p.host}
-                                      {p.pathname}
-                                    </span>
-                                  </th>
-                                  <td data-label={t.kpiVisitors}>{p.visitors}</td>
-                                  <td data-label={t.kpiPageviews}>{p.pageviews}</td>
-                                  <td data-label="Events">{p.events}</td>
-                                </tr>
-                              ))}
-                            </tbody>
-                          </table>
-                        </div>
-                      )}
-                    </section>
-
-                    <section
-                      className="dashboard-panel"
-                      aria-labelledby={`subdomains-heading-${uid}`}
-                    >
-                      <h2 id={`subdomains-heading-${uid}`}>{t.subdomainsHeading}</h2>
-                      {phLive.summary.subdomains.length === 0 ? (
-                        <p className="dashboard-empty">{t.noData}</p>
-                      ) : (
-                        <div
-                          tabIndex={0}
-                          role="region"
-                          aria-labelledby={`subdomains-heading-${uid}`}
-                          className="dashboard-table-wrap"
-                        >
-                          <table className="dashboard-table dashboard-responsive-table">
-                            <caption className="sr-only">{t.subdomainsHeading}</caption>
-                            <thead>
-                              <tr>
-                                <th scope="col">Host</th>
-                                <th scope="col">{t.kpiVisitors}</th>
-                                <th scope="col">{t.kpiPageviews}</th>
-                                <th scope="col">Events</th>
-                              </tr>
-                            </thead>
-                            <tbody>
-                              {phLive.summary.subdomains.map((row) => (
-                                <tr key={row.subdomain}>
-                                  <th scope="row">
-                                    <span className="dashboard-code-pill">
-                                      {row.subdomain}
-                                    </span>
-                                  </th>
-                                  <td data-label={t.kpiVisitors}>{row.visitors}</td>
-                                  <td data-label={t.kpiPageviews}>{row.pageviews}</td>
-                                  <td data-label="Events">{row.events}</td>
-                                </tr>
-                              ))}
-                            </tbody>
-                          </table>
-                        </div>
-                      )}
-                    </section>
                   </div>
 
-                  {/* Real-User PostHog Web Vitals + Locations & Devices + Interactions */}
-                  <div className="dashboard-grid-2">
-                    <section
-                      className="dashboard-panel"
-                      aria-labelledby={`vitals-heading-${uid}`}
-                    >
-                      <h2 id={`vitals-heading-${uid}`}>{t.webVitalsHeading}</h2>
-                      {phLive.webVitals.sampleCount === 0 ? (
-                        <p className="dashboard-empty">{t.webVitalsEmpty}</p>
-                      ) : (
-                        <div className="dashboard-mini-metrics">
-                          <div className={`dashboard-metric-chip is-${rateVitalStatus('LCP', phLive.webVitals.lcpP75Ms)}`}>
-                            <span>LCP (p75)</span>
-                            <strong>{formatVitalMs(phLive.webVitals.lcpP75Ms)}</strong>
-                          </div>
-                          <div className={`dashboard-metric-chip is-${rateVitalStatus('FCP', phLive.webVitals.fcpP75Ms)}`}>
-                            <span>FCP (p75)</span>
-                            <strong>{formatVitalMs(phLive.webVitals.fcpP75Ms)}</strong>
-                          </div>
-                          <div className={`dashboard-metric-chip is-${rateVitalStatus('INP', phLive.webVitals.inpP75Ms)}`}>
-                            <span>INP (p75)</span>
-                            <strong>{formatVitalMs(phLive.webVitals.inpP75Ms)}</strong>
-                          </div>
-                          <div className={`dashboard-metric-chip is-${rateVitalStatus('CLS', phLive.webVitals.clsP75)}`}>
-                            <span>CLS (p75)</span>
-                            <strong>{formatCls(phLive.webVitals.clsP75)}</strong>
-                          </div>
-                        </div>
-                      )}
+                  {/* Populairste pagina's (direct visueel) */}
+                  <div className="dashboard-subblock">
+                    <h3>{t.topPagesTitle}</h3>
+                    {phLive.topPages.length === 0 ? (
+                      <p className="dashboard-empty">{t.noMeasurements}</p>
+                    ) : (
+                      <div className="dashboard-bar-list">
+                        {phLive.topPages.slice(0, 6).map((p) => {
+                          const pct = Math.max(
+                            6,
+                            Math.round((p.pageviews / maxTopPageViews) * 100)
+                          );
+                          return (
+                            <div
+                              key={`${p.host}${p.pathname}`}
+                              className="dashboard-channel-row"
+                            >
+                              <div className="dashboard-channel-meta">
+                                <span className="dashboard-code-pill">
+                                  {p.host}
+                                  {p.pathname}
+                                </span>
+                                <span>
+                                  <strong>{p.visitors}</strong>{' '}
+                                  {lang === 'nl' ? 'bezoekers' : 'visitors'} ·{' '}
+                                  {p.pageviews} views
+                                </span>
+                              </div>
+                              <div className="dashboard-progress-track" aria-hidden="true">
+                                <div
+                                  className="dashboard-progress-fill"
+                                  style={{ width: `${pct}%` }}
+                                />
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    )}
+                  </div>
 
-                      <h3>{t.interactionsHeading}</h3>
-                      {phLive.languages.length > 0 && (
-                        <div className="dashboard-badge-row">
-                          {phLive.languages.map((l) => (
-                            <span key={l.lang} className="dashboard-badge">
-                              Taal {l.lang.toUpperCase()}: {l.visitors}{' '}
-                              {lang === 'nl' ? 'bezoekers' : 'visitors'} ({l.events} events)
-                            </span>
-                          ))}
-                        </div>
-                      )}
-                      {phLive.topInteractions.length === 0 ? (
-                        <p className="dashboard-empty">{t.noData}</p>
-                      ) : (
+                  {/* Web Vitals + Apparaten & Taal + Top Interacties */}
+                  <div className="dashboard-subblock">
+                    <h3>{t.vitalsTitle}</h3>
+                    {phLive.webVitals.sampleCount === 0 ? (
+                      <p className="dashboard-panel-sub">{t.vitalsEmpty}</p>
+                    ) : (
+                      <div className="dashboard-mini-metrics">
                         <div
-                          tabIndex={0}
-                          role="region"
-                          aria-label={t.interactionsHeading}
-                          className="dashboard-table-wrap"
+                          className={`dashboard-metric-chip is-${rateVitalStatus(
+                            'LCP',
+                            phLive.webVitals.lcpP75Ms
+                          )}`}
                         >
-                          <table className="dashboard-table dashboard-responsive-table">
-                            <caption className="sr-only">{t.interactionsHeading}</caption>
-                            <thead>
-                              <tr>
-                                <th scope="col">Event</th>
-                                <th scope="col">{lang === 'nl' ? 'Aantal' : 'Count'}</th>
-                                <th scope="col">{t.kpiVisitors}</th>
-                              </tr>
-                            </thead>
-                            <tbody>
-                              {phLive.topInteractions.map((item) => (
-                                <tr key={item.event}>
-                                  <th scope="row">
-                                    <span className="dashboard-code-pill">
-                                      {item.event}
-                                    </span>
-                                  </th>
-                                  <td data-label={lang === 'nl' ? 'Aantal' : 'Count'}>
-                                    {item.count}
-                                  </td>
-                                  <td data-label={t.kpiVisitors}>{item.visitors}</td>
-                                </tr>
-                              ))}
-                            </tbody>
-                          </table>
+                          <span>LCP (p75)</span>
+                          <strong>{formatVitalMs(phLive.webVitals.lcpP75Ms)}</strong>
                         </div>
-                      )}
-                    </section>
+                        <div
+                          className={`dashboard-metric-chip is-${rateVitalStatus(
+                            'FCP',
+                            phLive.webVitals.fcpP75Ms
+                          )}`}
+                        >
+                          <span>FCP (p75)</span>
+                          <strong>{formatVitalMs(phLive.webVitals.fcpP75Ms)}</strong>
+                        </div>
+                        <div
+                          className={`dashboard-metric-chip is-${rateVitalStatus(
+                            'INP',
+                            phLive.webVitals.inpP75Ms
+                          )}`}
+                        >
+                          <span>INP (p75)</span>
+                          <strong>{formatVitalMs(phLive.webVitals.inpP75Ms)}</strong>
+                        </div>
+                        <div
+                          className={`dashboard-metric-chip is-${rateVitalStatus(
+                            'CLS',
+                            phLive.webVitals.clsP75
+                          )}`}
+                        >
+                          <span>CLS (p75)</span>
+                          <strong>{formatCls(phLive.webVitals.clsP75)}</strong>
+                        </div>
+                      </div>
+                    )}
 
-                    <section
-                      className="dashboard-panel"
-                      aria-labelledby={`geo-heading-${uid}`}
-                    >
-                      <h2 id={`geo-heading-${uid}`}>{t.geoDevicesHeading}</h2>
-                      {phLive.devices.length > 0 && (
-                        <div className="dashboard-badge-row">
-                          {phLive.devices.map((d) => (
-                            <span key={d.deviceType} className="dashboard-badge">
-                              {d.deviceType}: {d.visitors} ({d.sharePct}%)
-                            </span>
-                          ))}
-                        </div>
-                      )}
-                      {phLive.locations.length === 0 ? (
-                        <p className="dashboard-empty">{t.noData}</p>
-                      ) : (
-                        <div
-                          tabIndex={0}
-                          role="region"
-                          aria-labelledby={`geo-heading-${uid}`}
-                          className="dashboard-table-wrap"
-                        >
-                          <table className="dashboard-table dashboard-responsive-table">
-                            <caption className="sr-only">{t.geoDevicesHeading}</caption>
-                            <thead>
-                              <tr>
-                                <th scope="col">{lang === 'nl' ? 'Locatie' : 'Location'}</th>
-                                <th scope="col">{t.kpiVisitors}</th>
-                                <th scope="col">{t.kpiPageviews}</th>
-                              </tr>
-                            </thead>
-                            <tbody>
-                              {phLive.locations.map((loc, i) => (
-                                <tr key={`${loc.label}_${i}`}>
-                                  <th scope="row">{loc.label}</th>
-                                  <td data-label={t.kpiVisitors}>{loc.visitors}</td>
-                                  <td data-label={t.kpiPageviews}>{loc.pageviews}</td>
-                                </tr>
-                              ))}
-                            </tbody>
-                          </table>
-                        </div>
-                      )}
-                    </section>
+                    <h3 style={{ marginTop: '8px' }}>{t.behaviorTitle}</h3>
+                    <div className="dashboard-badge-row">
+                      <span className="dashboard-badge">
+                        Bounce: {phLive.summary.bounceRatePct}%
+                      </span>
+                      {phLive.devices.map((d) => (
+                        <span key={d.deviceType} className="dashboard-badge">
+                          {d.deviceType}: {d.sharePct}%
+                        </span>
+                      ))}
+                      {phLive.languages.map((l) => (
+                        <span key={l.lang} className="dashboard-badge">
+                          {l.lang.toUpperCase()}: {l.visitors}
+                        </span>
+                      ))}
+                      {phLive.locations.slice(0, 3).map((loc, idx) => (
+                        <span key={`${loc.label}_${idx}`} className="dashboard-badge">
+                          {loc.label}: {loc.visitors}
+                        </span>
+                      ))}
+                    </div>
+
+                    {phLive.topInteractions.length > 0 && (
+                      <div className="dashboard-badge-row">
+                        {phLive.topInteractions.slice(0, 6).map((item) => (
+                          <span key={item.event} className="dashboard-status-pill">
+                            {item.event}: {item.count}× ({item.visitors})
+                          </span>
+                        ))}
+                      </div>
+                    )}
                   </div>
                 </>
               )}
-            </div>
-          </div>
+            </section>
 
-          {/* TAB 2: VINDBAARHEID & LIVE CRAWL AUDIT */}
-          <div
-            role="tabpanel"
-            id={`panel-vindbaarheid-${uid}`}
-            aria-labelledby={`tab-vindbaarheid-${uid}`}
-            hidden={activeTab !== 'vindbaarheid'}
-          >
-            <div className="dashboard-tabpanel-inner">
-              {/* Part A: PostHog Acquisition & Channels */}
-              <section
-                className="dashboard-panel"
-                aria-labelledby={`channels-heading-${uid}`}
-              >
-                <h2 id={`channels-heading-${uid}`}>{t.channelsHeading}</h2>
+            {/* RECHTER KOLOM: VINDBAARHEID & TECHNIEK */}
+            <section
+              className="dashboard-panel dashboard-column-panel"
+              aria-labelledby={`findability-col-heading-${uid}`}
+            >
+              <div className="dashboard-section-head">
+                <h2 id={`findability-col-heading-${uid}`}>
+                  {t.sectionFindabilityTitle}
+                </h2>
+                <p className="dashboard-panel-sub">{t.sectionFindabilitySub}</p>
+              </div>
+
+              {/* A. Herkomstkanalen (PostHog) */}
+              <div className="dashboard-subblock">
+                <h3>{t.channelsTitle}</h3>
                 {!phLive ? (
-                  <p className="dashboard-empty">{t.connectBody}</p>
+                  <p className="dashboard-panel-sub">{t.noPosthogData}</p>
                 ) : (
                   <div className="dashboard-channel-list">
                     {phLive.channels.map((ch) => (
@@ -1827,137 +1563,74 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({
                         <div className="dashboard-channel-meta">
                           <strong>{t.channels[ch.channel]}</strong>
                           <span>
-                            {ch.visitors} {lang === 'nl' ? 'bezoekers' : 'visitors'} ({ch.sharePct}%) ·{' '}
-                            {ch.pageviews} views · {ch.conversions}{' '}
-                            {lang === 'nl' ? 'conversies' : 'conversions'}
+                            {ch.visitors} ({ch.sharePct}%) · {ch.conversions} conv.
                           </span>
                         </div>
                         <div className="dashboard-progress-track" aria-hidden="true">
                           <div
                             className={`dashboard-progress-fill is-${ch.channel}`}
-                            style={{ width: `${Math.max(ch.visitors > 0 ? 4 : 0, ch.sharePct)}%` }}
+                            style={{
+                              width: `${Math.max(ch.visitors > 0 ? 4 : 0, ch.sharePct)}%`,
+                            }}
                           />
                         </div>
                       </div>
                     ))}
                   </div>
                 )}
-              </section>
 
-              {phLive && (
-                <div className="dashboard-grid-2">
-                  <section
-                    className="dashboard-panel"
-                    aria-labelledby={`referrers-heading-${uid}`}
-                  >
-                    <h2 id={`referrers-heading-${uid}`}>{t.referrersHeading}</h2>
-                    {phLive.referrers.length === 0 ? (
-                      <p className="dashboard-empty">{t.noData}</p>
-                    ) : (
-                      <div
-                        tabIndex={0}
-                        role="region"
-                        aria-labelledby={`referrers-heading-${uid}`}
-                        className="dashboard-table-wrap"
-                      >
-                        <table className="dashboard-table dashboard-responsive-table">
-                          <caption className="sr-only">{t.referrersHeading}</caption>
-                          <thead>
-                            <tr>
-                              <th scope="col">{lang === 'nl' ? 'Bron / Domein' : 'Source / Domain'}</th>
-                              <th scope="col">{lang === 'nl' ? 'Kanaal' : 'Channel'}</th>
-                              <th scope="col">{t.kpiVisitors}</th>
-                              <th scope="col">{t.kpiPageviews}</th>
-                              <th scope="col">{lang === 'nl' ? 'Conv.' : 'Conv.'}</th>
+                {phLive && (phLive.referrers.length > 0 || phLive.landingPages.length > 0) && (
+                  <details className="dashboard-details">
+                    <summary>
+                      {t.referrersTitle} ({phLive.referrers.length} bronnen ·{' '}
+                      {phLive.landingPages.length} landingspagina’s)
+                    </summary>
+                    <div
+                      tabIndex={0}
+                      role="region"
+                      aria-label={t.referrersTitle}
+                      className="dashboard-table-wrap"
+                    >
+                      <table className="dashboard-table dashboard-responsive-table">
+                        <caption className="sr-only">{t.referrersTitle}</caption>
+                        <thead>
+                          <tr>
+                            <th scope="col">Bron / Entry</th>
+                            <th scope="col">Bezoekers</th>
+                            <th scope="col">Views</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {phLive.referrers.slice(0, 8).map((r, i) => (
+                            <tr key={`${r.referringDomain}_${r.utmSource}_${i}`}>
+                              <th scope="row">
+                                <span className="dashboard-code-pill">
+                                  {r.referringDomain}
+                                </span>
+                                {r.utmSource ? ` (utm: ${r.utmSource})` : ''}
+                              </th>
+                              <td data-label="Bezoekers">{r.visitors}</td>
+                              <td data-label="Views">{r.pageviews}</td>
                             </tr>
-                          </thead>
-                          <tbody>
-                            {phLive.referrers.map((r, i) => (
-                              <tr key={`${r.referringDomain}_${r.utmSource}_${i}`}>
-                                <th scope="row">
-                                  <span className="dashboard-code-pill">
-                                    {r.referringDomain}
-                                  </span>
-                                  {r.utmSource && (
-                                    <div className="dashboard-subtext">
-                                      utm_source={r.utmSource}
-                                      {r.utmMedium ? ` · ${r.utmMedium}` : ''}
-                                    </div>
-                                  )}
-                                </th>
-                                <td data-label={lang === 'nl' ? 'Kanaal' : 'Channel'}>
-                                  {t.channels[r.channel]}
-                                </td>
-                                <td data-label={t.kpiVisitors}>{r.visitors}</td>
-                                <td data-label={t.kpiPageviews}>{r.pageviews}</td>
-                                <td data-label="Conv.">{r.conversions}</td>
-                              </tr>
-                            ))}
-                          </tbody>
-                        </table>
-                      </div>
-                    )}
-                  </section>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  </details>
+                )}
+              </div>
 
-                  <section
-                    className="dashboard-panel"
-                    aria-labelledby={`landing-heading-${uid}`}
-                  >
-                    <h2 id={`landing-heading-${uid}`}>{t.landingHeading}</h2>
-                    {phLive.landingPages.length === 0 ? (
-                      <p className="dashboard-empty">{t.noData}</p>
-                    ) : (
-                      <div
-                        tabIndex={0}
-                        role="region"
-                        aria-labelledby={`landing-heading-${uid}`}
-                        className="dashboard-table-wrap"
-                      >
-                        <table className="dashboard-table dashboard-responsive-table">
-                          <caption className="sr-only">{t.landingHeading}</caption>
-                          <thead>
-                            <tr>
-                              <th scope="col">Entry URL</th>
-                              <th scope="col">{t.kpiVisitors}</th>
-                            </tr>
-                          </thead>
-                          <tbody>
-                            {phLive.landingPages.map((lp) => (
-                              <tr key={`${lp.host}${lp.pathname}`}>
-                                <th scope="row">
-                                  <span className="dashboard-code-pill">
-                                    {lp.host}
-                                    {lp.pathname}
-                                  </span>
-                                </th>
-                                <td data-label={t.kpiVisitors}>{lp.visitors}</td>
-                              </tr>
-                            ))}
-                          </tbody>
-                        </table>
-                      </div>
-                    )}
-                  </section>
-                </div>
-              )}
-
-              {/* Part B: Live Production Indexability & Crawl Audit */}
-              <section
-                className="dashboard-panel"
-                aria-labelledby={`site-audit-heading-${uid}`}
-              >
+              {/* B. Live URL Indexeerbaarheid (In 1 oogopslag groen / rood) */}
+              <div className="dashboard-subblock">
                 <div className="dashboard-panel-head">
-                  <div>
-                    <h2 id={`site-audit-heading-${uid}`}>{t.siteAuditHeading}</h2>
-                    <p className="dashboard-panel-sub">{t.siteAuditSub}</p>
-                  </div>
+                  <h3>{t.liveUrlsTitle}</h3>
                   <button
                     type="button"
-                    className="automate-btn-secondary"
+                    className="dashboard-mini-btn"
                     disabled={siteAuditBusy}
                     onClick={() => void runExternalProbes()}
                   >
-                    {siteAuditBusy ? t.refreshing : 'Live crawl herhalen'}
+                    {siteAuditBusy ? t.refreshing : 'Test live'}
                   </button>
                 </div>
 
@@ -1967,186 +1640,213 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({
                   </div>
                 )}
 
-                {siteBlockers.length > 0 && (
-                  <div className="dashboard-alert-box is-warn" role="status">
-                    <strong>
-                      {lang === 'nl'
-                        ? `${siteBlockers.length} live vindbaarheidsblokkade(s) gevonden:`
-                        : `${siteBlockers.length} live indexability issue(s) detected:`}
-                    </strong>
-                    <ul className="dashboard-alert-list">
-                      {siteBlockers.map((b) => (
-                        <li key={b.id}>
-                          <code>{b.url}</code>: {b.issue}
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                )}
-
                 {siteAudit?.ok && (
-                  <div
-                    tabIndex={0}
-                    role="region"
-                    aria-labelledby={`site-audit-heading-${uid}`}
-                    className="dashboard-table-wrap"
-                  >
-                    <table className="dashboard-table dashboard-responsive-table">
-                      <caption className="sr-only">{t.siteAuditHeading}</caption>
-                      <thead>
-                        <tr>
-                          <th scope="col">URL</th>
-                          <th scope="col">HTTP / TLS</th>
-                          <th scope="col">TTFB</th>
-                          <th scope="col">SEO Meta &amp; JSON-LD</th>
-                          <th scope="col">{lang === 'nl' ? 'Indexeerbaar' : 'Indexable'}</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {siteAudit.pages.map((page) => (
-                          <tr key={page.id}>
-                            <th scope="row">
-                              <span className="dashboard-code-pill">{page.url}</span>
-                              {page.meta.title && (
-                                <div className="dashboard-subtext">{page.meta.title}</div>
-                              )}
-                            </th>
-                            <td data-label="HTTP / TLS">
-                              <span
-                                className={`dashboard-status-pill ${
-                                  page.ok && page.tls.valid ? 'is-good' : 'is-poor'
-                                }`}
-                              >
-                                {page.statusCode ? `HTTP ${page.statusCode}` : 'Fout'} ·{' '}
-                                {page.tls.valid ? 'TLS OK' : 'TLS Fout'}
-                              </span>
-                              {page.tls.validTo && (
-                                <div className="dashboard-subtext">
-                                  {page.tls.issuer || 'TLS'} · nog {page.tls.daysRemaining}d
-                                </div>
-                              )}
-                            </td>
-                            <td data-label="TTFB">
-                              {page.ttfbMs !== null ? `${page.ttfbMs} ms` : '—'}
-                            </td>
-                            <td data-label="SEO Meta">
-                              {page.reachable ? (
-                                <div className="dashboard-subtext">
-                                  Robots: {page.meta.metaRobots || 'default'} · Canonical:{' '}
-                                  {page.meta.canonicalUrl || 'ontbreekt'}
-                                  <br />
-                                  OG: {page.meta.hasOpenGraph ? 'Ja' : 'Nee'} · JSON-LD:{' '}
-                                  {page.meta.jsonLdTypes.length > 0
-                                    ? page.meta.jsonLdTypes.join(', ')
-                                    : 'geen'}
-                                </div>
-                              ) : (
-                                <span className="dashboard-subtext">{page.error}</span>
-                              )}
-                            </td>
-                            <td data-label={lang === 'nl' ? 'Indexeerbaar' : 'Indexable'}>
-                              <span
-                                className={`dashboard-status-pill ${
-                                  page.indexable ? 'is-good' : 'is-poor'
-                                }`}
-                              >
-                                {page.indexable
-                                  ? lang === 'nl'
-                                    ? 'Ja'
-                                    : 'Yes'
-                                  : lang === 'nl'
-                                    ? 'Geblokkeerd'
-                                    : 'Blocked'}
-                              </span>
-                              {page.issue && (
-                                <div className="dashboard-subtext">{page.issue}</div>
-                              )}
-                            </td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
-                )}
-              </section>
-
-              {/* Part C: Crawlers (robots.txt, sitemap, llms.txt) + DNS / RDAP / Wayback */}
-              <div className="dashboard-grid-2">
-                <section
-                  className="dashboard-panel"
-                  aria-labelledby={`crawlers-heading-${uid}`}
-                >
-                  <h2 id={`crawlers-heading-${uid}`}>{t.crawlersHeading}</h2>
-                  {siteAudit?.ok ? (
-                    <>
-                      <div className="dashboard-badge-row">
-                        {siteAudit.files.map((f) => (
+                  <div className="dashboard-url-checklist">
+                    {siteAudit.pages.map((page) => (
+                      <div
+                        key={page.id}
+                        className={`dashboard-url-row ${
+                          page.indexable ? 'is-ok' : 'is-blocked'
+                        }`}
+                      >
+                        <div className="dashboard-url-main">
                           <span
-                            key={f.id}
+                            className={`dashboard-status-dot ${
+                              page.indexable ? 'is-good' : 'is-poor'
+                            }`}
+                            aria-hidden="true"
+                          />
+                          <code className="dashboard-url-text">{page.url}</code>
+                        </div>
+                        <div className="dashboard-url-status">
+                          <span
                             className={`dashboard-status-pill ${
-                              f.ok ? 'is-good' : 'is-poor'
+                              page.indexable ? 'is-good' : 'is-poor'
                             }`}
                           >
-                            {f.name}: {f.statusCode ? `HTTP ${f.statusCode}` : 'Fout'} (
-                            {f.bytes} B · {f.latencyMs}ms)
+                            {page.statusCode
+                              ? `HTTP ${page.statusCode}`
+                              : 'TLS-fout'}
+                            {page.ttfbMs !== null ? ` · ${page.ttfbMs}ms` : ''}
                           </span>
-                        ))}
+                          <span className="dashboard-url-note">
+                            {page.indexable
+                              ? 'Indexeerbaar'
+                              : page.issue || 'Geblokkeerd'}
+                          </span>
+                        </div>
                       </div>
+                    ))}
+                  </div>
+                )}
+              </div>
 
-                      {siteAudit.robots && (
-                        <>
-                          <h3>Zoekmachine- &amp; AI-bots in live robots.txt</h3>
-                          <div className="dashboard-badge-row">
-                            {siteAudit.robots.botAccess.map((b) => (
-                              <span
-                                key={b.bot}
-                                className={`dashboard-status-pill ${
-                                  b.allowed ? 'is-good' : 'is-poor'
-                                }`}
-                              >
-                                {b.bot}: {b.allowed ? 'Toegestaan' : 'Geblokkeerd'}
-                              </span>
-                            ))}
-                          </div>
-                        </>
+              {/* C. Zoekmachines, AI-bots, RDAP, DNS & PageSpeed samengevat */}
+              <div className="dashboard-subblock">
+                <h3>{t.crawlersTitle}</h3>
+                <div className="dashboard-badge-row">
+                  {siteAudit?.ok &&
+                    siteAudit.files.map((f) => (
+                      <span
+                        key={f.id}
+                        className={`dashboard-status-pill ${
+                          f.ok ? 'is-good' : 'is-poor'
+                        }`}
+                      >
+                        {f.name}: {f.statusCode ? `${f.statusCode}` : 'Fout'}
+                      </span>
+                    ))}
+                  {siteAudit?.ok && siteAudit.robots && (
+                    <span
+                      className={`dashboard-status-pill ${
+                        allowedBotsCount === totalBotsCount ? 'is-good' : 'is-warn'
+                      }`}
+                    >
+                      Bots: {allowedBotsCount}/{totalBotsCount} toegestaan
+                    </span>
+                  )}
+                  {discoveryAudit?.ok && discoveryAudit.rdap?.ok && (
+                    <span className="dashboard-status-pill is-good">
+                      SIDN: {discoveryAudit.rdap.status?.[0] || 'active'} ·{' '}
+                      {discoveryAudit.rdap.dnssecSigned ? 'DNSSEC' : 'No DNSSEC'}
+                    </span>
+                  )}
+                  {discoveryAudit?.ok && discoveryAudit.wayback?.ok && (
+                    <span
+                      className={`dashboard-status-pill ${
+                        discoveryAudit.wayback.available ? 'is-good' : 'is-warn'
+                      }`}
+                    >
+                      Wayback:{' '}
+                      {discoveryAudit.wayback.available
+                        ? formatWaybackTimestamp(discoveryAudit.wayback.timestamp)
+                        : 'Geen'}
+                    </span>
+                  )}
+                </div>
+
+                {/* Inline compacte PageSpeed bar + details */}
+                <div className="dashboard-psi-inline">
+                  <div className="dashboard-psi-inline-controls">
+                    <select
+                      aria-label="PageSpeed URL"
+                      className="automate-select dashboard-select-compact"
+                      value={psiTargetUrl}
+                      onChange={(e) =>
+                        setPsiTargetUrl(e.target.value as PageSpeedTargetUrl)
+                      }
+                    >
+                      <option value="https://greyson.nl/">greyson.nl/</option>
+                      <option value="https://www.greyson.nl/">www.greyson.nl/</option>
+                      <option value="https://greyson.nl/over-mij">greyson.nl/over-mij</option>
+                    </select>
+                    <select
+                      aria-label="PageSpeed apparaat"
+                      className="automate-select dashboard-select-compact"
+                      value={psiStrategy}
+                      onChange={(e) =>
+                        setPsiStrategy(e.target.value as PageSpeedStrategy)
+                      }
+                    >
+                      <option value="mobile">Mobile</option>
+                      <option value="desktop">Desktop</option>
+                    </select>
+                    <button
+                      type="button"
+                      className="dashboard-mini-btn"
+                      disabled={pageSpeedBusy}
+                      onClick={() => void runPageSpeedProbe()}
+                    >
+                      {pageSpeedBusy ? 'Meten...' : 'Meet PageSpeed'}
+                    </button>
+                  </div>
+
+                  {pageSpeedResult?.ok && pageSpeedResult.scores ? (
+                    <div className="dashboard-mini-metrics" style={{ marginTop: '10px' }}>
+                      <div className="dashboard-metric-chip">
+                        <span>SEO</span>
+                        <strong>{pageSpeedResult.scores.seo ?? '—'}</strong>
+                      </div>
+                      <div className="dashboard-metric-chip">
+                        <span>Perf</span>
+                        <strong>{pageSpeedResult.scores.performance ?? '—'}</strong>
+                      </div>
+                      <div className="dashboard-metric-chip">
+                        <span>A11y</span>
+                        <strong>{pageSpeedResult.scores.accessibility ?? '—'}</strong>
+                      </div>
+                      <div className="dashboard-metric-chip">
+                        <span>LCP</span>
+                        <strong>{formatVitalMs(pageSpeedResult.labMetrics?.lcpMs)}</strong>
+                      </div>
+                    </div>
+                  ) : pageSpeedResult && !pageSpeedResult.ok ? (
+                    <p className="dashboard-panel-sub" style={{ marginTop: '8px', color: '#991b1b' }}>
+                      {pageSpeedResult.status === 429
+                        ? 'Google PageSpeed daglimiet bereikt (HTTP 429) — vul GOOGLE_PAGESPEED_API_KEY in .env in voor live Lighthouse & CrUX.'
+                        : pageSpeedResult.error}
+                    </p>
+                  ) : null}
+                </div>
+
+                {/* Technische diepgang netjes ingeklapt zodat hoofdoverzicht schoon blijft */}
+                {(siteAudit?.ok || discoveryAudit?.ok || pageSpeedResult?.ok) && (
+                  <details className="dashboard-details">
+                    <summary>
+                      {lang === 'nl'
+                        ? 'Technische details: DNS, sitemap-URL’s, bots & Lighthouse SEO-checks'
+                        : 'Technical details: DNS, sitemap URLs, bots & Lighthouse SEO'}
+                    </summary>
+
+                    <div className="dashboard-details-stack">
+                      {siteAudit?.ok && siteAudit.robots && (
+                        <div className="dashboard-badge-row">
+                          {siteAudit.robots.botAccess.map((b) => (
+                            <span
+                              key={b.bot}
+                              className={`dashboard-status-pill ${
+                                b.allowed ? 'is-good' : 'is-poor'
+                              }`}
+                            >
+                              {b.bot}: {b.allowed ? 'OK' : 'Blocked'}
+                            </span>
+                          ))}
+                        </div>
                       )}
 
-                      {siteAudit.sitemapUrls.length > 0 && (
+                      {discoveryAudit?.ok && (
                         <div
                           tabIndex={0}
                           role="region"
-                          aria-label="Live sitemap URL status"
+                          aria-label="DNS records"
                           className="dashboard-table-wrap"
                         >
                           <table className="dashboard-table dashboard-responsive-table">
-                            <caption className="sr-only">Sitemap URLs</caption>
+                            <caption className="sr-only">DNS records</caption>
                             <thead>
                               <tr>
-                                <th scope="col">Sitemap URL</th>
-                                <th scope="col">Live status</th>
-                                <th scope="col">Lastmod</th>
+                                <th scope="col">Host</th>
+                                <th scope="col">A / AAAA</th>
+                                <th scope="col">CNAME / TXT</th>
                               </tr>
                             </thead>
                             <tbody>
-                              {siteAudit.sitemapUrls.map((u) => (
-                                <tr key={u.loc}>
+                              {discoveryAudit.dnsHosts.map((host) => (
+                                <tr key={host.host}>
                                   <th scope="row">
-                                    <span className="dashboard-code-pill">{u.loc}</span>
-                                  </th>
-                                  <td data-label="Live status">
-                                    <span
-                                      className={`dashboard-status-pill ${
-                                        u.ok && u.tlsValid ? 'is-good' : 'is-poor'
-                                      }`}
-                                    >
-                                      {u.statusCode ? `HTTP ${u.statusCode}` : 'TLS/Fetch fout'}
+                                    <span className="dashboard-code-pill">
+                                      {host.host}
                                     </span>
-                                    {u.error && (
-                                      <div className="dashboard-subtext">{u.error}</div>
-                                    )}
+                                  </th>
+                                  <td data-label="A / AAAA">
+                                    {[...host.a, ...host.aaaa].join(', ') || '—'}
                                   </td>
-                                  <td data-label="Lastmod">
-                                    {u.lastmod || '—'}
+                                  <td data-label="CNAME / TXT">
+                                    {host.cname.length > 0
+                                      ? host.cname.join(', ')
+                                      : host.txt.length > 0
+                                        ? `${host.txt.length} TXT`
+                                        : '—'}
                                   </td>
                                 </tr>
                               ))}
@@ -2154,548 +1854,446 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({
                           </table>
                         </div>
                       )}
-                    </>
-                  ) : (
-                    <p className="dashboard-empty">
-                      {siteAuditBusy ? t.refreshing : t.noData}
-                    </p>
-                  )}
-                </section>
 
-                <section
-                  className="dashboard-panel"
-                  aria-labelledby={`dns-heading-${uid}`}
-                >
-                  <h2 id={`dns-heading-${uid}`}>{t.dnsRdapHeading}</h2>
-                  {discoveryAudit?.ok ? (
-                    <>
-                      <div className="dashboard-badge-row">
-                        {discoveryAudit.rdap?.ok ? (
-                          <>
-                            <span className="dashboard-status-pill is-good">
-                              SIDN RDAP: {discoveryAudit.rdap.status?.join(', ') || 'active'}
-                            </span>
-                            <span
-                              className={`dashboard-status-pill ${
-                                discoveryAudit.rdap.dnssecSigned ? 'is-good' : 'is-warn'
-                              }`}
-                            >
-                              DNSSEC:{' '}
-                              {discoveryAudit.rdap.dnssecSigned ? 'Signed' : 'Unsigned'}
-                            </span>
-                            <span className="dashboard-badge">
-                              Geregistreerd:{' '}
-                              {formatShortDate(discoveryAudit.rdap.registeredAt || '')}
-                            </span>
-                          </>
-                        ) : discoveryAudit.rdap ? (
-                          <span className="dashboard-status-pill is-warn">
-                            SIDN RDAP: {discoveryAudit.rdap.error || 'Geen respons'}
-                          </span>
-                        ) : null}
-                        {discoveryAudit.wayback?.ok && (
-                          <span
-                            className={`dashboard-status-pill ${
-                              discoveryAudit.wayback.available ? 'is-good' : 'is-warn'
-                            }`}
-                          >
-                            Wayback Machine:{' '}
-                            {discoveryAudit.wayback.available
-                              ? `Snapshot ${formatWaybackTimestamp(
-                                  discoveryAudit.wayback.timestamp
-                                )}`
-                              : 'Nog geen snapshot'}
-                          </span>
-                        )}
-                      </div>
-
-                      {discoveryAudit.rdap?.nameservers &&
-                        discoveryAudit.rdap.nameservers.length > 0 && (
+                      {discoveryAudit?.rdap?.ok &&
+                        discoveryAudit.rdap.registeredAt && (
                           <p className="dashboard-subtext">
-                            Nameservers: {discoveryAudit.rdap.nameservers.join(', ')}
+                            SIDN geregistreerd:{' '}
+                            {formatShortDate(discoveryAudit.rdap.registeredAt)} ·
+                            Nameservers:{' '}
+                            {discoveryAudit.rdap.nameservers?.join(', ') || '—'}
                           </p>
                         )}
 
-                      <div
-                        tabIndex={0}
-                        role="region"
-                        aria-labelledby={`dns-heading-${uid}`}
-                        className="dashboard-table-wrap"
-                      >
-                        <table className="dashboard-table dashboard-responsive-table">
-                          <caption className="sr-only">DNS records</caption>
-                          <thead>
-                            <tr>
-                              <th scope="col">Host</th>
-                              <th scope="col">A / AAAA</th>
-                              <th scope="col">CNAME / TXT</th>
-                            </tr>
-                          </thead>
-                          <tbody>
-                            {discoveryAudit.dnsHosts.map((host) => (
-                              <tr key={host.host}>
-                                <th scope="row">
-                                  <span className="dashboard-code-pill">{host.host}</span>
-                                </th>
-                                <td data-label="A / AAAA">
-                                  {[...host.a, ...host.aaaa].join(', ') || '—'}
-                                </td>
-                                <td data-label="CNAME / TXT">
-                                  {host.cname.length > 0
-                                    ? `CNAME: ${host.cname.join(', ')}`
-                                    : host.txt.length > 0
-                                      ? `${host.txt.length} TXT record(s)`
-                                      : '—'}
-                                </td>
-                              </tr>
+                      {pageSpeedResult?.ok &&
+                        pageSpeedResult.seoAudits &&
+                        pageSpeedResult.seoAudits.length > 0 && (
+                          <div className="dashboard-badge-row">
+                            {pageSpeedResult.seoAudits.map((a) => (
+                              <span
+                                key={a.id}
+                                className={`dashboard-status-pill ${
+                                  a.score === 1 ? 'is-good' : a.score === null ? '' : 'is-poor'
+                                }`}
+                              >
+                                {a.title}: {a.score === 1 ? 'Pass' : a.score === null ? 'Info' : 'Fail'}
+                              </span>
                             ))}
-                          </tbody>
-                        </table>
-                      </div>
-                    </>
-                  ) : (
-                    <p className="dashboard-empty">
-                      {discoveryBusy ? t.refreshing : discoveryAudit?.error || t.noData}
-                    </p>
-                  )}
-                </section>
+                          </div>
+                        )}
+                    </div>
+                  </details>
+                )}
               </div>
-            </div>
+            </section>
           </div>
 
-          {/* TAB 3: PAGESPEED & CRUX */}
-          <div
-            role="tabpanel"
-            id={`panel-pagespeed-${uid}`}
-            aria-labelledby={`tab-pagespeed-${uid}`}
-            hidden={activeTab !== 'pagespeed'}
-          >
-            <div className="dashboard-tabpanel-inner">
-              <section
-                className="dashboard-panel"
-                aria-labelledby={`psi-heading-${uid}`}
-              >
-                <div className="dashboard-panel-head">
-                  <div>
-                    <h2 id={`psi-heading-${uid}`}>{t.pageSpeedHeading}</h2>
-                    <p className="dashboard-panel-sub">
-                      Live Google Lighthouse SEO/Performance scores en echte Chrome UX Report (CrUX) velddata.
-                    </p>
-                  </div>
-                </div>
-
-                <div className="dashboard-psi-controls">
-                  <div className="automate-field">
-                    <label htmlFor={`psi-url-${uid}`}>Doel-URL</label>
-                    <select
-                      id={`psi-url-${uid}`}
-                      name="psiUrl"
-                      className="automate-select"
-                      value={psiTargetUrl}
-                      onChange={(e) =>
-                        setPsiTargetUrl(e.target.value as PageSpeedTargetUrl)
-                      }
-                    >
-                      <option value="https://greyson.nl/">https://greyson.nl/</option>
-                      <option value="https://www.greyson.nl/">https://www.greyson.nl/</option>
-                      <option value="https://greyson.nl/over-mij">https://greyson.nl/over-mij</option>
-                    </select>
-                  </div>
-
-                  <div className="automate-field">
-                    <label htmlFor={`psi-strategy-${uid}`}>Apparaat</label>
-                    <select
-                      id={`psi-strategy-${uid}`}
-                      name="psiStrategy"
-                      className="automate-select"
-                      value={psiStrategy}
-                      onChange={(e) =>
-                        setPsiStrategy(e.target.value as PageSpeedStrategy)
-                      }
-                    >
-                      <option value="mobile">Mobile (Googlebot Smartphone)</option>
-                      <option value="desktop">Desktop</option>
-                    </select>
-                  </div>
-
-                  <button
-                    type="button"
-                    className="automate-btn-primary"
-                    disabled={pageSpeedBusy}
-                    onClick={() => void runPageSpeedProbe()}
-                  >
-                    {pageSpeedBusy ? t.pageSpeedRunning : t.pageSpeedRun}
-                  </button>
-                </div>
-
-                {pageSpeedResult && !pageSpeedResult.ok && (
-                  <div className="automate-form-error" role="alert">
-                    <div>{pageSpeedResult.error}</div>
-                    {pageSpeedResult.status === 429 && (
-                      <div style={{ marginTop: '8px', fontWeight: 500 }}>
-                        Tip: Google PageSpeed geeft zonder eigen API-key snel HTTP 429 op gedeelde IP’s. Voeg hieronder (of in <code>.env</code> als <code>GOOGLE_PAGESPEED_API_KEY</code>) een gratis Google PageSpeed Insights API-key toe.
-                        <div style={{ marginTop: '8px' }}>
-                          <button
-                            type="button"
-                            className="automate-btn-secondary"
-                            onClick={() => setSettingsOpen(true)}
-                          >
-                            Google API-key invullen
-                          </button>
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                )}
-
-                {pageSpeedResult?.ok && pageSpeedResult.scores && (
-                  <>
-                    <div className="dashboard-psi-scores">
-                      <article className="dashboard-kpi-card">
-                        <span className="dashboard-kpi-label">SEO</span>
-                        <span
-                          className={`dashboard-kpi-value ${scoreToneClass(
-                            pageSpeedResult.scores.seo
-                          )}`}
-                        >
-                          {pageSpeedResult.scores.seo ?? '—'}
-                        </span>
-                        <span className="dashboard-kpi-sub">Lighthouse SEO / 100</span>
-                      </article>
-                      <article className="dashboard-kpi-card">
-                        <span className="dashboard-kpi-label">Performance</span>
-                        <span
-                          className={`dashboard-kpi-value ${scoreToneClass(
-                            pageSpeedResult.scores.performance
-                          )}`}
-                        >
-                          {pageSpeedResult.scores.performance ?? '—'}
-                        </span>
-                        <span className="dashboard-kpi-sub">Lighthouse Perf / 100</span>
-                      </article>
-                      <article className="dashboard-kpi-card">
-                        <span className="dashboard-kpi-label">Accessibility</span>
-                        <span
-                          className={`dashboard-kpi-value ${scoreToneClass(
-                            pageSpeedResult.scores.accessibility
-                          )}`}
-                        >
-                          {pageSpeedResult.scores.accessibility ?? '—'}
-                        </span>
-                        <span className="dashboard-kpi-sub">WCAG &amp; A11y / 100</span>
-                      </article>
-                      <article className="dashboard-kpi-card">
-                        <span className="dashboard-kpi-label">Best Practices</span>
-                        <span
-                          className={`dashboard-kpi-value ${scoreToneClass(
-                            pageSpeedResult.scores.bestPractices
-                          )}`}
-                        >
-                          {pageSpeedResult.scores.bestPractices ?? '—'}
-                        </span>
-                        <span className="dashboard-kpi-sub">Security &amp; Web / 100</span>
-                      </article>
-                    </div>
-
-                    <div className="dashboard-grid-2">
-                      <section className="dashboard-panel">
-                        <h3>Lighthouse Lab Web Vitals ({pageSpeedResult.strategy})</h3>
-                        <div className="dashboard-mini-metrics">
-                          <div className="dashboard-metric-chip">
-                            <span>FCP</span>
-                            <strong>{formatVitalMs(pageSpeedResult.labMetrics?.fcpMs)}</strong>
-                          </div>
-                          <div className="dashboard-metric-chip">
-                            <span>LCP</span>
-                            <strong>{formatVitalMs(pageSpeedResult.labMetrics?.lcpMs)}</strong>
-                          </div>
-                          <div className="dashboard-metric-chip">
-                            <span>TBT</span>
-                            <strong>{formatVitalMs(pageSpeedResult.labMetrics?.tbtMs)}</strong>
-                          </div>
-                          <div className="dashboard-metric-chip">
-                            <span>CLS</span>
-                            <strong>{formatCls(pageSpeedResult.labMetrics?.cls)}</strong>
-                          </div>
-                        </div>
-
-                        <h3>Chrome UX Report (CrUX echte gebruikers)</h3>
-                        {pageSpeedResult.fieldData?.origin || pageSpeedResult.fieldData?.page ? (
-                          <div className="dashboard-mini-metrics">
-                            {(() => {
-                              const crux =
-                                pageSpeedResult.fieldData?.page ||
-                                pageSpeedResult.fieldData?.origin;
-                              return (
-                                <>
-                                  <div className="dashboard-metric-chip">
-                                    <span>CrUX Status</span>
-                                    <strong>{crux?.overallCategory || '—'}</strong>
-                                  </div>
-                                  <div className="dashboard-metric-chip">
-                                    <span>LCP (CrUX)</span>
-                                    <strong>{formatVitalMs(crux?.lcpMs)}</strong>
-                                  </div>
-                                  <div className="dashboard-metric-chip">
-                                    <span>INP (CrUX)</span>
-                                    <strong>{formatVitalMs(crux?.inpMs)}</strong>
-                                  </div>
-                                  <div className="dashboard-metric-chip">
-                                    <span>CLS (CrUX)</span>
-                                    <strong>{formatCls(crux?.cls)}</strong>
-                                  </div>
-                                </>
-                              );
-                            })()}
-                          </div>
-                        ) : (
-                          <p className="dashboard-empty">
-                            Google CrUX heeft nog onvoldoende Chrome-verkeer gemeten voor een publiek veldrapport op dit domein.
-                          </p>
-                        )}
-                      </section>
-
-                      <section className="dashboard-panel">
-                        <h3>Lighthouse SEO-audits</h3>
-                        {pageSpeedResult.seoAudits &&
-                        pageSpeedResult.seoAudits.length > 0 ? (
-                          <div
-                            tabIndex={0}
-                            role="region"
-                            aria-label="Lighthouse SEO audits"
-                            className="dashboard-table-wrap"
-                          >
-                            <table className="dashboard-table dashboard-responsive-table">
-                              <caption className="sr-only">Lighthouse SEO audits</caption>
-                              <thead>
-                                <tr>
-                                  <th scope="col">Check</th>
-                                  <th scope="col">Status</th>
-                                </tr>
-                              </thead>
-                              <tbody>
-                                {pageSpeedResult.seoAudits.map((audit) => (
-                                  <tr key={audit.id}>
-                                    <th scope="row">
-                                      {audit.title}
-                                      {audit.displayValue && (
-                                        <div className="dashboard-subtext">
-                                          {audit.displayValue}
-                                        </div>
-                                      )}
-                                    </th>
-                                    <td data-label="Status">
-                                      <span
-                                        className={`dashboard-status-pill ${
-                                          audit.score === 1
-                                            ? 'is-good'
-                                            : audit.score === null
-                                              ? ''
-                                              : 'is-poor'
-                                        }`}
-                                      >
-                                        {audit.score === 1
-                                          ? 'Pass'
-                                          : audit.score === null
-                                            ? audit.scoreDisplayMode || 'Info'
-                                            : 'Fail'}
-                                      </span>
-                                    </td>
-                                  </tr>
-                                ))}
-                              </tbody>
-                            </table>
-                          </div>
-                        ) : (
-                          <p className="dashboard-empty">{t.noData}</p>
-                        )}
-                      </section>
-                    </div>
-                  </>
-                )}
-              </section>
-            </div>
-          </div>
-
-          {/* TAB 4: BEZOEKERS & LIVE EVENTS (POSTHOG) */}
-          <div
-            role="tabpanel"
-            id={`panel-stream-${uid}`}
-            aria-labelledby={`tab-stream-${uid}`}
-            hidden={activeTab !== 'stream'}
-          >
-            <div className="dashboard-tabpanel-inner">
+          {/* BAND 3: Recente Bezoekers & Live Events (PostHog) */}
+          <div className="dashboard-grid-2">
+            <section
+              className="dashboard-panel"
+              aria-labelledby={`dashboard-visitors-heading-${uid}`}
+            >
+              <h2 id={`dashboard-visitors-heading-${uid}`}>
+                {t.visitorsHeading}
+              </h2>
               {!phLive ? (
-                <section className="dashboard-panel">
-                  <h2>{t.connectHeading}</h2>
-                  <p>{t.connectBody}</p>
-                </section>
+                <p className="dashboard-empty">{t.noPosthogData}</p>
+              ) : phLive.visitors.length === 0 ? (
+                <p className="dashboard-empty">{t.noMeasurements}</p>
               ) : (
-                <div className="dashboard-grid-2">
-                  <section
-                    className="dashboard-panel"
-                    aria-labelledby={`dashboard-visitors-heading-${uid}`}
-                  >
-                    <h2 id={`dashboard-visitors-heading-${uid}`}>
-                      {t.visitorsHeading}
-                    </h2>
-                    {phLive.visitors.length === 0 ? (
-                      <p className="dashboard-empty">{t.noData}</p>
-                    ) : (
-                      <div
-                        tabIndex={0}
-                        role="region"
-                        aria-labelledby={`dashboard-visitors-heading-${uid}`}
-                        className="dashboard-table-wrap"
-                      >
-                        <table className="dashboard-table dashboard-responsive-table">
-                          <caption className="sr-only">{t.visitorsHeading}</caption>
-                          <thead>
-                            <tr>
-                              <th scope="col">Visitor / Replay</th>
-                              <th scope="col">{lang === 'nl' ? 'Herkomst' : 'Source'}</th>
-                              <th scope="col">{lang === 'nl' ? 'Locatie' : 'Location'}</th>
-                              <th scope="col">Device / OS</th>
-                              <th scope="col">Entry</th>
-                              <th scope="col">Events</th>
-                            </tr>
-                          </thead>
-                          <tbody>
-                            {phLive.visitors.map((visitor) => (
-                              <tr key={visitor.distinctId}>
-                                <th scope="row">
-                                  <a
-                                    href={`${posthogBaseProjectUrl}/person/${encodeURIComponent(
-                                      visitor.distinctId
-                                    )}`}
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                    className="dashboard-code-pill"
-                                  >
-                                    {visitor.distinctId.slice(0, 14)}
-                                  </a>
-                                  {visitor.sessionId && (
-                                    <div style={{ marginTop: '4px' }}>
-                                      <a
-                                        href={`${posthogBaseProjectUrl}/replay/${encodeURIComponent(
-                                          visitor.sessionId
-                                        )}`}
-                                        target="_blank"
-                                        rel="noopener noreferrer"
-                                        className="automate-inline-link"
-                                        style={{ fontSize: '0.82rem' }}
-                                      >
-                                        Replay ↗
-                                      </a>
-                                    </div>
-                                  )}
-                                </th>
-                                <td data-label={lang === 'nl' ? 'Herkomst' : 'Source'}>
-                                  <div>{visitor.referringDomain}</div>
-                                  <div className="dashboard-subtext">
-                                    {t.channels[visitor.channel]}
-                                  </div>
-                                </td>
-                                <td data-label={lang === 'nl' ? 'Locatie' : 'Location'}>
-                                  {visitor.locationLabel}
-                                  <div className="dashboard-subtext">
-                                    {visitor.timezone}
-                                  </div>
-                                </td>
-                                <td data-label="Device / OS">
-                                  {visitor.deviceType} · {visitor.browser} · {visitor.os}
-                                </td>
-                                <td data-label="Entry">
-                                  <span className="dashboard-code-pill">
-                                    {visitor.subdomain}
-                                    {visitor.entryPath}
-                                  </span>
-                                </td>
-                                <td data-label="Events">
-                                  {visitor.eventCount}
-                                  <div className="dashboard-subtext">
-                                    {formatEventTime(visitor.lastSeen)}
-                                  </div>
-                                </td>
-                              </tr>
-                            ))}
-                          </tbody>
-                        </table>
-                      </div>
-                    )}
-                  </section>
-
-                  <section
-                    className="dashboard-panel"
-                    aria-labelledby={`dashboard-events-heading-${uid}`}
-                  >
-                    <h2 id={`dashboard-events-heading-${uid}`}>
-                      {t.eventsHeading}
-                    </h2>
-                    {phLive.recentEvents.length === 0 ? (
-                      <p className="dashboard-empty">{t.noData}</p>
-                    ) : (
-                      <div
-                        tabIndex={0}
-                        role="region"
-                        aria-labelledby={`dashboard-events-heading-${uid}`}
-                        className="dashboard-table-wrap"
-                      >
-                        <table className="dashboard-table dashboard-responsive-table">
-                          <caption className="sr-only">{t.eventsHeading}</caption>
-                          <thead>
-                            <tr>
-                              <th scope="col">Event</th>
-                              <th scope="col">Route</th>
-                              <th scope="col">Properties</th>
-                              <th scope="col">Time</th>
-                            </tr>
-                          </thead>
-                          <tbody>
-                            {phLive.recentEvents.map((evt) => (
-                              <tr key={evt.id}>
-                                <th scope="row">
-                                  <span className="dashboard-code-pill">
-                                    {evt.event}
-                                  </span>
-                                </th>
-                                <td data-label="Route">
-                                  {evt.host}
-                                  {evt.pathname}
-                                </td>
-                                <td data-label="Properties">
-                                  {formatEventProperties(evt.properties)}
-                                </td>
-                                <td data-label="Time">
-                                  {formatEventTime(evt.timestamp)}
-                                  {evt.sessionId && (
-                                    <div>
-                                      <a
-                                        href={`${posthogBaseProjectUrl}/replay/${encodeURIComponent(
-                                          evt.sessionId
-                                        )}`}
-                                        target="_blank"
-                                        rel="noopener noreferrer"
-                                        className="automate-inline-link"
-                                        style={{ fontSize: '0.8rem' }}
-                                      >
-                                        Replay ↗
-                                      </a>
-                                    </div>
-                                  )}
-                                </td>
-                              </tr>
-                            ))}
-                          </tbody>
-                        </table>
-                      </div>
-                    )}
-                  </section>
+                <div
+                  tabIndex={0}
+                  role="region"
+                  aria-labelledby={`dashboard-visitors-heading-${uid}`}
+                  className="dashboard-table-wrap"
+                >
+                  <table className="dashboard-table dashboard-responsive-table">
+                    <caption className="sr-only">{t.visitorsHeading}</caption>
+                    <thead>
+                      <tr>
+                        <th scope="col">Visitor</th>
+                        <th scope="col">Herkomst</th>
+                        <th scope="col">Locatie</th>
+                        <th scope="col">Entry</th>
+                        <th scope="col">Events</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {phLive.visitors.slice(0, 15).map((visitor) => (
+                        <tr key={visitor.distinctId}>
+                          <th scope="row">
+                            <a
+                              href={`${posthogBaseProjectUrl}/person/${encodeURIComponent(
+                                visitor.distinctId
+                              )}`}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="dashboard-code-pill"
+                            >
+                              {visitor.distinctId.slice(0, 12)}
+                            </a>
+                            {visitor.sessionId && (
+                              <div style={{ marginTop: '4px' }}>
+                                <a
+                                  href={`${posthogBaseProjectUrl}/replay/${encodeURIComponent(
+                                    visitor.sessionId
+                                  )}`}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="automate-inline-link"
+                                  style={{ fontSize: '0.8rem' }}
+                                >
+                                  Replay ↗
+                                </a>
+                              </div>
+                            )}
+                          </th>
+                          <td data-label="Herkomst">
+                            <div>{visitor.referringDomain}</div>
+                            <div className="dashboard-subtext">
+                              {t.channels[visitor.channel]}
+                            </div>
+                          </td>
+                          <td data-label="Locatie">
+                            {visitor.locationLabel}
+                            <div className="dashboard-subtext">
+                              {visitor.deviceType} · {visitor.browser}
+                            </div>
+                          </td>
+                          <td data-label="Entry">
+                            <span className="dashboard-code-pill">
+                              {visitor.subdomain}
+                              {visitor.entryPath}
+                            </span>
+                          </td>
+                          <td data-label="Events">
+                            {visitor.eventCount}
+                            <div className="dashboard-subtext">
+                              {formatEventTime(visitor.lastSeen)}
+                            </div>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
                 </div>
               )}
-            </div>
+            </section>
+
+            <section
+              className="dashboard-panel"
+              aria-labelledby={`dashboard-events-heading-${uid}`}
+            >
+              <h2 id={`dashboard-events-heading-${uid}`}>{t.eventsHeading}</h2>
+              {!phLive ? (
+                <p className="dashboard-empty">{t.noPosthogData}</p>
+              ) : phLive.recentEvents.length === 0 ? (
+                <p className="dashboard-empty">{t.noMeasurements}</p>
+              ) : (
+                <div
+                  tabIndex={0}
+                  role="region"
+                  aria-labelledby={`dashboard-events-heading-${uid}`}
+                  className="dashboard-table-wrap"
+                >
+                  <table className="dashboard-table dashboard-responsive-table">
+                    <caption className="sr-only">{t.eventsHeading}</caption>
+                    <thead>
+                      <tr>
+                        <th scope="col">Event</th>
+                        <th scope="col">Route</th>
+                        <th scope="col">Details</th>
+                        <th scope="col">Tijd</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {phLive.recentEvents.slice(0, 15).map((evt) => (
+                        <tr key={evt.id}>
+                          <th scope="row">
+                            <span className="dashboard-code-pill">
+                              {evt.event}
+                            </span>
+                          </th>
+                          <td data-label="Route">
+                            {evt.host}
+                            {evt.pathname}
+                          </td>
+                          <td data-label="Details">
+                            {formatEventProperties(evt.properties)}
+                          </td>
+                          <td data-label="Tijd">
+                            {formatEventTime(evt.timestamp)}
+                            {evt.sessionId && (
+                              <div>
+                                <a
+                                  href={`${posthogBaseProjectUrl}/replay/${encodeURIComponent(
+                                    evt.sessionId
+                                  )}`}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="automate-inline-link"
+                                  style={{ fontSize: '0.78rem' }}
+                                >
+                                  Replay ↗
+                                </a>
+                              </div>
+                            )}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+            </section>
           </div>
         </main>
+
+        {/* Native <dialog> voor .env & sessiesleutels (dialog guide compliant) */}
+        <dialog
+          ref={settingsDialogRef}
+          className="dashboard-dialog"
+          aria-labelledby={`settings-dialog-title-${uid}`}
+          {...({ closedby: 'any' } as Record<string, string>)}
+          onPointerDown={(e) => {
+            const rect = e.currentTarget.getBoundingClientRect();
+            pointerDownOutsideDialog.current =
+              e.clientX < rect.left ||
+              e.clientX > rect.right ||
+              e.clientY < rect.top ||
+              e.clientY > rect.bottom;
+          }}
+          onPointerUp={(e) => {
+            if (!pointerDownOutsideDialog.current) return;
+            pointerDownOutsideDialog.current = false;
+            const rect = e.currentTarget.getBoundingClientRect();
+            const isOutside =
+              e.clientX < rect.left ||
+              e.clientX > rect.right ||
+              e.clientY < rect.top ||
+              e.clientY > rect.bottom;
+            if (isOutside && !('closedBy' in HTMLDialogElement.prototype)) {
+              closeSettingsDialog();
+            }
+          }}
+        >
+          <div className="dashboard-dialog-inner">
+            <div className="dashboard-panel-head">
+              <h2 id={`settings-dialog-title-${uid}`}>
+                {lang === 'nl'
+                  ? 'Koppelingen (.env & sessiesleutels)'
+                  : 'Connections (.env & session keys)'}
+              </h2>
+              <button
+                type="button"
+                className="dashboard-mini-btn"
+                onClick={closeSettingsDialog}
+              >
+                {lang === 'nl' ? 'Sluiten' : 'Close'}
+              </button>
+            </div>
+
+            <div className="dashboard-env-summary">
+              <p className="dashboard-panel-sub" style={{ marginTop: 0 }}>
+                {lang === 'nl'
+                  ? 'Standaard leest dit lokale dashboard automatisch de velden uit .env (nooit meegebundeld in productie). Vul daar je keys in voor permanente lokale koppeling, of test hieronder tijdelijk:'
+                  : 'By default this local dashboard reads your .env fields automatically (never bundled into dist/). Fill them in .env permanently, or override for this session below:'}
+              </p>
+              <div className="dashboard-badge-row">
+                <span
+                  className={`dashboard-status-pill ${
+                    envStatus.posthogKeyPresent ? 'is-good' : 'is-warn'
+                  }`}
+                >
+                  .env POSTHOG_PERSONAL_API_KEY:{' '}
+                  {envStatus.posthogKeyPresent ? 'Geladen' : 'Leeg'}
+                </span>
+                <span
+                  className={`dashboard-status-pill ${
+                    envStatus.posthogProjectId ? 'is-good' : 'is-warn'
+                  }`}
+                >
+                  POSTHOG_PROJECT_ID:{' '}
+                  {envStatus.posthogProjectId || 'Auto via phc_'}
+                </span>
+                <span
+                  className={`dashboard-status-pill ${
+                    envStatus.hasPageSpeedKey ? 'is-good' : ''
+                  }`}
+                >
+                  .env GOOGLE_PAGESPEED_API_KEY:{' '}
+                  {envStatus.hasPageSpeedKey ? 'Geladen' : 'Optioneel'}
+                </span>
+              </div>
+            </div>
+
+            <form
+              className="automate-form"
+              onSubmit={handleSaveAndFetchConfig}
+              noValidate
+            >
+              <div className="dashboard-config-grid">
+                <div className="automate-field">
+                  <label htmlFor={`ph-region-${uid}`}>PostHog Region</label>
+                  <select
+                    id={`ph-region-${uid}`}
+                    name="region"
+                    className="automate-select"
+                    value={region}
+                    onChange={(e) =>
+                      setRegion(normalizePostHogRegion(e.target.value))
+                    }
+                  >
+                    <option value="eu">EU (eu.posthog.com)</option>
+                    <option value="us">US (us.posthog.com)</option>
+                  </select>
+                </div>
+
+                <div className="automate-field">
+                  <label htmlFor={`ph-project-id-${uid}`}>
+                    Project ID (optioneel bij phx_)
+                  </label>
+                  <input
+                    id={`ph-project-id-${uid}`}
+                    name="projectId"
+                    type="text"
+                    className="automate-input"
+                    autoComplete="off"
+                    autoCorrect="off"
+                    autoCapitalize="none"
+                    spellCheck={false}
+                    maxLength={INPUT_BOUNDS.projectId}
+                    value={projectId}
+                    onChange={(e) => setProjectId(e.target.value)}
+                    placeholder="Auto via token"
+                  />
+                </div>
+
+                <div className="automate-field">
+                  <label htmlFor={`ph-personal-key-${uid}`}>
+                    Personal API Key (phx_...)
+                  </label>
+                  <div className="dashboard-input-with-toggle">
+                    <input
+                      id={`ph-personal-key-${uid}`}
+                      name="personalApiKey"
+                      type={showPersonalKey ? 'text' : 'password'}
+                      className="automate-input"
+                      autoComplete="off"
+                      autoCorrect="off"
+                      autoCapitalize="none"
+                      spellCheck={false}
+                      maxLength={INPUT_BOUNDS.apiKey}
+                      value={personalApiKey}
+                      onChange={(e) => setPersonalApiKey(e.target.value)}
+                      placeholder={
+                        envStatus.posthogKeyPresent
+                          ? '(.env actief)'
+                          : 'phx_...'
+                      }
+                    />
+                    <button
+                      type="button"
+                      className="dashboard-reveal-btn"
+                      aria-pressed={showPersonalKey}
+                      aria-label={
+                        showPersonalKey
+                          ? 'Hide Personal API Key'
+                          : 'Show Personal API Key'
+                      }
+                      onClick={() => setShowPersonalKey((prev) => !prev)}
+                    >
+                      {showPersonalKey ? 'Hide' : 'Show'}
+                    </button>
+                  </div>
+                </div>
+
+                <div className="automate-field">
+                  <label htmlFor={`ph-project-key-${uid}`}>
+                    Project Token (phc_...)
+                  </label>
+                  <input
+                    id={`ph-project-key-${uid}`}
+                    name="projectApiKey"
+                    type="text"
+                    className="automate-input"
+                    autoComplete="off"
+                    autoCorrect="off"
+                    autoCapitalize="none"
+                    spellCheck={false}
+                    maxLength={INPUT_BOUNDS.apiKey}
+                    value={projectApiKey}
+                    onChange={(e) => setProjectApiKey(e.target.value)}
+                    placeholder="phc_..."
+                  />
+                </div>
+
+                <div className="automate-field">
+                  <label htmlFor={`psi-api-key-${uid}`}>
+                    Google PageSpeed Key (optioneel)
+                  </label>
+                  <div className="dashboard-input-with-toggle">
+                    <input
+                      id={`psi-api-key-${uid}`}
+                      name="pageSpeedApiKey"
+                      type={showPsiKey ? 'text' : 'password'}
+                      className="automate-input"
+                      autoComplete="off"
+                      autoCorrect="off"
+                      autoCapitalize="none"
+                      spellCheck={false}
+                      maxLength={INPUT_BOUNDS.apiKey}
+                      value={pageSpeedApiKey}
+                      onChange={(e) => setPageSpeedApiKey(e.target.value)}
+                      placeholder={
+                        envStatus.hasPageSpeedKey
+                          ? '(.env actief)'
+                          : 'AIza...'
+                      }
+                    />
+                    <button
+                      type="button"
+                      className="dashboard-reveal-btn"
+                      aria-pressed={showPsiKey}
+                      aria-label={
+                        showPsiKey
+                          ? 'Hide PageSpeed API Key'
+                          : 'Show PageSpeed API Key'
+                      }
+                      onClick={() => setShowPsiKey((prev) => !prev)}
+                    >
+                      {showPsiKey ? 'Hide' : 'Show'}
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              {settingsFeedback && (
+                <div className="automate-form-status" role="status">
+                  <span>{settingsFeedback}</span>
+                </div>
+              )}
+
+              <div className="automate-form-actions">
+                <button
+                  type="submit"
+                  className="automate-btn-primary"
+                  disabled={posthogBusy}
+                >
+                  {posthogBusy ? t.refreshing : 'Opslaan & Data Ophalen'}
+                </button>
+                <button
+                  type="button"
+                  className="automate-btn-secondary"
+                  onClick={handleClearSessionKeys}
+                >
+                  Sessie-sleutels wissen
+                </button>
+              </div>
+            </form>
+          </div>
+        </dialog>
       </div>
     </div>
   );
