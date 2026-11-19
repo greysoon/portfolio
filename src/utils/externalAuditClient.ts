@@ -215,14 +215,29 @@ export function saveStoredPageSpeedApiKey(rawKey: string): string {
   return clean;
 }
 
+async function readJsonSafe<T>(res: Response): Promise<{ parsed: T | null; parseError: string | null }> {
+  const raw = await res.text();
+  if (!raw) {
+    return { parsed: null, parseError: `Lege serverrespons (HTTP ${res.status}).` };
+  }
+  try {
+    return { parsed: JSON.parse(raw) as T, parseError: null };
+  } catch {
+    return {
+      parsed: null,
+      parseError: `Onverwachte serverrespons (HTTP ${res.status}, geen geldige JSON).`,
+    };
+  }
+}
+
 export async function fetchLiveSiteAudit(): Promise<SiteAuditResult> {
   try {
     const res = await fetch('/__dashboard_api/site-audit', {
       method: 'GET',
       cache: 'no-store',
     });
-    const data = (await res.json()) as SiteAuditResult;
-    if (!res.ok || !data.ok) {
+    const { parsed: data, parseError } = await readJsonSafe<SiteAuditResult>(res);
+    if (!res.ok || !data || !data.ok) {
       return {
         ok: false,
         pages: [],
@@ -230,7 +245,7 @@ export async function fetchLiveSiteAudit(): Promise<SiteAuditResult> {
         robots: null,
         sitemapUrls: [],
         error: sanitizeTelemetryString(
-          data.error || `Live site-audit mislukt (HTTP ${res.status}).`,
+          data?.error || parseError || `Live site-audit mislukt (HTTP ${res.status}).`,
           180
         ),
       };
@@ -257,15 +272,15 @@ export async function fetchLiveDiscoveryAudit(): Promise<DiscoveryAuditResult> {
       method: 'GET',
       cache: 'no-store',
     });
-    const data = (await res.json()) as DiscoveryAuditResult;
-    if (!res.ok || !data.ok) {
+    const { parsed: data, parseError } = await readJsonSafe<DiscoveryAuditResult>(res);
+    if (!res.ok || !data || !data.ok) {
       return {
         ok: false,
         dnsHosts: [],
         rdap: null,
         wayback: null,
         error: sanitizeTelemetryString(
-          data.error || `DNS/RDAP check mislukt (HTTP ${res.status}).`,
+          data?.error || parseError || `DNS/RDAP check mislukt (HTTP ${res.status}).`,
           180
         ),
       };
@@ -301,16 +316,16 @@ export async function fetchLivePageSpeed(
         apiKey: apiKey !== undefined ? apiKey : getStoredPageSpeedApiKey(),
       }),
     });
-    const data = (await res.json()) as PageSpeedResult;
-    if (!res.ok || !data.ok) {
+    const { parsed: data, parseError } = await readJsonSafe<PageSpeedResult>(res);
+    if (!res.ok || !data || !data.ok) {
       return {
         ok: false,
-        status: data.status ?? res.status,
+        status: data?.status ?? res.status,
         url,
         strategy,
-        usedApiKey: Boolean(data.usedApiKey),
+        usedApiKey: Boolean(data?.usedApiKey),
         error: sanitizeTelemetryString(
-          data.error || `PageSpeed API fout (HTTP ${res.status}).`,
+          data?.error || parseError || `PageSpeed API fout (HTTP ${res.status}).`,
           220
         ),
       };

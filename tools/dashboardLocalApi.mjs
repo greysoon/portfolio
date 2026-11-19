@@ -6,6 +6,8 @@ const LOOPBACK_IPS = new Set(['127.0.0.1', '::1', '::ffff:127.0.0.1']);
 const SITE_AUDIT_TARGETS = [
   { id: 'home', label: 'Hoofdpagina (greyson.nl)', url: 'https://greyson.nl/' },
   { id: 'over_mij', label: 'Over mij (/over-mij)', url: 'https://greyson.nl/over-mij' },
+  { id: 'en_home', label: 'English Home (/en)', url: 'https://greyson.nl/en' },
+  { id: 'en_about', label: 'English About (/en/about)', url: 'https://greyson.nl/en/about' },
   { id: 'www', label: 'WWW alias (www.greyson.nl)', url: 'https://www.greyson.nl/' },
   { id: 'automate', label: 'Automate subdomein', url: 'https://automate.greyson.nl/' },
   { id: 'automation', label: 'Automation subdomein', url: 'https://automation.greyson.nl/' },
@@ -667,7 +669,7 @@ async function runDiscoveryAudit() {
   const rdapPromise = (async () => {
     try {
       const res = await fetch('https://rdap.sidn.nl/domain/greyson.nl', {
-        signal: AbortSignal.timeout(6000),
+        signal: AbortSignal.timeout(8000),
       });
       if (!res.ok) {
         return { ok: false, error: `SIDN RDAP HTTP ${res.status}` };

@@ -1,6 +1,4 @@
-import React, { useCallback, useEffect, useState } from 'react';
-import { ConfigProvider, Layout, theme } from 'antd';
-import { siteConfig } from './config/siteConfig';
+import React, { Suspense, lazy, useCallback, useEffect, useState } from 'react';
 import { AutomateLocale } from './config/automateConfig';
 import { initTelemetry, trackInteraction } from './utils/telemetry';
 import {
@@ -8,27 +6,29 @@ import {
   initPostHogBridge,
   isLocalDashboardHost,
 } from './utils/posthogClient';
-import { TypingHeader } from './components/TypingHeader';
-import { LiveAgeBio } from './components/LiveAgeBio';
-import { ContactSection } from './components/ContactSection';
-import { PastelGlobe } from './components/PastelGlobe';
+import { applyDocumentSeoMetadata } from './utils/seoMetadata';
 import { AutomatePage } from './components/AutomatePage';
 import { AboutMePage } from './components/AboutMePage';
-import { AnalyticsDashboard } from './components/AnalyticsDashboard';
 
-const { Content } = Layout;
+const PortfolioView = lazy(() => import('./components/PortfolioView'));
+const AnalyticsDashboard = lazy(() =>
+  import('./components/AnalyticsDashboard').then((m) => ({
+    default: m.AnalyticsDashboard,
+  }))
+);
 
-type ActiveView = 'automate' | 'about' | 'portfolio' | 'dashboard';
-type PortfolioMode = 'about' | 'cv';
+export type ActiveView = 'automate' | 'about' | 'portfolio' | 'dashboard';
+export type PortfolioMode = 'about' | 'cv';
 
-interface RouteResolution {
+export interface RouteResolution {
   view: ActiveView;
   portfolioMode: PortfolioMode;
+  locale: AutomateLocale;
 }
 
-function resolveViewFromLocation(): RouteResolution {
+export function resolveViewFromLocation(): RouteResolution {
   if (typeof window === 'undefined') {
-    return { view: 'automate', portfolioMode: 'about' };
+    return { view: 'automate', portfolioMode: 'about', locale: 'nl' };
   }
 
   const host = window.location.hostname.toLowerCase();
@@ -36,6 +36,7 @@ function resolveViewFromLocation(): RouteResolution {
   const params = new URLSearchParams(window.location.search);
   const site = params.get('site')?.toLowerCase();
   const page = params.get('page')?.toLowerCase();
+  const langParam = params.get('lang')?.toLowerCase();
 
   if (
     isLocalDashboardHost(host) &&
@@ -43,7 +44,7 @@ function resolveViewFromLocation(): RouteResolution {
       path.startsWith('/dashboard') ||
       site === 'dashboard')
   ) {
-    return { view: 'dashboard', portfolioMode: 'about' };
+    return { view: 'dashboard', portfolioMode: 'about', locale: 'en' };
   }
 
   // Dedicated CV / Portfolio DigitalOcean app (cv.greyson.nl / about.greyson.nl / greyson-cv-about)
@@ -59,7 +60,13 @@ function resolveViewFromLocation(): RouteResolution {
     return {
       view: 'portfolio',
       portfolioMode: host.startsWith('about.') && site !== 'cv' ? 'about' : 'cv',
+      locale: 'en',
     };
+  }
+
+  // English About route
+  if (path.startsWith('/en/about') || path.startsWith('/en/over-mij')) {
+    return { view: 'about', portfolioMode: 'about', locale: 'en' };
   }
 
   // Real About Me & Contact page inside the main site (greyson.nl / automation.greyson.nl)
@@ -69,7 +76,16 @@ function resolveViewFromLocation(): RouteResolution {
     site === 'about' ||
     page === 'about'
   ) {
-    return { view: 'about', portfolioMode: 'about' };
+    return {
+      view: 'about',
+      portfolioMode: 'about',
+      locale: langParam === 'en' ? 'en' : 'nl',
+    };
+  }
+
+  // English Home route
+  if (path === '/en' || path.startsWith('/en/')) {
+    return { view: 'automate', portfolioMode: 'about', locale: 'en' };
   }
 
   if (
@@ -78,18 +94,32 @@ function resolveViewFromLocation(): RouteResolution {
     path.startsWith('/automate') ||
     site === 'automate'
   ) {
-    return { view: 'automate', portfolioMode: 'about' };
+    return {
+      view: 'automate',
+      portfolioMode: 'about',
+      locale: langParam === 'en' ? 'en' : 'nl',
+    };
   }
 
   // Default main site: greyson.nl, www.greyson.nl, /
-  return { view: 'automate', portfolioMode: 'about' };
+  return {
+    view: 'automate',
+    portfolioMode: 'about',
+    locale: langParam === 'en' ? 'en' : 'nl',
+  };
 }
 
-export const App: React.FC = () => {
-  const [route, setRoute] = useState<RouteResolution>(() =>
-    resolveViewFromLocation()
+export interface AppProps {
+  initialRoute?: RouteResolution;
+}
+
+export const App: React.FC<AppProps> = ({ initialRoute }) => {
+  const [route, setRoute] = useState<RouteResolution>(
+    () => initialRoute ?? resolveViewFromLocation()
   );
-  const [locale, setLocale] = useState<AutomateLocale>('nl');
+  const [locale, setLocale] = useState<AutomateLocale>(
+    () => initialRoute?.locale ?? resolveViewFromLocation().locale
+  );
   const [introComplete, setIntroComplete] = useState(false);
 
   useEffect(() => {
@@ -99,28 +129,20 @@ export const App: React.FC = () => {
 
   useEffect(() => {
     const handlePopState = () => {
-      setRoute(resolveViewFromLocation());
+      const next = resolveViewFromLocation();
+      setRoute(next);
+      setLocale(next.locale);
     };
     window.addEventListener('popstate', handlePopState);
     return () => window.removeEventListener('popstate', handlePopState);
   }, []);
 
   useEffect(() => {
-    if (route.view === 'dashboard') {
-      document.title = 'Analytics Dashboard — Greyson Automation';
-    } else if (route.view === 'about') {
-      document.title =
-        locale === 'nl'
-          ? 'Over Greyson Beimers — Praktische AI & Software'
-          : 'About Greyson Beimers — Practical AI & Software';
-    } else if (route.view === 'portfolio') {
-      document.title =
-        route.portfolioMode === 'cv'
-          ? siteConfig.cvSummary.title
-          : siteConfig.siteTitle;
-    } else {
-      document.title = 'Greyson Automation — Friesland AI & Workflow Automation';
-    }
+    applyDocumentSeoMetadata({
+      view: route.view,
+      portfolioMode: route.portfolioMode,
+      locale,
+    });
 
     if (route.view !== 'portfolio') {
       setIntroComplete(false);
@@ -130,6 +152,7 @@ export const App: React.FC = () => {
       capturePostHogEvent('$pageview', {
         view: route.view,
         mode: route.view === 'portfolio' ? route.portfolioMode : route.view,
+        lang: locale,
       });
     }
   }, [route.view, route.portfolioMode, locale]);
@@ -139,59 +162,72 @@ export const App: React.FC = () => {
     trackInteraction('intro_complete');
   }, []);
 
-  const navigateToView = useCallback(
-    (nextView: ActiveView, portfolioMode: PortfolioMode = 'about') => {
-      setRoute({ view: nextView, portfolioMode });
-
+  const syncHistoryUrl = useCallback(
+    (
+      nextView: ActiveView,
+      nextPortfolioMode: PortfolioMode,
+      nextLocale: AutomateLocale
+    ) => {
       if (typeof window === 'undefined') return;
-      const host = window.location.hostname.toLowerCase();
-      const isGreysonDomain =
-        host === 'greyson.nl' || host.endsWith('.greyson.nl');
       const url = new URL(window.location.href);
+      const usesQuerySite = url.searchParams.has('site');
 
       if (nextView === 'dashboard') {
-        if (isGreysonDomain) {
+        if (!usesQuerySite) {
           url.pathname = '/dashboard';
           url.searchParams.delete('site');
           url.searchParams.delete('page');
+          url.searchParams.delete('lang');
         } else {
           url.searchParams.set('site', 'dashboard');
           url.searchParams.delete('page');
         }
       } else if (nextView === 'about') {
-        if (isGreysonDomain) {
-          url.pathname = '/over-mij';
+        if (!usesQuerySite) {
+          url.pathname = nextLocale === 'en' ? '/en/about' : '/over-mij';
           url.searchParams.delete('site');
           url.searchParams.delete('page');
+          url.searchParams.delete('lang');
         } else {
           url.searchParams.set('site', 'about');
+          if (nextLocale === 'en') {
+            url.searchParams.set('lang', 'en');
+          } else {
+            url.searchParams.delete('lang');
+          }
           url.searchParams.delete('page');
         }
       } else if (nextView === 'portfolio') {
-        if (isGreysonDomain) {
-          url.pathname = portfolioMode === 'cv' ? '/cv' : '/about';
+        if (!usesQuerySite) {
+          url.pathname = nextPortfolioMode === 'cv' ? '/cv' : '/about';
           url.searchParams.delete('site');
           url.searchParams.delete('page');
         } else {
-          url.searchParams.set('site', portfolioMode === 'cv' ? 'cv' : 'portfolio');
+          url.searchParams.set(
+            'site',
+            nextPortfolioMode === 'cv' ? 'cv' : 'portfolio'
+          );
           url.searchParams.delete('page');
         }
       } else {
-        url.searchParams.delete('site');
-        url.searchParams.delete('page');
-        if (
-          url.pathname.toLowerCase().startsWith('/about') ||
-          url.pathname.toLowerCase().startsWith('/over-mij') ||
-          url.pathname.toLowerCase().startsWith('/cv') ||
-          url.pathname.toLowerCase().startsWith('/dashboard') ||
-          url.pathname.toLowerCase().startsWith('/automate')
-        ) {
-          url.pathname = '/';
+        if (!usesQuerySite) {
+          url.pathname = nextLocale === 'en' ? '/en' : '/';
+          url.searchParams.delete('site');
+          url.searchParams.delete('page');
+          url.searchParams.delete('lang');
+        } else {
+          url.searchParams.set('site', 'automate');
+          if (nextLocale === 'en') {
+            url.searchParams.set('lang', 'en');
+          } else {
+            url.searchParams.delete('lang');
+          }
+          url.searchParams.delete('page');
         }
       }
 
       window.history.pushState(
-        { view: nextView, portfolioMode },
+        { view: nextView, portfolioMode: nextPortfolioMode, locale: nextLocale },
         '',
         url.toString()
       );
@@ -199,62 +235,72 @@ export const App: React.FC = () => {
     []
   );
 
+  const navigateToView = useCallback(
+    (nextView: ActiveView, portfolioMode: PortfolioMode = 'about') => {
+      setRoute({ view: nextView, portfolioMode, locale });
+      syncHistoryUrl(nextView, portfolioMode, locale);
+      if (typeof window !== 'undefined') {
+        window.scrollTo({ top: 0, behavior: 'auto' });
+      }
+    },
+    [locale, syncHistoryUrl]
+  );
+
+  const handleLocaleChange = useCallback(
+    (nextLocale: AutomateLocale) => {
+      setLocale(nextLocale);
+      setRoute((prev) => {
+        syncHistoryUrl(prev.view, prev.portfolioMode, nextLocale);
+        return { ...prev, locale: nextLocale };
+      });
+    },
+    [syncHistoryUrl]
+  );
+
+  const skipLabel =
+    locale === 'nl' && (route.view === 'automate' || route.view === 'about')
+      ? 'Ga naar hoofdinhoud'
+      : 'Skip to main content';
+
   return (
-    <ConfigProvider
-      theme={{
-        algorithm: theme.defaultAlgorithm,
-        token: {
-          colorPrimary: siteConfig.colors.primaryPastelRed,
-          colorInfo: siteConfig.colors.primaryPastelRed,
-          colorLink: siteConfig.colors.primaryPastelRed,
-          colorLinkHover: siteConfig.colors.secondaryPastelRed,
-          colorBgBase: siteConfig.colors.bgBase,
-          colorTextBase: siteConfig.colors.textPrimary,
-          fontFamily: "'Inconsolata', monospace",
-        },
-      }}
-    >
+    <>
       <a href="#main" className="skip-link">
-        Skip to main content
+        {skipLabel}
       </a>
 
       {route.view === 'dashboard' ? (
-        <AnalyticsDashboard onNavigate={navigateToView} />
+        <Suspense
+          fallback={<div className="dashboard-root" aria-busy="true" />}
+        >
+          <AnalyticsDashboard onNavigate={navigateToView} />
+        </Suspense>
       ) : route.view === 'about' ? (
         <AboutMePage
           lang={locale}
-          onLocaleChange={setLocale}
+          onLocaleChange={handleLocaleChange}
           onOpenHome={() => navigateToView('automate')}
           onOpenDashboard={() => navigateToView('dashboard')}
         />
       ) : route.view === 'portfolio' ? (
-        <Layout className="portfolio-layout">
-          <Content className="portfolio-content">
-            <TypingHeader onComplete={handleIntroComplete} />
-
-            <main
-              id="main"
-              tabIndex={-1}
-              className={`main-container ${introComplete ? 'visible' : ''}`}
-            >
-              <LiveAgeBio />
-              <ContactSection
-                isCvView={route.portfolioMode === 'cv'}
-                onOpenAutomate={() => navigateToView('automate')}
-              />
-              <PastelGlobe visible={introComplete} />
-            </main>
-          </Content>
-        </Layout>
+        <Suspense
+          fallback={<div className="portfolio-layout" aria-busy="true" />}
+        >
+          <PortfolioView
+            portfolioMode={route.portfolioMode}
+            introComplete={introComplete}
+            onIntroComplete={handleIntroComplete}
+            onOpenAutomate={() => navigateToView('automate')}
+          />
+        </Suspense>
       ) : (
         <AutomatePage
           lang={locale}
-          onLocaleChange={setLocale}
+          onLocaleChange={handleLocaleChange}
           onOpenAbout={() => navigateToView('about')}
           onOpenDashboard={() => navigateToView('dashboard')}
         />
       )}
-    </ConfigProvider>
+    </>
   );
 };
 

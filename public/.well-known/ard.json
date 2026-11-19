@@ -3,7 +3,7 @@
     {
       "identifier": "urn:air:greyson.nl:docs:llms-context",
       "displayName": "Greyson Automation — AI & Custom Tools Overview (llms.txt)",
-      "type": "text/markdown",
+      "type": "text/markdown; profile=\"urn:air:agent-skills\"",
       "url": "https://greyson.nl/llms.txt",
       "description": "Concise structured guide to Greyson Automation services in Friesland and the Netherlands: 1-day custom web tools, quote and email automation, Excel replacement apps, and internal knowledge assistants.",
       "tags": [
@@ -31,7 +31,7 @@
     {
       "identifier": "urn:air:greyson.nl:docs:llms-full",
       "displayName": "Greyson Automation — Full Bilingual Context (NL & EN)",
-      "type": "text/markdown",
+      "type": "text/markdown; profile=\"urn:air:agent-skills\"",
       "url": "https://greyson.nl/llms-full.txt",
       "description": "Complete Dutch and English reference detailing Greyson Beimers' 3-step workflow mapping approach, four before/after SME case studies, regional coverage in Friesland, and direct contact information.",
       "tags": [

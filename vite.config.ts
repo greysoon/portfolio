@@ -24,15 +24,39 @@ export default defineConfig(({ mode }) => {
       },
     },
     build: {
+      target: 'es2022',
       outDir: 'dist',
       sourcemap: false,
       rollupOptions: {
         output: {
-          manualChunks: {
-            three: ['three'],
-            antd: ['antd', '@ant-design/icons'],
-            vendor: ['react', 'react-dom', 'dayjs', 'posthog-js'],
-            recorder: ['posthog-js/dist/posthog-recorder'],
+          manualChunks(id) {
+            if (!id.includes('node_modules')) return;
+            const normalized = id.replace(/\\/g, '/');
+            if (normalized.includes('/node_modules/three/')) {
+              return 'three';
+            }
+            if (
+              normalized.includes('/node_modules/antd/') ||
+              normalized.includes('/node_modules/@ant-design/') ||
+              normalized.includes('/node_modules/rc-') ||
+              normalized.includes('/node_modules/@rc-component/') ||
+              normalized.includes('/node_modules/dayjs/')
+            ) {
+              return 'antd';
+            }
+            if (normalized.includes('/node_modules/posthog-js/dist/posthog-recorder')) {
+              return 'recorder';
+            }
+            if (normalized.includes('/node_modules/posthog-js/')) {
+              return 'posthog';
+            }
+            if (
+              normalized.includes('/node_modules/react/') ||
+              normalized.includes('/node_modules/react-dom/') ||
+              normalized.includes('/node_modules/scheduler/')
+            ) {
+              return 'vendor';
+            }
           },
         },
       },

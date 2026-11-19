@@ -5,7 +5,8 @@ dist
 *.tsbuildinfo
 backup/
 design/
-scripts/
+scripts/*
+!scripts/prerender.mjs
 .env
 .env.*
 !.env.example

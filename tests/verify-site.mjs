@@ -136,16 +136,25 @@ check('Telemetry', 'src/utils/telemetry.ts exports initTelemetry & trackInteract
 // 5. Accessibility, Reduced-Motion & Component Security Hardening
 // ---------------------------------------------------------------------------
 const appSrc = fs.readFileSync(path.join(rootDir, 'src/App.tsx'), 'utf8');
+const portfolioViewSrc = fs.readFileSync(path.join(rootDir, 'src/components/PortfolioView.tsx'), 'utf8');
 const typingHeaderSrc = fs.readFileSync(path.join(rootDir, 'src/components/TypingHeader.tsx'), 'utf8');
 const liveAgeBioSrc = fs.readFileSync(path.join(rootDir, 'src/components/LiveAgeBio.tsx'), 'utf8');
 const pastelGlobeSrc = fs.readFileSync(path.join(rootDir, 'src/components/PastelGlobe.tsx'), 'utf8');
 const indexCssSrc = fs.readFileSync(path.join(rootDir, 'src/index.css'), 'utf8');
 
-check('Accessibility & UX', 'src/App.tsx renders .skip-link, main#main[tabIndex=-1], and initializes telemetry', () => {
+check('Accessibility & UX', 'src/App.tsx renders .skip-link, initializes telemetry, and all views expose main#main[tabIndex=-1]', () => {
   assert.ok(appSrc.includes('className="skip-link"'), 'Missing .skip-link in App.tsx');
   assert.ok(appSrc.includes('href="#main"'), 'Skip link must target #main');
-  assert.ok(appSrc.includes('tabIndex={-1}'), 'main landmark must have tabIndex={-1}');
   assert.ok(appSrc.includes('initTelemetry()'), 'App.tsx must call initTelemetry()');
+  for (const [label, src] of [
+    ['PortfolioView.tsx', portfolioViewSrc],
+    ['AutomatePage.tsx', fs.readFileSync(path.join(rootDir, 'src/components/AutomatePage.tsx'), 'utf8')],
+    ['AboutMePage.tsx', fs.readFileSync(path.join(rootDir, 'src/components/AboutMePage.tsx'), 'utf8')],
+    ['AnalyticsDashboard.tsx', fs.readFileSync(path.join(rootDir, 'src/components/AnalyticsDashboard.tsx'), 'utf8')],
+  ]) {
+    assert.ok(src.includes('id="main"'), `Missing id="main" in ${label}`);
+    assert.ok(src.includes('tabIndex={-1}'), `Missing tabIndex={-1} on #main in ${label}`);
+  }
 });
 
 check('Accessibility & Security', 'src/components/TypingHeader.tsx clamps stepDenominator to [1, 10] (SEC-01) and respects prefers-reduced-motion', () => {
@@ -254,7 +263,7 @@ check('Light + Red Theme', 'index.css, siteConfig.ts, index.html, App.tsx & Past
   assert.ok(siteConfigSrc.includes("bgBase: '#F7F5F2'"), 'Missing bgBase #F7F5F2 in siteConfig.ts');
   assert.ok(siteConfigSrc.includes("primaryPastelRed: '#D94F48'"), 'Missing primaryPastelRed #D94F48 in siteConfig.ts');
   assert.ok(indexHtml.includes('content="#F7F5F2"'), 'Missing light theme-color #F7F5F2 in index.html');
-  assert.ok(appSrc.includes('theme.defaultAlgorithm'), 'App.tsx must use Ant Design light theme.defaultAlgorithm');
+  assert.ok(portfolioViewSrc.includes('theme.defaultAlgorithm'), 'PortfolioView.tsx must use Ant Design light theme.defaultAlgorithm');
   assert.ok(pastelGlobeSrc.includes('#EFECE6'), 'PastelGlobe.tsx ocean sphere must use warm light stone #EFECE6');
 });
 
@@ -264,7 +273,7 @@ check('Subdomain Routing & CV', 'App.tsx routes greyson.nl/automation to automat
   assert.ok(appSrc.includes("host.startsWith('about.')"), 'App.tsx must route about.*');
   assert.ok(appSrc.includes("host.startsWith('cv.')"), 'App.tsx must route cv.*');
   assert.ok(appSrc.includes("host.startsWith('automation.')"), 'App.tsx must route automation.*');
-  assert.ok(appSrc.includes("return { view: 'automate', portfolioMode: 'about' }"), 'App.tsx default route must be automate');
+  assert.ok(appSrc.includes("view: 'automate'") && appSrc.includes("portfolioMode: 'about'"), 'App.tsx default route must be automate');
   assert.ok(appSrc.includes('initPostHogBridge()'), 'App.tsx must call initPostHogBridge()');
 
   const contactSectionSrc = fs.readFileSync(
@@ -437,6 +446,71 @@ check('Security Ledger', 'All Red Team / Blue Team security controls (SEC-01 thr
   for (const item of secResults) {
     assert.ok(item.remediated, `Security check ${item.id} failed: ${item.title}`);
   }
+});
+
+// ---------------------------------------------------------------------------
+// 10. Multi-Search-Engine SEO, Static Prerendering, Performance Splitting & ARD
+// ---------------------------------------------------------------------------
+check('SEO & Prerendering', 'Prerendered HTML routes exist with route-specific canonicals, hreflang, og:image, visible FAQ & zero heavy preload bloat', () => {
+  const expectedRoutes = [
+    { file: 'index.html', lang: 'nl', canonical: 'https://greyson.nl/', titleIncludes: 'Friesland' },
+    { file: 'over-mij/index.html', lang: 'nl', canonical: 'https://greyson.nl/over-mij', titleIncludes: 'Over Greyson Beimers' },
+    { file: 'about/index.html', lang: 'nl', canonical: 'https://greyson.nl/over-mij', titleIncludes: 'Over Greyson Beimers' },
+    { file: 'en/index.html', lang: 'en', canonical: 'https://greyson.nl/en', titleIncludes: 'Netherlands' },
+    { file: 'en/about/index.html', lang: 'en', canonical: 'https://greyson.nl/en/about', titleIncludes: 'About Greyson Beimers' },
+  ];
+
+  for (const r of expectedRoutes) {
+    const fullPath = path.join(distDir, r.file);
+    assert.ok(fs.existsSync(fullPath), `Missing prerendered route: dist/${r.file}`);
+    const html = fs.readFileSync(fullPath, 'utf8');
+    assert.ok(html.includes(`<html lang="${r.lang}">`), `Wrong html lang in dist/${r.file}`);
+    assert.ok(html.includes(`<link rel="canonical" href="${r.canonical}" />`), `Missing canonical in dist/${r.file}`);
+    assert.ok(html.includes(r.titleIncludes), `Missing expected title in dist/${r.file}`);
+    assert.ok(!html.includes('<div id="root"></div>'), `Empty SPA shell found in dist/${r.file}`);
+    assert.ok(html.includes('<h1'), `Missing prerendered <h1> in dist/${r.file}`);
+    assert.ok(html.includes('property="og:image"'), `Missing og:image in dist/${r.file}`);
+    assert.ok(html.includes('name="twitter:image"'), `Missing twitter:image in dist/${r.file}`);
+    assert.ok(html.includes('name="twitter:card" content="summary_large_image"'), `Missing summary_large_image in dist/${r.file}`);
+    assert.ok(!html.includes('rel="modulepreload" crossorigin href="/assets/three-'), `three chunk should not be modulepreloaded on dist/${r.file}`);
+    assert.ok(!html.includes('rel="modulepreload" crossorigin href="/assets/antd-'), `antd chunk should not be modulepreloaded on dist/${r.file}`);
+    assert.ok(!html.includes('rel="modulepreload" crossorigin href="/assets/recorder-'), `recorder chunk should not be modulepreloaded on dist/${r.file}`);
+  }
+
+  const distHomeHtml = fs.readFileSync(path.join(distDir, 'index.html'), 'utf8');
+  assert.ok(distHomeHtml.includes('id="veelgestelde-vragen"'), 'Missing visible FAQ section on prerendered homepage');
+  assert.ok(distHomeHtml.includes('href="/en"'), 'Missing crawlable /en link on homepage');
+  assert.ok(distHomeHtml.includes('href="/over-mij"'), 'Missing crawlable /over-mij link on homepage');
+  assert.ok(distHomeHtml.includes('<link rel="alternate" hreflang="nl" href="https://greyson.nl/" />'), 'Missing nl hreflang');
+  assert.ok(distHomeHtml.includes('<link rel="alternate" hreflang="en" href="https://greyson.nl/en" />'), 'Missing en hreflang');
+  assert.ok(distHomeHtml.includes('<link rel="alternate" hreflang="x-default" href="https://greyson.nl/" />'), 'Missing x-default hreflang');
+});
+
+check('SEO Assets & ARD', 'Raster PNG OG/icon assets and valid /.well-known/ard.json exist in dist/', () => {
+  for (const asset of [
+    'og-image.png',
+    'og-image-en.png',
+    'apple-touch-icon.png',
+    'icon-192.png',
+    'icon-512.png',
+    'favicon-32x32.png',
+    '.well-known/ard.json',
+  ]) {
+    const fullPath = path.join(distDir, asset);
+    assert.ok(fs.existsSync(fullPath), `Missing build asset: dist/${asset}`);
+    assert.ok(fs.statSync(fullPath).size > 0, `Empty build asset: dist/${asset}`);
+  }
+
+  const ardJson = JSON.parse(fs.readFileSync(path.join(distDir, '.well-known/ard.json'), 'utf8'));
+  assert.ok(Array.isArray(ardJson.entries) && ardJson.entries.length >= 1, 'ard.json must contain entries array');
+  for (const entry of ardJson.entries) {
+    assert.match(entry.identifier, /^urn:air:[a-zA-Z0-9.-]+(:[a-zA-Z0-9._-]+)+$/, 'Invalid ARD identifier URN');
+    assert.ok(entry.displayName && entry.type && entry.url, 'ARD entry missing displayName/type/url');
+  }
+
+  const distSitemap = fs.readFileSync(path.join(distDir, 'sitemap.xml'), 'utf8');
+  assert.ok(distSitemap.includes('https://greyson.nl/en'), 'dist/sitemap.xml must include https://greyson.nl/en');
+  assert.ok(distSitemap.includes('https://greyson.nl/en/about'), 'dist/sitemap.xml must include https://greyson.nl/en/about');
 });
 
 // ---------------------------------------------------------------------------
